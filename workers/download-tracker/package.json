@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "description": "AZInterface isolated download tracker + hosted /v1 custody cycle",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "wrangler": "^4.127.1"
+  }
+}
