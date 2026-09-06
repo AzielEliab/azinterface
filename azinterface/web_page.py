@@ -13,6 +13,10 @@ def home_html(*, views: int = 0, downloads: int = 0, github: dict | None = None,
     v = f"{int(views or 0):,}"
     n = f"{int(downloads or 0):,}"
     local_note = "Local loopback UI (127.0.0.1). " if local else ""
+    counted = HOST if local else ""
+    download_href = f"{counted}/download?asset={ASSET}" if local else f"/download?asset={ASSET}"
+    count_href = f"{counted}/count" if local else "/count"
+    stats_href = f"{counted}/stats" if local else "/stats"
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,7 +76,7 @@ footer a {{ color:var(--gold); }}
   <div class="count">{n}<span>Downloads</span></div>
 </div>
 <div class="btns">
-  <a class="btn primary" href="/download?asset={ASSET}">Download {ASSET}</a>
+  <a class="btn primary" href="{download_href}">Download {ASSET}</a>
   <button class="btn install" id="install-btn" type="button">One-click install</button>
 </div>
 <pre class="iso" id="install-cmd">{INSTALL_LINE}
@@ -81,12 +85,12 @@ Then run: azinterface ui  →  http://127.0.0.1:8880 (this computer only).</pre>
 <strong>Human UI is this page.</strong> AI / MCP path is FragGate only:
 <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code> body <code>{{"slug":"azinterface","op":"…","payload":{{}}}}</code>.
 GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers {gh.get("watchers") or 0}.
-<a href="/count">/count</a> · <a href="/stats">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="/ai">AI / FragGate</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/azhub">AZHub sibling</a></p>
+<a href="{count_href}">/count</a> · <a href="{stats_href}">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="https://aziel-runtime.vibelock.workers.dev/v1/fraggate/list">FragGate list</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/azhub">AZHub (separate software)</a></p>
 
 <div class="grid">
   <div class="card">
     <h2>Site state</h2>
-    <p>PDF cycle: <strong>OFF → [integrity check] → ON</strong>. Also FULL SHUTDOWN and MEMORIAL. Pre-locked until ON after integrity. No cloud-asleep availability.</p>
+    <p>Sealed cycle: <strong>OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL</strong>. One step only. No skip. Living presence only at ON after integrity. No cloud-asleep availability.</p>
     <p>State <span class="badge" id="state-badge">OFF</span> · living <span class="badge" id="live-badge">false</span></p>
     <div class="row">
       <button class="act" data-state="ON" type="button">ON</button>
@@ -150,7 +154,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
 </div>
 
 <footer>
-  {local_note}Interface is CUSTODY. AZHub is a sibling Blank Key — do not collapse them.
+  {local_note}Interface is CUSTODY. AZHub is separate software (Blank Key) under the one FragGate door — do not collapse them.
   Agents use FragGate only:
   <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code>
   <code>{{"slug":"azinterface",…}}</code>

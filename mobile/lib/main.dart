@@ -45,18 +45,34 @@ class _CustodyPageState extends State<CustodyPage> {
     _living = _state == 'ON' && _integrity;
   }
 
+  static const _order = ['OFF', 'integrity', 'ON', 'FULL SHUTDOWN', 'MEMORIAL'];
+
+  int _indexOf(String name) => _order.indexOf(name);
+
   void _setStateName(String next) {
-    if (next == 'ON' && !_integrity) {
+    final wanted = next == 'FULL_SHUTDOWN' ? 'FULL SHUTDOWN' : next;
+    final current = _indexOf(_state);
+    final target = _indexOf(wanted);
+    if (wanted == _state) {
+      setState(() => _witnesses.insert(0, 'unchanged $_state'));
+      return;
+    }
+    if (_state == 'MEMORIAL') {
+      setState(() => _witnesses.insert(0, 'AIH-CYCLE-TERMINAL'));
+      return;
+    }
+    if (target != current + 1) {
+      setState(() => _witnesses.insert(0, 'AIH-CYCLE-LOCKED requested=$wanted'));
+      return;
+    }
+    if (wanted == 'ON' && !_integrity) {
       setState(() {
-        _witnesses.insert(0, 'ON refused — need integrity');
+        _witnesses.insert(0, 'AIH-INTEGRITY-REQUIRED');
       });
       return;
     }
     setState(() {
-      if (_state == 'ON' && next != 'ON') {
-        _integrity = false;
-      }
-      _state = next;
+      _state = wanted;
       _cycle();
       _witnesses.insert(0, 'site_state $_state living=$_living');
     });
@@ -70,7 +86,7 @@ class _CustodyPageState extends State<CustodyPage> {
         padding: const EdgeInsets.all(16),
         children: [
           const Text(
-            'Interface is CUSTODY — never Hub.',
+            'Interface is CUSTODY — never Hub. Separate software from AZHub.',
             style: TextStyle(color: kGold, fontStyle: FontStyle.italic, fontSize: 16),
           ),
           const SizedBox(height: 8),
@@ -91,8 +107,9 @@ class _CustodyPageState extends State<CustodyPage> {
             onPressed: () {
               setState(() {
                 _integrity = true;
+                if (_state == 'OFF') _state = 'integrity';
                 _cycle();
-                _witnesses.insert(0, 'integrity_check ok');
+                _witnesses.insert(0, 'integrity_check ok — no auto-unlock');
               });
             },
             child: const Text('Integrity check'),

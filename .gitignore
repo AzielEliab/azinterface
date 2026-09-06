@@ -9,5 +9,8 @@ node_modules/
 workers/download-tracker/node_modules/
 .wrangler
 .azinterface/
+azinterface_receipts.jsonl
+azinterface_receipts.state.json
+*.state.json
 *.tar.gz
 !workers/download-tracker/public/azinterface-0.1.0.tar.gz

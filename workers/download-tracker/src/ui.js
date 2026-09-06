@@ -78,12 +78,12 @@ Then run: azinterface ui  →  http://127.0.0.1:8880 (this computer only).</pre>
 <strong>Human UI is this page.</strong> AI / MCP path is FragGate only:
 <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code> body <code>{"slug":"azinterface","op":"…","payload":{}}</code>.
 GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watchers || 0}.
-<a href="/count">/count</a> · <a href="/stats">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="/ai">AI / FragGate</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/azhub">AZHub sibling</a></p>
+<a href="/count">/count</a> · <a href="/stats">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="/ai">AI / FragGate</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/azhub">AZHub (separate software)</a></p>
 
 <div class="grid">
   <div class="card">
     <h2>Site state</h2>
-    <p>PDF cycle: <strong>OFF → [integrity check] → ON</strong>. Also FULL SHUTDOWN and MEMORIAL. Pre-locked until ON after integrity. No cloud-asleep availability.</p>
+    <p>Sealed cycle: <strong>OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL</strong>. One step only. No skip. Living presence only at ON after integrity. No cloud-asleep availability.</p>
     <p>State <span class="badge" id="state-badge">OFF</span> · living <span class="badge" id="live-badge">false</span></p>
     <div class="row">
       <button class="act" data-state="ON" type="button">ON</button>
@@ -147,7 +147,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
 </div>
 
 <footer>
-  Interface is CUSTODY. AZHub is a sibling Blank Key — do not collapse them.
+  Interface is CUSTODY. AZHub is separate software (Blank Key) under the one FragGate door — do not collapse them.
   Agents use FragGate only:
   <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code>
   <code>{"slug":"azinterface",…}</code>

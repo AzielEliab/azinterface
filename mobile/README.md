@@ -22,8 +22,9 @@ Xcode.
 
 ## Honest scope
 
-Pre-locked page cycles. Living presence only after ON following
-integrity. Scorched Earth is not a remote wipe.
+Five pre-locked page cycles: OFF → integrity → ON → FULL SHUTDOWN →
+MEMORIAL. One step only. Living presence only at ON after integrity.
+Scorched Earth is not a remote wipe. AZHub is separate software.
 
 ## Desktop package (counted download)
 

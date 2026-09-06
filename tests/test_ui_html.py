@@ -17,5 +17,10 @@ def test_home_html_wires_buttons() -> None:
     assert "withdraw-btn" in html
     assert "PRE-LOCKED" in html
     assert "Never collapse Interface into Hub" in html
+    assert "OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL" in html
+    assert "separate software" in html
     assert "azielcorpuslibrary.net/sigil.png" in html
+    local = home_html(local=True)
+    assert "azinterface-download-tracker.vibelock.workers.dev/download" in local
+    assert "azinterface-download-tracker.vibelock.workers.dev/count" in local
     assert "slug\":\"azinterface\"" in html or "slug=azinterface" in html or '"azinterface"' in html

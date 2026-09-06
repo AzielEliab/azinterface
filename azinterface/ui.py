@@ -57,7 +57,15 @@ class Handler(BaseHTTPRequestHandler):
             self._json(_ENGINE.dispatch(op, {}))
             return
         if path == "/v1/skill":
-            self._json(_ENGINE.skill({}))
+            body = _ENGINE.skill({})
+            text = str(body.get("markdown") or LIMITATION)
+            raw = text.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/markdown; charset=utf-8")
+            self.send_header("Cache-Control", "private, no-store")
+            self.send_header("Content-Length", str(len(raw)))
+            self.end_headers()
+            self.wfile.write(raw)
             return
         self._json({"error": "not found", "limitation": LIMITATION}, 404)
 

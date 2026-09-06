@@ -1,7 +1,7 @@
 """AZInterface (AIH-WP-1.0): custodial operating environment.
 
-Interface is CUSTODY. AZHub is the sibling Blank Key / spatial container.
-Never collapse Interface into Hub.
+Interface is CUSTODY. AZHub is separate software (Blank Key / spatial
+container) under the one FragGate door. Never collapse Interface into Hub.
 
 Author: Aziel Eliab only.
 """

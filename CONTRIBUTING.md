@@ -22,10 +22,12 @@ No network. No ML. Not a remote wipe service.
 ## Ground rules
 
 1. **Interface is CUSTODY.** Do not collapse this product into AZHub
-   (Blank Key / spatial container). Hub stays a sibling.
-2. **Pre-locked page cycles.** Default OFF. ON requires integrity.
-   Do not invent cloud-asleep availability. FULL SHUTDOWN and MEMORIAL
-   stay locked postures.
+   (Blank Key / spatial container). Hub is separate software under the
+   one FragGate door — never a second FragGate engine.
+2. **Pre-locked page cycles.** Sealed order:
+   `OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL`. One step only.
+   Default OFF. ON requires integrity. MEMORIAL is terminal. Do not
+   invent cloud-asleep availability.
 3. **Genesis is one-time.** Display the Genesis Hash Key only. Never
    persist a username.
 4. **Witness list is metadata.** Never serve vault contents. `vault_read`
@@ -36,8 +38,8 @@ No network. No ML. Not a remote wipe service.
    `0.0.0.0`. No telemetry. No CDN.
 7. **Do not mix the download tracker** with any other product's Worker
    or KV. Namespace `AZINTERFACE_DOWNLOADS` only.
-8. **Public identity is Aziel Eliab only.** Do not add GodLock.AZ as an
-   identity label.
+8. **Public identity is Aziel Eliab only.** Do not add GodLock.AZ or any
+   other public name.
 9. New behavior needs a test that fails without the change.
 
 ## Where to change things

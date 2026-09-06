@@ -2,6 +2,8 @@
  * AZInterface (AIH-WP-1.0) hosted engine.
  * Same ops as Python / Worker UI / FragGate slug=azinterface.
  * Interface is CUSTODY. Never collapse into Hub.
+ * Pre-locked cycles: OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL.
+ * AZHub is separate software under the one FragGate door.
  */
 
 export const VERSION = "0.1.0";
@@ -20,7 +22,7 @@ export const AZHUB = "https://github.com/AzielEliab/azhub";
 export const GITHUB = "https://github.com/AzielEliab/azinterface";
 
 export const LIMITATION =
-  "THIS IS: AZInterface (AIH-WP-1.0) — a custodial operating environment (hold / withdraw / witness) with pre-locked page cycles, genesis one-time keying, an integrity loop, AZHome bunker surface, and Scorched Earth as a local stub/advisory only. Interface is CUSTODY. THIS IS NOT: AZHub (Blank Key / spatial container — sibling https://github.com/AzielEliab/azhub). Never collapse Interface into Hub. Hosted Worker never remotely wipes user devices, never stores a username, never serves vault contents, and never claims cloud-asleep availability. Apps do not render as living presence until the operator enables ON after integrity (OFF → [integrity check] → ON; plus FULL SHUTDOWN and MEMORIAL). Author: Aziel Eliab only.";
+  "THIS IS: AZInterface (AIH-WP-1.0) — a custodial operating environment (hold / withdraw / witness) with five pre-locked page cycles (OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL). Cycles cannot be invented, reordered, or skipped. Genesis one-time keying, integrity loop, AZHome bunker surface, and Scorched Earth as a local stub/advisory only. Interface is CUSTODY. Agent path is the one FragGate door (slug=azinterface). THIS IS NOT: AZHub (separate software — Blank Key / spatial container — https://github.com/AzielEliab/azhub). Never collapse Interface into Hub. Never a combined hub+interface product. Hosted Worker never remotely wipes user devices, never stores a username, never serves vault contents, and never claims cloud-asleep availability. Living presence only at ON after integrity. Author: Aziel Eliab only.";
 
 export const LIVE_OPS = [
   "health",
@@ -37,8 +39,41 @@ export const LIVE_OPS = [
   "scorch_local",
 ];
 
-export const STUB_OPS = ["scorch_remote", "scorch", "deanonymize", "vault_read"];
+export const STUB_OPS = [
+  "scorch_remote",
+  "scorch",
+  "deanonymize",
+  "vault_read",
+  "auto_unlock",
+  "ranking",
+  "completeness_detect",
+  "unlock",
+  "complete",
+  "completeness",
+  "rank",
+  "skip_cycle",
+  "invent_cycle",
+];
 export const OPS = [...LIVE_OPS, ...STUB_OPS];
+export const PAGE_CYCLES = Object.freeze(["OFF", "integrity", "ON", "FULL SHUTDOWN", "MEMORIAL"]);
+export const FORBIDDEN_EVENT_KEYS = Object.freeze([
+  "auto_unlock",
+  "autounlock",
+  "autoUnlock",
+  "unlock_auto",
+  "completeness",
+  "completeness_detect",
+  "completeness_event",
+  "complete_event",
+  "ranking",
+  "rank",
+  "scorch_remote",
+  "scorch",
+  "skip_cycle",
+  "invent_cycle",
+]);
+const FORBIDDEN_TEXT =
+  /\b(auto[-_ ]?unlock|completeness([-_ ]detect|[-_ ]?event)?|rank(ing)?|scorch([-_ ]remote)?|skip[-_ ]cycle|invent[-_ ]cycle)\b/i;
 
 export const ALIASES = {
   scorch: "scorch_remote",
@@ -56,8 +91,11 @@ export const ALIASES = {
   integrity: "integrity_check",
 };
 
-export const SITE_STATES = ["OFF", "ON", "FULL_SHUTDOWN", "MEMORIAL"];
+export const SITE_STATES = PAGE_CYCLES;
 export const MODULES = ["azhome", "hold", "withdraw", "witness"];
+const WITNESS_CAP = 64;
+const LABEL_CAP = 160;
+const ID_CAP = 80;
 const GENESIS_DOMAIN = "azinterface|genesis|AIH-WP-1.0";
 const ZERO = "0".repeat(64);
 
@@ -78,48 +116,54 @@ only** on the hosted Worker — never a remote wipe of user devices.
 
 Author: **Aziel Eliab** only.
 
-**THIS IS:** Interface custody. Pre-locked page cycles
-(\`OFF → [integrity check] → ON\`, plus FULL SHUTDOWN and MEMORIAL).
+**THIS IS:** Interface custody. Five pre-locked page cycles
+(\`OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL\`). One step only.
+No skip. No invented cycle. No auto-unlock.
 
-**THIS IS NOT:** AZHub (Blank Key / spatial container — sibling
+**THIS IS NOT:** AZHub (separate software — Blank Key / spatial container —
 https://github.com/AzielEliab/azhub). Never collapse Interface into Hub.
-Not a vault dump. Not a remote wipe service.
+Never a combined hub+interface product. Not a vault dump. Not a remote wipe
+service. Not a separate FragGate door.
 
 Always send \`User-Agent: Mozilla/5.0\`.
 
-**Agent path is FragGate only.** MCP / agents call aziel-runtime — not a
-separate Interface MCP brand.
+**Agent path is the one FragGate door.** MCP / agents call aziel-runtime —
+not a second Interface MCP brand. AZHub and AZInterface are separate
+software under that door.
 
 \`POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call\`
 body \`{"slug":"azinterface","op":"<op>","payload":{}}\`
 
 Same door as MCP \`fraggate_call\` (\`slug=azinterface\`). Kernel:
-https://github.com/AzielEliab/fraggate. Catalog listing lands in a
-sibling aziel-runtime PR. Human chrome uses this Worker \`/v1/{op}\`
-(single-segment local ops only). \`/v1/fraggate/*\` and \`/v1/runtime/*\`
-PROXY to aziel-runtime. \`GET|POST /mcp\` here is a pointer, not a second MCP.
+https://github.com/AzielEliab/fraggate. Catalog is live. Human chrome uses
+this Worker \`/v1/{op}\` (single-segment local ops only). \`/v1/fraggate/*\`
+and \`/v1/runtime/*\` PROXY to aziel-runtime. \`GET|POST /mcp\` here is a
+pointer, not a second MCP.
 
 **Human UI stays on this Worker.** AI path is FragGate + this OpenAPI.
 
-## Safe LIVE ops
+## Catalog LIVE ops (FragGate)
 
 | op | What |
 |----|------|
 | \`health\` | Liveness. Does not increment downloads. |
 | \`skill\` | This markdown. |
-| \`genesis_status\` | Whether one-time keying ran. Hash only. |
-| \`genesis_boot\` | One-time username seed → Genesis Hash Key. Never stores username. |
-| \`site_state_get\` | OFF / ON / FULL_SHUTDOWN / MEMORIAL. |
-| \`site_state_set\` | Set site state. ON requires integrity. |
-| \`integrity_check\` | Integrity loop. Required before ON. |
-| \`witness_list\` | Witness metadata. Never vault contents. |
-| \`page_cycle_status\` | Pre-locked cycle. Living presence only after ON. |
-| \`hold\` / \`withdraw\` | Custody acts. Living presence only. |
-| \`scorch_local\` | Local advisory. Not a remote wipe. |
+| \`genesis_status\` | Cycle seal + optional one-time hash. Username never stored. |
+| \`site_state_get\` | Current cycle: OFF / integrity / ON / FULL SHUTDOWN / MEMORIAL. |
+| \`site_state_set\` | Advance one sealed step only. ON requires integrity. |
+| \`integrity_check\` | Records integrity. Advances OFF → integrity. Does not auto-unlock ON. |
+| \`witness_list\` | Witness metadata. Never vault contents. Never a ranking. |
+| \`page_cycle_status\` | Pre-locked cycle. Living presence only at ON. |
+
+## Local Worker extras (human UI \`/v1\`)
+
+\`genesis_boot\` · \`hold\` · \`withdraw\` · \`scorch_local\`
 
 ## Stub (refuse)
 
-\`scorch_remote\` / \`scorch\` / \`deanonymize\` / \`vault_read\`
+\`scorch_remote\` / \`scorch\` / \`auto_unlock\` / \`unlock\` / \`ranking\` / \`rank\` /
+\`completeness_detect\` / \`complete\` / \`completeness\` / \`skip_cycle\` /
+\`invent_cycle\` / \`deanonymize\` / \`vault_read\`
 
 Works with ChatGPT (GPT Actions / OpenAI), Grok (xAI), Venice, Claude
 (Anthropic), Cursor (MCP), Glama (MCP), Perplexity, Microsoft Copilot /
@@ -162,24 +206,63 @@ export async function genesisHashKey(username) {
   return sha256Hex(`${GENESIS_DOMAIN}|${username}`);
 }
 
-function normalizeState(raw) {
+export function normalizeCycle(raw) {
   if (raw == null) return null;
-  let text = String(raw).trim().toUpperCase().replace(/[ -]/g, "_");
+  const text = String(raw).trim();
+  if (!text) return null;
+  if (PAGE_CYCLES.includes(text)) return text;
+  const folded = text.toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
   const aliases = {
-    FULLSHUTDOWN: "FULL_SHUTDOWN",
-    FULL_STOP: "FULL_SHUTDOWN",
-    SHUTDOWN: "FULL_SHUTDOWN",
-    MEM: "MEMORIAL",
-    OFFLINE: "OFF",
-    ONLINE: "ON",
+    off: "OFF",
+    offline: "OFF",
+    integrity: "integrity",
+    on: "ON",
+    online: "ON",
+    "full shutdown": "FULL SHUTDOWN",
+    fullshutdown: "FULL SHUTDOWN",
+    "full stop": "FULL SHUTDOWN",
+    shutdown: "FULL SHUTDOWN",
+    memorial: "MEMORIAL",
+    mem: "MEMORIAL",
   };
-  text = aliases[text] || text;
-  return SITE_STATES.includes(text) ? text : null;
+  return aliases[folded] || null;
+}
+
+function normalizeState(raw) {
+  return normalizeCycle(raw);
+}
+
+export function cycleIndexOf(name) {
+  return PAGE_CYCLES.indexOf(name);
+}
+
+export function detectForbiddenEvent(payload) {
+  const src = payload && typeof payload === "object" ? payload : {};
+  for (const key of FORBIDDEN_EVENT_KEYS) {
+    if (!Object.prototype.hasOwnProperty.call(src, key)) continue;
+    const val = src[key];
+    if (val === false || val == null || val === "") continue;
+    if (key === "ranking" || key === "rank") return { kind: "ranking", key, code: "AIH-RANKING-REFUSE" };
+    if (key === "scorch_remote" || key === "scorch") return { kind: "scorch_remote", key, code: "AIH-SCORCH-REFUSE" };
+    if (key.includes("complete")) return { kind: "completeness", key, code: "AIH-COMPLETENESS-REFUSE" };
+    if (key === "skip_cycle" || key === "invent_cycle") return { kind: "cycle_skip", key, code: "AIH-CYCLE-LOCKED" };
+    return { kind: "auto_unlock", key, code: "AIH-AUTO-UNLOCK-REFUSE" };
+  }
+  for (const val of Object.values(src)) {
+    if (typeof val !== "string" || !FORBIDDEN_TEXT.test(val)) continue;
+    const text = val.toLowerCase();
+    if (text.includes("complete")) return { kind: "completeness", key: "text", code: "AIH-COMPLETENESS-REFUSE" };
+    if (text.includes("rank")) return { kind: "ranking", key: "text", code: "AIH-RANKING-REFUSE" };
+    if (text.includes("scorch")) return { kind: "scorch_remote", key: "text", code: "AIH-SCORCH-REFUSE" };
+    if (text.includes("skip") || text.includes("invent")) return { kind: "cycle_skip", key, code: "AIH-CYCLE-LOCKED" };
+    return { kind: "auto_unlock", key: "text", code: "AIH-AUTO-UNLOCK-REFUSE" };
+  }
+  return null;
 }
 
 function createState() {
   return {
-    site_state: "OFF",
+    cycle_index: 0,
     integrity_ok: false,
     integrity_ts: null,
     integrity_digest: null,
@@ -199,16 +282,32 @@ export function resetEngine() {
   Object.assign(STATE, next);
 }
 
+function currentCycle(s) {
+  return PAGE_CYCLES[s.cycle_index] || "OFF";
+}
+
 function livingPresence(s) {
-  return s.site_state === "ON" && s.integrity_ok === true;
+  return currentCycle(s) === "ON" && s.integrity_ok === true;
 }
 
 function cyclePosture(s) {
-  if (s.site_state === "FULL_SHUTDOWN") return "FULL_SHUTDOWN";
-  if (s.site_state === "MEMORIAL") return "MEMORIAL";
-  if (s.site_state === "ON" && s.integrity_ok) return "ON";
-  if (s.site_state === "OFF" && s.integrity_ok) return "INTEGRITY";
-  return "OFF";
+  return currentCycle(s);
+}
+
+function cycleView(s) {
+  const current = currentCycle(s);
+  return {
+    pre_locked: true,
+    locked_order: true,
+    skip_forbidden: true,
+    invent_forbidden: true,
+    auto_unlock: false,
+    cycles: PAGE_CYCLES.slice(),
+    current,
+    index: s.cycle_index,
+    next: s.cycle_index < PAGE_CYCLES.length - 1 ? PAGE_CYCLES[s.cycle_index + 1] : null,
+    terminal: current === "MEMORIAL",
+  };
 }
 
 function moduleSurface(s, name) {
@@ -236,23 +335,37 @@ function moduleSurface(s, name) {
 
 function pageCycleSnapshot(s) {
   const living = livingPresence(s);
+  const view = cycleView(s);
   return {
-    site_state: s.site_state,
-    cycle: cyclePosture(s),
-    cycle_path: "OFF → [integrity check] → ON",
-    also: ["FULL_SHUTDOWN", "MEMORIAL"],
+    site_state: currentCycle(s),
+    cycle: view.current,
+    current: view.current,
+    cycle_index: s.cycle_index,
+    cycles: PAGE_CYCLES.slice(),
+    cycle_path: "OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL",
+    page_cycle: view,
+    OFF: view.current === "OFF",
+    integrity: view.current === "integrity",
+    ON: view.current === "ON",
+    "FULL SHUTDOWN": view.current === "FULL SHUTDOWN",
+    MEMORIAL: view.current === "MEMORIAL",
     locked: !living,
-    pre_locked: !living,
+    pre_locked: true,
     living_presence: living,
     integrity_ok: s.integrity_ok,
     integrity_ts: s.integrity_ts,
     genesis_keyed: s.genesis_keyed,
     genesis_hash: s.genesis_hash,
+    genesis_sealed: true,
     cloud_asleep: false,
+    auto_unlock: false,
+    completeness: false,
+    ranking: false,
+    separate_from: "azhub",
     modules: Object.fromEntries(MODULES.map((name) => [name, moduleSurface(s, name)])),
     note: living
       ? "Living presence enabled."
-      : "Pre-locked page cycle. Apps do not render as living presence until the operator enables ON after integrity. No cloud-asleep availability.",
+      : "AIH-WP-1.0 pre-locked page cycles: OFF / integrity / ON / FULL SHUTDOWN / MEMORIAL. One step only. No skip. No cloud-asleep availability.",
   };
 }
 
@@ -312,6 +425,15 @@ function stubRefuse(op, rec) {
     scorch_remote: "Hosted Scorched Earth never remotely wipes user devices. Local stub/advisory only (scorch_local).",
     deanonymize: "AZInterface does not deanonymize. Identity is Aziel Eliab only.",
     vault_read: "Hosted Worker never serves vault contents. Witness list is metadata only.",
+    auto_unlock: "Auto-unlock is refused. Cycles advance one explicit step only.",
+    unlock: "Unlock is refused. ON requires integrity, then an explicit site_state_set.",
+    ranking: "AZInterface does not rank. Witness list is metadata only.",
+    rank: "AZInterface does not rank. Witness list is metadata only.",
+    completeness_detect: "Completeness detection is refused. Hub/Interface stay separate software.",
+    complete: "Completeness is refused.",
+    completeness: "Completeness is refused.",
+    skip_cycle: "Skip is refused. Cycles are sealed: OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL.",
+    invent_cycle: "Invented cycles are refused. Only the five sealed AIH-WP-1.0 cycles exist.",
   };
   return base({
     ok: false,
@@ -326,8 +448,30 @@ function stubRefuse(op, rec) {
 }
 
 export async function dispatch(op, payload, _sessionId) {
+  payload = payload || {};
+  const hit = detectForbiddenEvent(payload);
+  if (hit) {
+    const rec = await appendReceipt(STATE, "forbidden_refuse", { op, event: hit.kind });
+    return base({
+      ok: false,
+      code: hit.code,
+      refused: true,
+      event: hit.kind,
+      op,
+      site_state: currentCycle(STATE),
+      current: currentCycle(STATE),
+      cycles: PAGE_CYCLES.slice(),
+      page_cycle: cycleView(STATE),
+      receipt: rec,
+      display: displayOf("Refused", hit.code, [["op", op], ["event", hit.kind]]),
+    });
+  }
   const name = ALIASES[String(op || "").trim().toLowerCase().replace(/-/g, "_")] || String(op || "").trim().toLowerCase().replace(/-/g, "_");
-  if (!OPS.includes(name)) {
+  if (STUB_OPS.includes(name)) {
+    const rec = await appendReceipt(STATE, "stub_refuse", { op: name });
+    return stubRefuse(name, rec);
+  }
+  if (!LIVE_OPS.includes(name)) {
     return {
       ok: false,
       code: "FG-HALLUC-TOOL",
@@ -340,10 +484,9 @@ export async function dispatch(op, payload, _sessionId) {
     };
   }
   const s = STATE;
-  payload = payload || {};
 
   if (name === "health") {
-    const rec = await appendReceipt(s, "health", { site_state: s.site_state });
+    const rec = await appendReceipt(s, "health", { site_state: currentCycle(s) });
     const cycle = pageCycleSnapshot(s);
     return base({
       ok: true,
@@ -351,7 +494,8 @@ export async function dispatch(op, payload, _sessionId) {
       live_ops: LIVE_OPS,
       stub_ops: STUB_OPS,
       ops: OPS,
-      site_state: s.site_state,
+      site_state: currentCycle(s),
+      current: currentCycle(s),
       living_presence: cycle.living_presence,
       catalog_mcp: FRAGGATE_MCP,
       github: GITHUB,
@@ -359,7 +503,7 @@ export async function dispatch(op, payload, _sessionId) {
       display: displayOf("AZInterface health", "Custodial operating environment. Interface is CUSTODY — not Hub.", [
         ["version", VERSION],
         ["spec", SPEC],
-        ["site_state", s.site_state],
+        ["site_state", currentCycle(s)],
         ["living_presence", cycle.living_presence],
         ["hub_collapse", false],
       ]),
@@ -372,17 +516,23 @@ export async function dispatch(op, payload, _sessionId) {
 
   if (name === "genesis_status") {
     const rec = await appendReceipt(s, "genesis_status", { keyed: s.genesis_keyed });
+    const view = cycleView(s);
     return base({
       ok: true,
       keyed: s.genesis_keyed,
       genesis_keyed: s.genesis_keyed,
       genesis_hash: s.genesis_hash,
+      genesis_sealed: true,
+      cycles_sealed: true,
+      cycles: PAGE_CYCLES.slice(),
+      page_cycle: view,
       username_stored: false,
       one_time: true,
       receipt: rec,
-      display: displayOf("Genesis status", "One-time keying. Hash only. Username is never stored.", [
+      display: displayOf("Genesis status", "Five page cycles sealed at genesis. Username hash is one-time and never stored.", [
         ["keyed", s.genesis_keyed],
         ["genesis_hash", s.genesis_hash || ""],
+        ["genesis_sealed", true],
         ["username_stored", false],
       ]),
     });
@@ -437,69 +587,124 @@ export async function dispatch(op, payload, _sessionId) {
   }
 
   if (name === "site_state_get") {
-    const rec = await appendReceipt(s, "site_state_get", { site_state: s.site_state });
+    const rec = await appendReceipt(s, "site_state_get", { site_state: currentCycle(s) });
     const cycle = pageCycleSnapshot(s);
     return base({
       ok: true,
-      site_state: s.site_state,
-      allowed: SITE_STATES,
+      site_state: currentCycle(s),
+      current: currentCycle(s),
+      allowed: SITE_STATES.slice(),
       living_presence: cycle.living_presence,
       cycle,
+      page_cycle: cycle.page_cycle,
       receipt: rec,
-      display: displayOf("Site state", `Current posture ${s.site_state}. Living presence only after ON following integrity.`, [
-        ["site_state", s.site_state],
+      display: displayOf("Site state", `Current posture ${currentCycle(s)}. Living presence only at ON after integrity.`, [
+        ["site_state", currentCycle(s)],
         ["living_presence", cycle.living_presence],
       ]),
     });
   }
 
   if (name === "site_state_set") {
-    const wanted = normalizeState(payload.state || payload.site_state || payload.to);
+    const wanted = normalizeCycle(payload.cycle || payload.state || payload.site_state || payload.page_cycle || payload.to);
     if (!wanted) {
       return base({
         ok: false,
-        code: "SITE_STATE_UNKNOWN",
-        error: "state must be ON, OFF, FULL_SHUTDOWN, or MEMORIAL",
-        allowed: SITE_STATES,
-        site_state: s.site_state,
+        code: "AIH-CYCLE-UNKNOWN",
+        refused: true,
+        error: "Only the five pre-locked cycles are accepted: OFF, integrity, ON, FULL SHUTDOWN, MEMORIAL.",
+        allowed: PAGE_CYCLES.slice(),
+        site_state: currentCycle(s),
+        current: currentCycle(s),
+        page_cycle: cycleView(s),
+      });
+    }
+    const target = cycleIndexOf(wanted);
+    const current = s.cycle_index;
+    if (target === current) {
+      const rec = await appendReceipt(s, "site_state_set", { unchanged: wanted });
+      const cycle = pageCycleSnapshot(s);
+      return base({
+        ok: true,
+        unchanged: true,
+        site_state: currentCycle(s),
+        current: currentCycle(s),
+        living_presence: cycle.living_presence,
+        cycle,
+        page_cycle: cycle.page_cycle,
+        receipt: rec,
+        display: displayOf("Site state unchanged", `Already ${wanted}.`, [["current", wanted]]),
+      });
+    }
+    if (PAGE_CYCLES[current] === "MEMORIAL") {
+      const rec = await appendReceipt(s, "site_state_set_refused", { wanted, reason: "terminal" });
+      return base({
+        ok: false,
+        code: "AIH-CYCLE-TERMINAL",
+        refused: true,
+        error: "MEMORIAL is terminal. Page cycles stay pre-locked.",
+        site_state: currentCycle(s),
+        current: currentCycle(s),
+        living_presence: false,
+        page_cycle: cycleView(s),
+        receipt: rec,
+        display: displayOf("Memorial is terminal", "Cannot leave MEMORIAL. Cycles stay pre-locked."),
+      });
+    }
+    if (target !== current + 1) {
+      const rec = await appendReceipt(s, "site_state_set_refused", { wanted, reason: "locked_order" });
+      const view = cycleView(s);
+      return base({
+        ok: false,
+        code: "AIH-CYCLE-LOCKED",
+        refused: true,
+        error: "Pre-locked cycles advance one step only. Auto-unlock / skip / invent stay refused.",
+        requested: wanted,
+        site_state: currentCycle(s),
+        current: currentCycle(s),
+        living_presence: false,
+        need_integrity: wanted === "ON" && !s.integrity_ok,
+        page_cycle: view,
+        receipt: rec,
+        display: displayOf("Cycle locked", "OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL. One step only.", [
+          ["current", currentCycle(s)],
+          ["requested", wanted],
+          ["next", view.next || ""],
+        ]),
       });
     }
     if (wanted === "ON" && !s.integrity_ok) {
       const rec = await appendReceipt(s, "site_state_set_refused", { wanted: "ON", reason: "need_integrity" });
       return base({
         ok: false,
-        code: "NEED_INTEGRITY",
-        error: "ON requires a passing integrity check in this cycle. Pre-locked. No cloud-asleep availability.",
-        site_state: s.site_state,
+        code: "AIH-INTEGRITY-REQUIRED",
+        refused: true,
+        error: "ON requires a passing integrity_check. Auto-unlock is refused.",
+        site_state: currentCycle(s),
+        current: currentCycle(s),
         living_presence: false,
         need_integrity: true,
+        page_cycle: cycleView(s),
         receipt: rec,
-        display: displayOf("Integrity required", "OFF → [integrity check] → ON. Living presence is not served until the operator enables ON after integrity.", [
-          ["site_state", s.site_state],
+        display: displayOf("Integrity required", "ON requires a passing integrity check. Integrity does not auto-unlock to ON.", [
+          ["site_state", currentCycle(s)],
           ["integrity_ok", false],
         ]),
       });
     }
-    const prev = s.site_state;
-    s.site_state = wanted;
-    if (prev === "ON" && wanted !== "ON") {
-      s.integrity_ok = false;
-      s.integrity_ts = null;
-      s.integrity_digest = null;
-    }
-    if (wanted === "FULL_SHUTDOWN" || wanted === "MEMORIAL") {
-      s.integrity_ok = false;
-      s.integrity_ts = null;
-      s.integrity_digest = null;
-    }
+    const prev = currentCycle(s);
+    s.cycle_index = target;
     const rec = await appendReceipt(s, "site_state_set", { from: prev, to: wanted, living: livingPresence(s) });
     const cycle = pageCycleSnapshot(s);
     return base({
       ok: true,
-      site_state: s.site_state,
+      advanced: true,
+      site_state: currentCycle(s),
+      current: currentCycle(s),
       previous: prev,
       living_presence: cycle.living_presence,
       cycle,
+      page_cycle: cycle.page_cycle,
       receipt: rec,
       display: displayOf(`Site state ${wanted}`, cycle.living_presence ? "Living presence." : "Locked posture. No living app serve.", [
         ["from", prev],
@@ -514,14 +719,15 @@ export async function dispatch(op, payload, _sessionId) {
       s.integrity_ok = false;
       s.integrity_ts = null;
       s.integrity_digest = null;
-      if (s.site_state === "ON") s.site_state = "OFF";
       const rec = await appendReceipt(s, "integrity_fail", { ok: false });
       return base({
         ok: false,
         code: "INTEGRITY_FAIL",
         integrity_ok: false,
         living_presence: false,
-        site_state: s.site_state,
+        site_state: currentCycle(s),
+        current: currentCycle(s),
+        page_cycle: cycleView(s),
         receipt: rec,
         display: displayOf("Integrity failed", "Cycle remains pre-locked. ON is refused."),
       });
@@ -530,6 +736,20 @@ export async function dispatch(op, payload, _sessionId) {
     s.integrity_ok = true;
     s.integrity_ts = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
     s.integrity_digest = digest;
+    const witnessId = String(payload.witness || payload.witness_id || payload.id || "").trim().slice(0, ID_CAP);
+    const label = String(payload.label || payload.note || "").trim().slice(0, LABEL_CAP);
+    if (witnessId && s.witnesses.length < WITNESS_CAP && !s.witnesses.some((w) => w.id === witnessId)) {
+      s.witnesses.push({
+        id: witnessId,
+        kind: "integrity",
+        label: label || witnessId,
+        hold_id: null,
+        hash: digest,
+        ts: s.integrity_ts,
+        vault_contents: false,
+      });
+    }
+    if (currentCycle(s) === "OFF") s.cycle_index = cycleIndexOf("integrity");
     const rec = await appendReceipt(s, "integrity_check", { ok: true, digest_prefix: digest.slice(0, 16) });
     const cycle = pageCycleSnapshot(s);
     return base({
@@ -537,13 +757,16 @@ export async function dispatch(op, payload, _sessionId) {
       integrity_ok: true,
       integrity_digest: digest,
       integrity_ts: s.integrity_ts,
-      site_state: s.site_state,
+      site_state: currentCycle(s),
+      current: currentCycle(s),
       living_presence: cycle.living_presence,
       cycle,
+      page_cycle: cycle.page_cycle,
+      witnesses: s.witnesses.length,
       receipt: rec,
-      display: displayOf("Integrity passed", "Operator may now enable ON. Living presence is still locked until ON.", [
+      display: displayOf("Integrity passed", "Integrity recorded. Does not auto-unlock to ON.", [
         ["integrity_ok", true],
-        ["site_state", s.site_state],
+        ["current", currentCycle(s)],
         ["digest", digest],
       ]),
     });
@@ -588,7 +811,7 @@ export async function dispatch(op, payload, _sessionId) {
         code: "PRE_LOCKED",
         error: "Hold is a living-presence act. Enable ON after integrity.",
         living_presence: false,
-        site_state: s.site_state,
+        site_state: currentCycle(s),
         receipt: rec,
         display: displayOf("Pre-locked", "Hold does not run until ON after integrity."),
       });
@@ -622,7 +845,7 @@ export async function dispatch(op, payload, _sessionId) {
         code: "PRE_LOCKED",
         error: "Withdraw is a living-presence act. Enable ON after integrity.",
         living_presence: false,
-        site_state: s.site_state,
+        site_state: currentCycle(s),
         receipt: rec,
         display: displayOf("Pre-locked", "Withdraw does not run until ON after integrity."),
       });
