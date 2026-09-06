@@ -10,8 +10,18 @@ URL pattern after deploy (workers.dev + account subdomain, same as sibling produ
 - `GET /download` — counted tarball (HTTP 200 gzip, no 302)
 - `GET /count` — `{views, downloads, total}`
 - `GET /v1/*` — custody ops (does **not** increment downloads)
+- `GET|POST /v1/mesh/*` — PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF)
 
-KV binding `DOWNLOADS` (create `AZINTERFACE_DOWNLOADS` on first deploy). Account `ac575a9b822bea2bed97d0ab73aed238`. Placeholder KV id is OK until first deploy.
+KV binding `DOWNLOADS` (create `AZINTERFACE_DOWNLOADS` on first deploy). Account `ac575a9b822bea2bed97d0ab73aed238`.
+**Parent-deploy note:** `wrangler.toml` still has the `0000…` placeholder KV id.
+A real production id was not in comments/README. Parent must create the
+namespace and replace the id before deploy. Do not invent an id.
+
+Human UI includes a **Live Nodes** strip (QNM-BUILD-1.0
+live|locked|isolated). Radios stay off until runtime enable. AIH-WP-1.3
+spiderweb is local `qnm-node/` — this Worker does not invent a public
+Node Gate. No auto-heal. Not anonymity. Anon-broadcast is not a publish
+path.
 
 Human UI is this Worker. Agent / MCP path is FragGate only:
 `POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call` with

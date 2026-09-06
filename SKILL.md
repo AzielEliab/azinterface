@@ -37,8 +37,12 @@ POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call
 
 Same door as MCP `fraggate_call` (`slug=azinterface`). Kernel:
 https://github.com/AzielEliab/fraggate. Catalog is live. Human chrome uses
-this Worker `/v1/{op}` (single-segment local ops only). `/v1/fraggate/*`
-and `/v1/runtime/*` PROXY to aziel-runtime. `GET|POST /mcp` here is a
+this Worker `/v1/{op}` (single-segment local ops only). `/v1/fraggate/*`,
+`/v1/runtime/*`, and `/v1/mesh/*` PROXY to aziel-runtime (`AZIEL_RUNTIME`
+or HTTPS). Suite mesh is QNM-BUILD-1.0 rollup (live|locked|isolated);
+default OFF until runtime enable. AIH-WP-1.3 spiderweb is local
+`qnm-node/` — not a public Node Gate. No auto-heal. Not anonymity.
+Anon-broadcast is not a publish path. `GET|POST /mcp` here is a
 pointer, not a second MCP.
 
 **Human UI stays on this Worker.** AI path is FragGate + this OpenAPI.

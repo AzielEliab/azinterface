@@ -34,6 +34,21 @@ assert.equal(
   doorTargetUrl("/v1/fraggate/call", "https://azinterface-download-tracker.vibelock.workers.dev/v1/fraggate/call"),
   DEFAULT_RUNTIME_ORIGIN + "/v1/fraggate/call",
 );
+assert.deepEqual(classifyV1Path("/v1/mesh"), {
+  kind: "door",
+  path: "/v1/mesh",
+  originPath: "/v1/mesh",
+});
+assert.deepEqual(classifyV1Path("/v1/mesh/status"), {
+  kind: "door",
+  path: "/v1/mesh/status",
+  originPath: "/v1/mesh/status",
+});
+assert.equal(localOpFromPath("/v1/mesh"), null);
+assert.equal(
+  doorTargetUrl("/v1/mesh/nodes", "https://azinterface-download-tracker.vibelock.workers.dev/v1/mesh/nodes"),
+  DEFAULT_RUNTIME_ORIGIN + "/v1/mesh/nodes",
+);
 
 const engineRefuse = await dispatch("fraggate/call", {});
 assert.equal(engineRefuse.code, "FG-HALLUC-TOOL");
@@ -83,6 +98,69 @@ try {
   assert.equal(healthBody.ok, true);
   assert.equal(healthBody.product, "azinterface");
   assert.equal(healthBody.hub_collapse, false);
+
+  fetches.length = 0;
+  const meshReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/v1/mesh/status", {
+    method: "GET",
+    headers: { "user-agent": "Mozilla/5.0" },
+  });
+  const meshRes = await handleRuntimeApi(meshReq, new URL(meshReq.url), {});
+  const meshBody = await meshRes.json();
+  assert.equal(meshBody.ok, true);
+  assert.equal(meshRes.headers.get("X-Aziel-Door"), "proxy");
+  assert.ok(fetches.some((f) => f.url === DEFAULT_RUNTIME_ORIGIN + "/v1/mesh/status" && f.method === "GET"));
+
+  fetches.length = 0;
+  const boundCalls = [];
+  const meshBoundReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/v1/mesh/nodes", {
+    method: "GET",
+    headers: { "user-agent": "Mozilla/5.0" },
+  });
+  const meshBoundRes = await handleRuntimeApi(meshBoundReq, new URL(meshBoundReq.url), {
+    AZIEL_RUNTIME: {
+      fetch: async (input, init) => {
+        const url = typeof input === "string" ? input : input.url;
+        boundCalls.push({ url, method: (init && init.method) || "GET" });
+        return new Response(JSON.stringify({ ok: true, enabled: false, live_nodes: 0, via: "binding" }), {
+          status: 200,
+          headers: { "content-type": "application/json; charset=utf-8" },
+        });
+      },
+    },
+  });
+  const meshBoundBody = await meshBoundRes.json();
+  assert.equal(meshBoundBody.via, "binding");
+  assert.equal(fetches.length, 0, "AZIEL_RUNTIME binding must win over HTTPS fallback");
+  assert.ok(boundCalls.some((f) => f.url === DEFAULT_RUNTIME_ORIGIN + "/v1/mesh/nodes"));
+
+  const specReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/openapi.json", { method: "GET" });
+  const specRes = await handleRuntimeApi(specReq, new URL(specReq.url), {});
+  const spec = await specRes.json();
+  assert.ok(spec.paths["/v1/mesh"]);
+  assert.ok(spec.paths["/v1/mesh/nodes"]);
+  assert.ok(spec.paths["/v1/mesh/broadcast"]);
+  assert.match(spec.info.description, /\/v1\/mesh/);
+  assert.match(spec.info.description, /QNM-BUILD-1.0/);
+  assert.match(spec.info.description, /qnm-node/);
+
+  const mcpReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/mcp", { method: "GET" });
+  const mcpRes = await handleRuntimeApi(mcpReq, new URL(mcpReq.url), {});
+  const mcp = await mcpRes.json();
+  assert.equal(mcp.mesh.path, "/v1/mesh");
+  assert.equal(mcp.mesh.enabled_default, false);
+  assert.equal(mcp.mesh.node_gate, false);
+  assert.equal(mcp.mesh.auto_heal, false);
+  assert.equal(mcp.mesh.anonymity, false);
+  assert.equal(mcp.mesh.spec, "QNM-BUILD-1.0");
+  assert.match(mcp.mesh.spiderweb, /qnm-node/);
+  assert.match(mcp.mesh.anon_broadcast, /not a publish path/);
+  assert.match(mcp.note, /mesh/);
+
+  const llmsReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/llms.txt", { method: "GET" });
+  const llmsRes = await handleRuntimeApi(llmsReq, new URL(llmsReq.url), {});
+  const llms = await llmsRes.text();
+  assert.match(llms, /\/v1\/mesh/);
+  assert.match(llms, /not a public Node Gate/);
 
   for (const path of ["/count", "/stats", "/download", "/"]) {
     const req = new Request("https://azinterface-download-tracker.vibelock.workers.dev" + path, { method: "GET" });
