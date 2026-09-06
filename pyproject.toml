@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "azinterface"
+version = "0.1.0"
+description = "AZInterface (AIH-WP-1.0): custodial operating environment. Hold / withdraw / witness. Not AZHub. Author Aziel Eliab."
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{name = "Aziel Eliab"}]
+requires-python = ">=3.10"
+keywords = [
+  "azinterface",
+  "custody",
+  "aih-wp-1.0",
+  "genesis",
+  "witness",
+  "azhome",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Intended Audience :: Developers",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4"]
+
+[project.scripts]
+azinterface = "azinterface.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/AzielEliab/azinterface"
+Download = "https://azinterface-download-tracker.vibelock.workers.dev/download?asset=azinterface-0.1.0.tar.gz"
+Issues = "https://github.com/AzielEliab/azinterface/issues"
+Counted-downloads = "https://azinterface-download-tracker.vibelock.workers.dev/"
+Runtime = "https://aziel-runtime.vibelock.workers.dev/"
+FragGate = "https://github.com/AzielEliab/fraggate"
+Library = "https://www.azielcorpuslibrary.net/"
+GodLock = "https://godlock.uk"
+Author = "https://www.azieleliab.com"
+Hub-sibling = "https://github.com/AzielEliab/azhub"
+
+[tool.setuptools.packages.find]
+include = ["azinterface*"]
+
+[tool.setuptools.package-data]
+azinterface = ["web/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
