@@ -51,6 +51,10 @@ pre { white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:#cfc6
 .lock { border:1px dashed var(--gold-dim); color:var(--muted); padding:1rem; border-radius:10px; text-align:center; }
 .lock.on { border-style:solid; color:var(--ivory); }
 .badge { display:inline-block; font-size:.75rem; font-weight:700; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--gold-dim); color:var(--gold); }
+#nodes { display:flex; align-items:center; gap:10px; padding:6px 18px; border-bottom:1px solid var(--gold); background:#0f0f0f; flex-wrap:wrap; color:var(--muted); font-size:12px; }
+#nodes strong { color:var(--gold); font-weight:700; }
+#nodes .off, #nodes .on { color:var(--gold); }
+#nodesList { flex:1; min-width:12rem; }
 footer { padding:12px 18px 28px; color:var(--muted); font-size:.82rem; }
 footer a { color:var(--gold); }
 </style>
@@ -63,6 +67,12 @@ footer a { color:var(--gold); }
     <div class="motto">AIH-WP-1.0 custodial operating environment. Interface is CUSTODY — never Hub. Author: Aziel Eliab only.</div>
   </div>
 </header>
+<div id="nodes">
+  <strong>Live Nodes</strong>
+  <span id="nodesState" class="off">Mesh OFF</span>
+  <span id="nodesRollup"></span>
+  <div id="nodesList">Default off until runtime enable. QNM-BUILD-1.0 rollup live|locked|isolated. AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. Presence only — not anonymity. Anon-broadcast is not a publish path.</div>
+</div>
 <p class="banner">${LIMITATION}</p>
 <div class="nums">
   <div class="count">${v}<span>Views</span></div>
@@ -78,7 +88,7 @@ Then run: azinterface ui  →  http://127.0.0.1:8880 (this computer only).</pre>
 <strong>Human UI is this page.</strong> AI / MCP path is FragGate only:
 <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code> body <code>{"slug":"azinterface","op":"…","payload":{}}</code>.
 GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watchers || 0}.
-<a href="/count">/count</a> · <a href="/stats">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="/ai">AI / FragGate</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/azhub">AZHub (separate software)</a></p>
+<a href="/count">/count</a> · <a href="/stats">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="/ai">AI / FragGate</a> · <a href="/v1/mesh">/v1/mesh</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/azhub">AZHub (separate software)</a></p>
 
 <div class="grid">
   <div class="card">
@@ -153,6 +163,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   <code>{"slug":"azinterface",…}</code>
   — not a second MCP on this Worker
   (<a href="https://github.com/AzielEliab/fraggate">kernel</a>).
+  Suite mesh <code>/v1/mesh/*</code> PROXIES (AZIEL_RUNTIME or HTTPS). Default OFF. QNM-BUILD-1.0 rollup. Not a Node Gate. Not a publish path.
   Compatible clients: ChatGPT, Grok, Venice, Claude, Cursor, Glama, Perplexity, Copilot, Gemini, Mistral, Meta AI, Apple Intelligence, Amazon Q, DuckAssist, You.com, Cohere, plus other MCP/OpenAPI-capable assistants.
   <a href="https://www.azielcorpuslibrary.net/">library</a> ·
   <a href="https://godlock.uk">godlock.uk</a> ·
@@ -236,6 +247,105 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   });
   document.getElementById("cycle-btn").addEventListener("click", refresh);
   refresh();
+  meshBoot();
+
+  var MESH_PRODUCT = "azinterface";
+  var MESH_LABEL = "AZInterface";
+  var MESH_OFF = "Default off until runtime enable. QNM-BUILD-1.0 rollup live|locked|isolated. AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. Presence only — not anonymity. Anon-broadcast is not a publish path.";
+  var meshNodeId = "";
+  var meshBeatAt = 0;
+  function meshRollup(j) {
+    if (j && j.rollup && typeof j.rollup === "object") {
+      var live = Number(j.rollup.live);
+      var locked = Number(j.rollup.locked);
+      var isolated = Number(j.rollup.isolated);
+      if ([live, locked, isolated].some(Number.isFinite)) {
+        return { live: Number.isFinite(live) ? live : 0, locked: Number.isFinite(locked) ? locked : 0, isolated: Number.isFinite(isolated) ? isolated : 0 };
+      }
+    }
+    var nodes = (j && j.nodes) || [];
+    if (!nodes.length) return null;
+    var liveN = 0, lockedN = 0, isolatedN = 0, tagged = false;
+    nodes.forEach(function (n) {
+      var state = String((n && (n.state || n.status || n.mode || n.presence)) || "").toLowerCase();
+      if (!n) return;
+      if (n.isolated === true || state === "isolated") { isolatedN += 1; tagged = true; }
+      else if (n.locked === true || state === "locked") { lockedN += 1; tagged = true; }
+      else if (state === "live" || n.live === true || n.product) { liveN += 1; tagged = true; }
+    });
+    return tagged ? { live: liveN, locked: lockedN, isolated: isolatedN } : null;
+  }
+  function paintMesh(j) {
+    var enabled = !!(j && j.enabled);
+    var stateEl = document.getElementById("nodesState");
+    var rollEl = document.getElementById("nodesRollup");
+    var listEl = document.getElementById("nodesList");
+    if (!stateEl || !rollEl || !listEl) return;
+    if (!enabled) {
+      stateEl.textContent = "Mesh OFF";
+      stateEl.className = "off";
+      rollEl.textContent = "";
+      listEl.textContent = MESH_OFF;
+      meshNodeId = "";
+      return;
+    }
+    stateEl.textContent = "Mesh ON";
+    stateEl.className = "on";
+    var roll = meshRollup(j);
+    rollEl.textContent = roll
+      ? ("live " + roll.live + " · locked " + roll.locked + " · isolated " + roll.isolated)
+      : ((j.live_nodes || 0) + " live");
+    var products = j.products_present || j.products || [];
+    var roster = j.nodes || [];
+    var labels = roster.length
+      ? roster.map(function (n) { return (n && (n.label || n.product || n.node_id)) || ""; }).filter(Boolean)
+      : products;
+    listEl.textContent = labels.length ? labels.join(" · ") : "No live nodes.";
+  }
+  async function meshJson(path, init) {
+    var headers = { "user-agent": "Mozilla/5.0" };
+    if (init && init.method && init.method !== "GET") headers["content-type"] = "application/json";
+    var r = await fetch(path, Object.assign({ headers: headers }, init || {}));
+    return r.json();
+  }
+  async function meshTick() {
+    var status;
+    try { status = await meshJson("/v1/mesh/status"); } catch (e) { return; }
+    var view = status;
+    try {
+      var extra = await meshJson("/v1/mesh/nodes");
+      if (extra && extra.nodes) view = Object.assign({}, status, extra);
+    } catch (e) { /* status is enough */ }
+    paintMesh(view);
+    if (!view || !view.enabled) return;
+    var now = Date.now();
+    if (!meshNodeId) {
+      try {
+        var joined = await meshJson("/v1/mesh/join", { method: "POST", body: JSON.stringify({ product: MESH_PRODUCT, label: MESH_LABEL, presence: "live" }) });
+        meshNodeId = (joined.node_id) || (joined.session && joined.session.node_id) || (joined.node && joined.node.node_id) || "";
+        meshBeatAt = now;
+        if (joined && (joined.nodes || joined.live_nodes != null || joined.rollup)) paintMesh(joined);
+      } catch (e) { /* no auto-heal */ }
+      return;
+    }
+    if (now - meshBeatAt >= 60000) {
+      try {
+        var hb = await meshJson("/v1/mesh/heartbeat", { method: "POST", body: JSON.stringify({ node_id: meshNodeId }) });
+        meshBeatAt = now;
+        if (hb && hb.ok === false && hb.code === "MESH-UNKNOWN-NODE") meshNodeId = "";
+        else if (hb && (hb.nodes || hb.live_nodes != null || hb.rollup)) paintMesh(hb);
+      } catch (e) { /* no auto-heal */ }
+    }
+  }
+  function meshBoot() {
+    meshTick();
+    setInterval(meshTick, 20000);
+    var leave = function () {
+      if (!meshNodeId) return;
+      fetch("/v1/mesh/leave", { method: "POST", headers: { "content-type": "application/json", "user-agent": "Mozilla/5.0" }, body: JSON.stringify({ node_id: meshNodeId }), keepalive: true }).catch(function () {});
+    };
+    window.addEventListener("pagehide", leave);
+  }
 })();
 </script>
 </body>

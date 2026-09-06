@@ -57,7 +57,11 @@ MCP clients already on aziel-runtime call `fraggate_call` with
 AZHub and AZInterface are separate software under that one door.
 
 Worker `/v1/{op}` is the **human UI backend** (single-segment local ops).
-`/v1/fraggate/*` and `/v1/runtime/*` **PROXY** to aziel-runtime.
+`/v1/fraggate/*`, `/v1/runtime/*`, and `/v1/mesh/*` **PROXY** to
+aziel-runtime (`AZIEL_RUNTIME` or HTTPS). Suite mesh is QNM-BUILD-1.0
+rollup (live|locked|isolated); default OFF until runtime enable.
+AIH-WP-1.3 spiderweb is local `qnm-node/` — not a public Node Gate.
+No auto-heal. Not anonymity. Anon-broadcast is not a publish path.
 `GET|POST /mcp` and `/openapi.json` document those ops and **point at
 FragGate** — they are not a second agent brand.
 
@@ -107,6 +111,7 @@ URL pattern (same as sibling Aziel Eliab products):
 | `/v1/{op}` | Human UI backend — single-segment local ops only |
 | `/v1/fraggate/*` | PROXY to aziel-runtime FragGate door |
 | `/v1/runtime/*` | PROXY aliases (`list`/`call` → `/v1/fraggate/list`/`call`) |
+| `/v1/mesh/*` | PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF) |
 
 - Homepage: [https://azinterface-download-tracker.vibelock.workers.dev/](https://azinterface-download-tracker.vibelock.workers.dev/)
 - Direct tarball: [azinterface-0.1.0.tar.gz](https://azinterface-download-tracker.vibelock.workers.dev/download?asset=azinterface-0.1.0.tar.gz)
@@ -134,6 +139,7 @@ Every control calls a real `/v1` handler (same op agents call). No dead buttons.
 | Cycle | `POST /v1/page_cycle_status` | `page_cycle_status` |
 | Scorched Earth local | `POST /v1/scorch_local` | `scorch_local` (advisory) |
 | Remote wipe | `POST /v1/scorch_remote` | stub refuse |
+| Live Nodes strip | `GET /v1/mesh/status` (proxy) | QNM-BUILD-1.0 rollup; default OFF |
 
 Prove locally (after `pip install -e ".[dev]"`):
 
@@ -167,6 +173,7 @@ pip install -e ".[dev]"
 python -m pytest -q
 node tests/test_worker_engine.mjs
 node tests/test_worker_door.mjs
+node tests/test_worker_ui_mesh.mjs
 azinterface doctor
 ```
 

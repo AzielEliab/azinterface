@@ -14,6 +14,7 @@ pip install -e ".[dev]"
 python -m pytest -q
 node tests/test_worker_engine.mjs
 node tests/test_worker_door.mjs
+node tests/test_worker_ui_mesh.mjs
 ```
 
 Python 3.10+. Engine is stdlib only. pytest is the dev extra.
