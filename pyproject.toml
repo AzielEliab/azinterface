@@ -46,7 +46,7 @@ FragGate = "https://github.com/AzielEliab/fraggate"
 Library = "https://www.azielcorpuslibrary.net/"
 GodLock = "https://godlock.uk"
 Author = "https://www.azieleliab.com"
-Hub-sibling = "https://github.com/AzielEliab/azhub"
+AZHub = "https://github.com/AzielEliab/azhub"
 
 [tool.setuptools.packages.find]
 include = ["azinterface*"]

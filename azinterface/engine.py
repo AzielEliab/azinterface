@@ -1,13 +1,17 @@
 """AZInterface engine — same ops for CLI, Worker /v1, OpenAPI, and FragGate.
 
 Interface is CUSTODY. Never collapse into Hub.
-Pre-locked page cycles: OFF → [integrity check] → ON.
-FULL SHUTDOWN and MEMORIAL are locked postures.
-Living presence is served only after explicit ON following integrity.
+AIH-WP-1.0 pre-locked page cycles (sealed order, one step only):
+OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL.
+Living presence is served only at ON after integrity.
+AZHub is separate software under the one FragGate door.
 """
 
 from __future__ import annotations
 
+import json
+import re
+from pathlib import Path
 from typing import Any
 
 from .meta import (
@@ -31,10 +35,14 @@ from .meta import (
 )
 from .receipts import Ledger, sha256_text
 
-SITE_STATES = ("OFF", "ON", "FULL_SHUTDOWN", "MEMORIAL")
-LOCKED_STATES = ("OFF", "FULL_SHUTDOWN", "MEMORIAL")
-CYCLE_POSTURES = ("OFF", "INTEGRITY", "ON", "FULL_SHUTDOWN", "MEMORIAL")
+PAGE_CYCLES = ("OFF", "integrity", "ON", "FULL SHUTDOWN", "MEMORIAL")
+SITE_STATES = PAGE_CYCLES
+LOCKED_STATES = ("OFF", "integrity", "FULL SHUTDOWN", "MEMORIAL")
+CYCLE_POSTURES = PAGE_CYCLES
 MODULES = ("azhome", "hold", "withdraw", "witness")
+WITNESS_CAP = 64
+LABEL_CAP = 160
+ID_CAP = 80
 
 LIVE_OPS = (
     "health",
@@ -56,6 +64,32 @@ STUB_OPS = (
     "scorch",
     "deanonymize",
     "vault_read",
+    "auto_unlock",
+    "ranking",
+    "completeness_detect",
+    "unlock",
+    "complete",
+    "completeness",
+    "rank",
+    "skip_cycle",
+    "invent_cycle",
+)
+
+FORBIDDEN_EVENT_KEYS = (
+    "auto_unlock",
+    "autounlock",
+    "autoUnlock",
+    "unlock_auto",
+    "completeness",
+    "completeness_detect",
+    "completeness_event",
+    "complete_event",
+    "ranking",
+    "rank",
+    "scorch_remote",
+    "scorch",
+    "skip_cycle",
+    "invent_cycle",
 )
 
 OPS = LIVE_OPS + STUB_OPS
@@ -96,27 +130,92 @@ def genesis_hash_key(username: str) -> str:
 
 
 def normalize_state(raw: Any) -> str | None:
+    """Accept AIH-WP-1.0 cycle names plus Worker UI aliases (FULL_SHUTDOWN)."""
+    return normalize_cycle(raw)
+
+
+def normalize_cycle(raw: Any) -> str | None:
     if raw is None:
         return None
-    text = str(raw).strip().upper().replace(" ", "_").replace("-", "_")
+    text = str(raw).strip()
+    if not text:
+        return None
+    if text in PAGE_CYCLES:
+        return text
+    folded = text.lower().replace("_", " ").replace("-", " ")
+    folded = " ".join(folded.split())
     aliases = {
-        "FULLSHUTDOWN": "FULL_SHUTDOWN",
-        "FULL_STOP": "FULL_SHUTDOWN",
-        "SHUTDOWN": "FULL_SHUTDOWN",
-        "MEM": "MEMORIAL",
-        "OFFLINE": "OFF",
-        "ONLINE": "ON",
+        "off": "OFF",
+        "offline": "OFF",
+        "integrity": "integrity",
+        "on": "ON",
+        "online": "ON",
+        "full shutdown": "FULL SHUTDOWN",
+        "fullshutdown": "FULL SHUTDOWN",
+        "full stop": "FULL SHUTDOWN",
+        "shutdown": "FULL SHUTDOWN",
+        "memorial": "MEMORIAL",
+        "mem": "MEMORIAL",
     }
-    text = aliases.get(text, text)
-    return text if text in SITE_STATES else None
+    return aliases.get(folded)
+
+
+def cycle_index(name: str) -> int:
+    try:
+        return PAGE_CYCLES.index(name)
+    except ValueError:
+        return -1
+
+
+def detect_forbidden_event(payload: dict[str, Any] | None) -> dict[str, str] | None:
+    src = payload if isinstance(payload, dict) else {}
+    for key in FORBIDDEN_EVENT_KEYS:
+        if key not in src:
+            continue
+        val = src[key]
+        if val is False or val is None or val == "":
+            continue
+        if key in ("ranking", "rank"):
+            return {"kind": "ranking", "key": key, "code": "AIH-RANKING-REFUSE"}
+        if key in ("scorch_remote", "scorch"):
+            return {"kind": "scorch_remote", "key": key, "code": "AIH-SCORCH-REFUSE"}
+        if "complete" in key:
+            return {"kind": "completeness", "key": key, "code": "AIH-COMPLETENESS-REFUSE"}
+        if key in ("skip_cycle", "invent_cycle"):
+            return {"kind": "cycle_skip", "key": key, "code": "AIH-CYCLE-LOCKED"}
+        return {"kind": "auto_unlock", "key": key, "code": "AIH-AUTO-UNLOCK-REFUSE"}
+    banned = re.compile(
+        r"\b(auto[-_ ]?unlock|completeness([-_ ]detect|[-_ ]?event)?|rank(ing)?|"
+        r"scorch([-_ ]remote)?|skip[-_ ]cycle|invent[-_ ]cycle)\b",
+        re.I,
+    )
+    for val in src.values():
+        if not isinstance(val, str) or not banned.search(val):
+            continue
+        text = val.lower()
+        if "complete" in text:
+            return {"kind": "completeness", "key": "text", "code": "AIH-COMPLETENESS-REFUSE"}
+        if "rank" in text:
+            return {"kind": "ranking", "key": "text", "code": "AIH-RANKING-REFUSE"}
+        if "scorch" in text:
+            return {"kind": "scorch_remote", "key": "text", "code": "AIH-SCORCH-REFUSE"}
+        if "skip" in text or "invent" in text:
+            return {"kind": "cycle_skip", "key": "text", "code": "AIH-CYCLE-LOCKED"}
+        return {"kind": "auto_unlock", "key": "text", "code": "AIH-AUTO-UNLOCK-REFUSE"}
+    return None
 
 
 class Engine:
-    """In-process custodial engine. Ephemeral session; optional JSONL receipts."""
+    """In-process custodial engine. Optional JSONL receipts + companion state file."""
 
-    def __init__(self, ledger: Ledger | None = None) -> None:
+    def __init__(
+        self,
+        ledger: Ledger | None = None,
+        state_path: str | Path | None = None,
+    ) -> None:
         self.ledger = ledger or Ledger()
-        self.site_state = "OFF"
+        self.state_path = Path(state_path) if state_path else None
+        self.cycle_index = 0
         self.integrity_ok = False
         self.integrity_ts: str | None = None
         self.integrity_digest: str | None = None
@@ -124,6 +223,49 @@ class Engine:
         self.genesis_keyed = False
         self.holds: list[dict[str, Any]] = []
         self.witnesses: list[dict[str, Any]] = []
+        self._load_state()
+
+    @property
+    def site_state(self) -> str:
+        return PAGE_CYCLES[self.cycle_index]
+
+    def _load_state(self) -> None:
+        if not self.state_path or not self.state_path.exists():
+            return
+        try:
+            data = json.loads(self.state_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return
+        if not isinstance(data, dict):
+            return
+        idx = data.get("cycle_index")
+        if isinstance(idx, int) and 0 <= idx < len(PAGE_CYCLES):
+            self.cycle_index = idx
+        self.integrity_ok = bool(data.get("integrity_ok"))
+        self.integrity_ts = data.get("integrity_ts")
+        self.integrity_digest = data.get("integrity_digest")
+        self.genesis_hash = data.get("genesis_hash")
+        self.genesis_keyed = bool(data.get("genesis_keyed"))
+        if isinstance(data.get("holds"), list):
+            self.holds = list(data["holds"])
+        if isinstance(data.get("witnesses"), list):
+            self.witnesses = list(data["witnesses"])
+
+    def _save_state(self) -> None:
+        if not self.state_path:
+            return
+        payload = {
+            "cycle_index": self.cycle_index,
+            "integrity_ok": self.integrity_ok,
+            "integrity_ts": self.integrity_ts,
+            "integrity_digest": self.integrity_digest,
+            "genesis_hash": self.genesis_hash,
+            "genesis_keyed": self.genesis_keyed,
+            "holds": self.holds,
+            "witnesses": self.witnesses,
+        }
+        self.state_path.parent.mkdir(parents=True, exist_ok=True)
+        self.state_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     def _receipt(self, action: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
         return self.ledger.append(action, payload or {})
@@ -163,15 +305,23 @@ class Engine:
         return self.site_state == "ON" and self.integrity_ok is True
 
     def cycle_posture(self) -> str:
-        if self.site_state == "FULL_SHUTDOWN":
-            return "FULL_SHUTDOWN"
-        if self.site_state == "MEMORIAL":
-            return "MEMORIAL"
-        if self.site_state == "ON" and self.integrity_ok:
-            return "ON"
-        if self.site_state == "OFF" and self.integrity_ok:
-            return "INTEGRITY"
-        return "OFF"
+        return self.site_state
+
+    def cycle_view(self) -> dict[str, Any]:
+        current = self.site_state
+        nxt = PAGE_CYCLES[self.cycle_index + 1] if self.cycle_index < len(PAGE_CYCLES) - 1 else None
+        return {
+            "pre_locked": True,
+            "locked_order": True,
+            "skip_forbidden": True,
+            "invent_forbidden": True,
+            "auto_unlock": False,
+            "cycles": list(PAGE_CYCLES),
+            "current": current,
+            "index": self.cycle_index,
+            "next": nxt,
+            "terminal": current == "MEMORIAL",
+        }
 
     def locked(self) -> bool:
         return not self.living_presence()
@@ -200,26 +350,39 @@ class Engine:
         }
 
     def page_cycle_snapshot(self) -> dict[str, Any]:
-        posture = self.cycle_posture()
+        view = self.cycle_view()
         living = self.living_presence()
         return {
             "site_state": self.site_state,
-            "cycle": posture,
-            "cycle_path": "OFF → [integrity check] → ON",
-            "also": ["FULL_SHUTDOWN", "MEMORIAL"],
+            "cycle": view["current"],
+            "current": view["current"],
+            "cycle_index": self.cycle_index,
+            "cycles": list(PAGE_CYCLES),
+            "cycle_path": "OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL",
+            "page_cycle": view,
+            "OFF": view["current"] == "OFF",
+            "integrity": view["current"] == "integrity",
+            "ON": view["current"] == "ON",
+            "FULL SHUTDOWN": view["current"] == "FULL SHUTDOWN",
+            "MEMORIAL": view["current"] == "MEMORIAL",
             "locked": not living,
-            "pre_locked": not living,
+            "pre_locked": True,
             "living_presence": living,
             "integrity_ok": self.integrity_ok,
             "integrity_ts": self.integrity_ts,
             "genesis_keyed": self.genesis_keyed,
             "genesis_hash": self.genesis_hash,
+            "genesis_sealed": True,
             "cloud_asleep": False,
+            "auto_unlock": False,
+            "completeness": False,
+            "ranking": False,
+            "separate_from": "azhub",
             "modules": {name: self.module_surface(name) for name in MODULES},
             "note": (
                 "Living presence enabled."
                 if living
-                else "Pre-locked page cycle. Apps do not render as living presence until the operator enables ON after integrity. No cloud-asleep availability."
+                else "AIH-WP-1.0 pre-locked page cycles: OFF / integrity / ON / FULL SHUTDOWN / MEMORIAL. One step only. No skip. No cloud-asleep availability."
             ),
         }
 
@@ -260,20 +423,26 @@ class Engine:
 
     def genesis_status(self, _payload: dict[str, Any] | None = None) -> dict[str, Any]:
         rec = self._receipt("genesis_status", {"keyed": self.genesis_keyed})
+        view = self.cycle_view()
         return self._base(
             ok=True,
             keyed=self.genesis_keyed,
             genesis_keyed=self.genesis_keyed,
             genesis_hash=self.genesis_hash,
+            genesis_sealed=True,
+            cycles_sealed=True,
+            cycles=list(PAGE_CYCLES),
+            page_cycle=view,
             username_stored=False,
             one_time=True,
             receipt=rec,
             display=display_of(
                 "Genesis status",
-                "One-time keying. Hash only. Username is never stored.",
+                "Five page cycles sealed at genesis. Username hash is one-time and never stored.",
                 [
                     ("keyed", self.genesis_keyed),
                     ("genesis_hash", self.genesis_hash or ""),
+                    ("genesis_sealed", True),
                     ("username_stored", False),
                 ],
             ),
@@ -312,6 +481,7 @@ class Engine:
         self.genesis_hash = digest
         self.genesis_keyed = True
         rec = self._receipt("genesis_boot", {"keyed": True, "hash_prefix": digest[:16]})
+        self._save_state()
         return self._base(
             ok=True,
             keyed=True,
@@ -347,50 +517,104 @@ class Engine:
 
     def site_state_set(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
         payload = payload or {}
-        wanted = normalize_state(payload.get("state") or payload.get("site_state") or payload.get("to"))
+        wanted = normalize_cycle(
+            payload.get("cycle") or payload.get("state") or payload.get("site_state") or payload.get("page_cycle") or payload.get("to")
+        )
         if not wanted:
             return self._base(
                 ok=False,
-                code="SITE_STATE_UNKNOWN",
-                error="state must be ON, OFF, FULL_SHUTDOWN, or MEMORIAL",
-                allowed=list(SITE_STATES),
+                code="AIH-CYCLE-UNKNOWN",
+                refused=True,
+                error="Only the five pre-locked cycles are accepted: OFF, integrity, ON, FULL SHUTDOWN, MEMORIAL.",
+                allowed=list(PAGE_CYCLES),
                 site_state=self.site_state,
+                current=self.site_state,
+                page_cycle=self.cycle_view(),
+            )
+        target = cycle_index(wanted)
+        current = self.cycle_index
+        if target == current:
+            rec = self._receipt("site_state_set", {"unchanged": wanted})
+            cycle = self.page_cycle_snapshot()
+            return self._base(
+                ok=True,
+                unchanged=True,
+                site_state=self.site_state,
+                current=self.site_state,
+                living_presence=cycle["living_presence"],
+                cycle=cycle,
+                page_cycle=cycle["page_cycle"],
+                receipt=rec,
+                display=display_of("Site state unchanged", f"Already {wanted}.", [("current", wanted)]),
+            )
+        if PAGE_CYCLES[current] == "MEMORIAL":
+            rec = self._receipt("site_state_set_refused", {"wanted": wanted, "reason": "terminal"})
+            return self._base(
+                ok=False,
+                code="AIH-CYCLE-TERMINAL",
+                refused=True,
+                error="MEMORIAL is terminal. Page cycles stay pre-locked.",
+                site_state=self.site_state,
+                current=self.site_state,
+                living_presence=False,
+                page_cycle=self.cycle_view(),
+                receipt=rec,
+                display=display_of("Memorial is terminal", "Cannot leave MEMORIAL. Cycles stay pre-locked."),
+            )
+        if target != current + 1:
+            rec = self._receipt("site_state_set_refused", {"wanted": wanted, "reason": "locked_order"})
+            view = self.cycle_view()
+            return self._base(
+                ok=False,
+                code="AIH-CYCLE-LOCKED",
+                refused=True,
+                error="Pre-locked cycles advance one step only. Auto-unlock / skip / invent stay refused.",
+                requested=wanted,
+                site_state=self.site_state,
+                current=self.site_state,
+                living_presence=False,
+                need_integrity=wanted == "ON" and not self.integrity_ok,
+                page_cycle=view,
+                receipt=rec,
+                display=display_of(
+                    "Cycle locked",
+                    "OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL. One step only.",
+                    [("current", self.site_state), ("requested", wanted), ("next", view["next"] or "")],
+                ),
             )
         if wanted == "ON" and not self.integrity_ok:
             rec = self._receipt("site_state_set_refused", {"wanted": "ON", "reason": "need_integrity"})
             return self._base(
                 ok=False,
-                code="NEED_INTEGRITY",
-                error="ON requires a passing integrity check in this cycle. Pre-locked. No cloud-asleep availability.",
+                code="AIH-INTEGRITY-REQUIRED",
+                refused=True,
+                error="ON requires a passing integrity_check. Auto-unlock is refused.",
                 site_state=self.site_state,
+                current=self.site_state,
                 living_presence=False,
                 need_integrity=True,
+                page_cycle=self.cycle_view(),
                 receipt=rec,
                 display=display_of(
                     "Integrity required",
-                    "OFF → [integrity check] → ON. Living presence is not served until the operator enables ON after integrity.",
+                    "ON requires a passing integrity check. Integrity does not auto-unlock to ON.",
                     [("site_state", self.site_state), ("integrity_ok", False)],
                 ),
             )
         prev = self.site_state
-        self.site_state = wanted
-        if prev == "ON" and wanted != "ON":
-            # Leaving living presence closes the cycle. ON again needs a fresh integrity check.
-            self.integrity_ok = False
-            self.integrity_ts = None
-            self.integrity_digest = None
-        if wanted in ("FULL_SHUTDOWN", "MEMORIAL"):
-            self.integrity_ok = False
-            self.integrity_ts = None
-            self.integrity_digest = None
+        self.cycle_index = target
         rec = self._receipt("site_state_set", {"from": prev, "to": wanted, "living": self.living_presence()})
+        self._save_state()
         cycle = self.page_cycle_snapshot()
         return self._base(
             ok=True,
+            advanced=True,
             site_state=self.site_state,
+            current=self.site_state,
             previous=prev,
             living_presence=cycle["living_presence"],
             cycle=cycle,
+            page_cycle=cycle["page_cycle"],
             receipt=rec,
             display=display_of(
                 f"Site state {wanted}",
@@ -406,8 +630,6 @@ class Engine:
             self.integrity_ok = False
             self.integrity_ts = None
             self.integrity_digest = None
-            if self.site_state == "ON":
-                self.site_state = "OFF"
             rec = self._receipt("integrity_fail", {"ok": False})
             return self._base(
                 ok=False,
@@ -415,6 +637,8 @@ class Engine:
                 integrity_ok=False,
                 living_presence=False,
                 site_state=self.site_state,
+                current=self.site_state,
+                page_cycle=self.cycle_view(),
                 receipt=rec,
                 display=display_of("Integrity failed", "Cycle remains pre-locked. ON is refused."),
             )
@@ -426,7 +650,24 @@ class Engine:
 
         self.integrity_ts = now_iso()
         self.integrity_digest = digest
+        witness_id = str(payload.get("witness") or payload.get("witness_id") or payload.get("id") or "").strip()[:ID_CAP]
+        label = str(payload.get("label") or payload.get("note") or "").strip()[:LABEL_CAP]
+        if witness_id and len(self.witnesses) < WITNESS_CAP and not any(w.get("id") == witness_id for w in self.witnesses):
+            self.witnesses.append(
+                {
+                    "id": witness_id,
+                    "kind": "integrity",
+                    "label": label or witness_id,
+                    "hold_id": None,
+                    "hash": digest,
+                    "ts": self.integrity_ts,
+                    "vault_contents": False,
+                }
+            )
+        if self.site_state == "OFF":
+            self.cycle_index = cycle_index("integrity")
         rec = self._receipt("integrity_check", {"ok": True, "digest_prefix": digest[:16]})
+        self._save_state()
         cycle = self.page_cycle_snapshot()
         return self._base(
             ok=True,
@@ -434,13 +675,16 @@ class Engine:
             integrity_digest=digest,
             integrity_ts=self.integrity_ts,
             site_state=self.site_state,
+            current=self.site_state,
             living_presence=cycle["living_presence"],
             cycle=cycle,
+            page_cycle=cycle["page_cycle"],
+            witnesses=len(self.witnesses),
             receipt=rec,
             display=display_of(
                 "Integrity passed",
-                "Operator may now enable ON. Living presence is still locked until ON.",
-                [("integrity_ok", True), ("site_state", self.site_state), ("digest", digest)],
+                "Integrity recorded. Does not auto-unlock to ON.",
+                [("integrity_ok", True), ("current", self.site_state), ("digest", digest)],
             ),
         )
 
@@ -455,9 +699,10 @@ class Engine:
                 "Page cycle",
                 cycle["note"],
                 [
-                    ("site_state", cycle["site_state"]),
+                    ("current", cycle["current"]),
                     ("cycle", cycle["cycle"]),
                     ("living_presence", cycle["living_presence"]),
+                    ("next", (cycle["page_cycle"] or {}).get("next") or ""),
                     ("cloud_asleep", False),
                 ],
             ),
@@ -516,6 +761,7 @@ class Engine:
         }
         self.holds.append(row)
         witness = self._witness_row("hold", hold_id, {"label_hash": label_hash})
+        self._save_state()
         return self._base(
             ok=True,
             hold=row,
@@ -559,6 +805,7 @@ class Engine:
             )
         target["status"] = "withdrawn"
         witness = self._witness_row("withdraw", target["hold_id"])
+        self._save_state()
         return self._base(
             ok=True,
             hold=target,
@@ -594,6 +841,15 @@ class Engine:
             "scorch_remote": "Hosted Scorched Earth never remotely wipes user devices. Local stub/advisory only (scorch_local).",
             "deanonymize": "AZInterface does not deanonymize. Identity is Aziel Eliab only.",
             "vault_read": "Hosted Worker never serves vault contents. Witness list is metadata only.",
+            "auto_unlock": "Auto-unlock is refused. Cycles advance one explicit step only.",
+            "unlock": "Unlock is refused. ON requires integrity, then an explicit site_state_set.",
+            "ranking": "AZInterface does not rank. Witness list is metadata only.",
+            "rank": "AZInterface does not rank. Witness list is metadata only.",
+            "completeness_detect": "Completeness detection is refused. Hub/Interface stay separate software.",
+            "complete": "Completeness is refused.",
+            "completeness": "Completeness is refused.",
+            "skip_cycle": "Skip is refused. Cycles are sealed: OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL.",
+            "invent_cycle": "Invented cycles are refused. Only the five sealed AIH-WP-1.0 cycles exist.",
         }
         return self._base(
             ok=False,
@@ -615,10 +871,36 @@ class Engine:
     def vault_read(self, _payload: dict[str, Any] | None = None) -> dict[str, Any]:
         return self._stub("vault_read")
 
+    def _forbidden(self, hit: dict[str, str], op: str) -> dict[str, Any]:
+        rec = self._receipt("forbidden_refuse", {"op": op, "event": hit["kind"]})
+        return self._base(
+            ok=False,
+            code=hit["code"],
+            refused=True,
+            event=hit["kind"],
+            op=op,
+            site_state=self.site_state,
+            current=self.site_state,
+            cycles=list(PAGE_CYCLES),
+            page_cycle=self.cycle_view(),
+            receipt=rec,
+            display=display_of("Refused", hit["code"], [("op", op), ("event", hit["kind"])]),
+        )
+
     def dispatch(self, op: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        payload = payload or {}
+        hit = detect_forbidden_event(payload)
+        if hit:
+            out = self._forbidden(hit, str(op or ""))
+            self._save_state()
+            return out
         name = str(op or "").strip().lower().replace("-", "_")
         name = ALIASES.get(name, name)
-        if name not in OPS:
+        if name in STUB_OPS:
+            out = self._stub(name)
+            self._save_state()
+            return out
+        if name not in LIVE_OPS:
             return {
                 "ok": False,
                 "code": "FG-HALLUC-TOOL",
@@ -630,4 +912,6 @@ class Engine:
                 "agent_path": FRAGGATE_CALL,
             }
         handler = getattr(self, name)
-        return handler(payload or {})
+        out = handler(payload)
+        self._save_state()
+        return out

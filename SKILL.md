@@ -15,17 +15,20 @@ only** on the hosted Worker — never a remote wipe of user devices.
 
 Author: **Aziel Eliab** only.
 
-**THIS IS:** Interface custody. Pre-locked page cycles
-(`OFF → [integrity check] → ON`, plus FULL SHUTDOWN and MEMORIAL).
+**THIS IS:** Interface custody. Five pre-locked page cycles
+(`OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL`). One step only.
+No skip. No invented cycle. No auto-unlock.
 
-**THIS IS NOT:** AZHub (Blank Key / spatial container — sibling
+**THIS IS NOT:** AZHub (separate software — Blank Key / spatial container —
 https://github.com/AzielEliab/azhub). Never collapse Interface into Hub.
-Not a vault dump. Not a remote wipe service.
+Never a combined hub+interface product. Not a vault dump. Not a remote wipe
+service. Not a separate FragGate door.
 
 Always send `User-Agent: Mozilla/5.0`.
 
-**Agent path is FragGate only.** MCP / agents call aziel-runtime — not a
-separate Interface MCP brand.
+**Agent path is the one FragGate door.** MCP / agents call aziel-runtime —
+not a second Interface MCP brand. AZHub and AZInterface are separate
+software under that door.
 
 ```
 POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call
@@ -33,32 +36,35 @@ POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call
 ```
 
 Same door as MCP `fraggate_call` (`slug=azinterface`). Kernel:
-https://github.com/AzielEliab/fraggate. Catalog listing lands in a
-sibling aziel-runtime PR. Human chrome uses this Worker `/v1/{op}`
-(single-segment local ops only). `/v1/fraggate/*` and `/v1/runtime/*`
-PROXY to aziel-runtime. `GET|POST /mcp` here is a pointer, not a second MCP.
+https://github.com/AzielEliab/fraggate. Catalog is live. Human chrome uses
+this Worker `/v1/{op}` (single-segment local ops only). `/v1/fraggate/*`
+and `/v1/runtime/*` PROXY to aziel-runtime. `GET|POST /mcp` here is a
+pointer, not a second MCP.
 
 **Human UI stays on this Worker.** AI path is FragGate + this OpenAPI.
 
-## Safe LIVE ops
+## Catalog LIVE ops (FragGate)
 
 | op | What |
 |----|------|
 | `health` | Liveness. Does not increment downloads. |
 | `skill` | This markdown. |
-| `genesis_status` | Whether one-time keying ran. Hash only. |
-| `genesis_boot` | One-time username seed → Genesis Hash Key. Never stores username. |
-| `site_state_get` | OFF / ON / FULL_SHUTDOWN / MEMORIAL. |
-| `site_state_set` | Set site state. ON requires integrity. |
-| `integrity_check` | Integrity loop. Required before ON. |
-| `witness_list` | Witness metadata. Never vault contents. |
-| `page_cycle_status` | Pre-locked cycle. Living presence only after ON. |
-| `hold` / `withdraw` | Custody acts. Living presence only. |
-| `scorch_local` | Local advisory. Not a remote wipe. |
+| `genesis_status` | Cycle seal + optional one-time hash. Username never stored. |
+| `site_state_get` | Current cycle: OFF / integrity / ON / FULL SHUTDOWN / MEMORIAL. |
+| `site_state_set` | Advance one sealed step only. ON requires integrity. |
+| `integrity_check` | Records integrity. Advances OFF → integrity. Does not auto-unlock ON. |
+| `witness_list` | Witness metadata. Never vault contents. Never a ranking. |
+| `page_cycle_status` | Pre-locked cycle. Living presence only at ON. |
+
+## Local Worker extras (human UI `/v1`)
+
+`genesis_boot` · `hold` · `withdraw` · `scorch_local`
 
 ## Stub (refuse)
 
-`scorch_remote` / `scorch` / `deanonymize` / `vault_read`
+`scorch_remote` / `scorch` / `auto_unlock` / `unlock` / `ranking` / `rank` /
+`completeness_detect` / `complete` / `completeness` / `skip_cycle` /
+`invent_cycle` / `deanonymize` / `vault_read`
 
 Works with ChatGPT (GPT Actions / OpenAI), Grok (xAI), Venice, Claude
 (Anthropic), Cursor (MCP), Glama (MCP), Perplexity, Microsoft Copilot /

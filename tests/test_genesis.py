@@ -26,3 +26,5 @@ def test_genesis_status_empty() -> None:
     assert st["keyed"] is False
     assert st["genesis_hash"] is None
     assert st["username_stored"] is False
+    assert st["genesis_sealed"] is True
+    assert st["cycles_sealed"] is True

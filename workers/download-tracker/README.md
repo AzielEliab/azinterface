@@ -18,7 +18,8 @@ Human UI is this Worker. Agent / MCP path is FragGate only:
 `{"slug":"azinterface","op":"…","payload":{}}`. There is no separate Interface MCP
 on this host (`POST /mcp` returns a pointer).
 
-Interface is CUSTODY. AZHub is a sibling — never collapse them.
+Interface is CUSTODY. AZHub is separate software under the one FragGate
+door — never collapse them.
 Scorched Earth is a local stub/advisory only. Never a remote wipe.
 
 Author: Aziel Eliab. Apache-2.0.

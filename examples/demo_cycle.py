@@ -1,4 +1,4 @@
-"""Offline demo: OFF → integrity → ON → hold → witness → withdraw."""
+"""Offline demo: OFF → integrity → ON → hold → witness → withdraw (sealed order)."""
 
 from azinterface.engine import Engine
 from azinterface.receipts import Ledger

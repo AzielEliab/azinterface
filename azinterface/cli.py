@@ -8,6 +8,8 @@ import os
 import sys
 from typing import Any
 
+from pathlib import Path
+
 from .engine import LIVE_OPS, STUB_OPS, Engine
 from .meta import HOST, LIMITATION, LOOPBACK, PORT, SPEC, VERSION
 from .doctor import run_doctor
@@ -16,7 +18,8 @@ from .receipts import Ledger
 
 def _engine(args: argparse.Namespace) -> Engine:
     path = getattr(args, "ledger", None) or os.environ.get("AZINTERFACE_LEDGER") or "./azinterface_receipts.jsonl"
-    return Engine(Ledger(path))
+    state_path = Path(path).with_name(Path(path).stem + ".state.json")
+    return Engine(Ledger(path), state_path=state_path)
 
 
 def _print(obj: object) -> int:
@@ -50,7 +53,7 @@ def main(argv: list[str] | None = None) -> int:
     boot.add_argument("username", help="One-time username seed. Hashed and discarded.")
     sub.add_parser("state")
     st = sub.add_parser("state-set")
-    st.add_argument("state", help="ON | OFF | FULL_SHUTDOWN | MEMORIAL")
+    st.add_argument("state", help="OFF | integrity | ON | FULL SHUTDOWN | MEMORIAL (one sealed step)")
     sub.add_parser("integrity")
     sub.add_parser("cycle")
     sub.add_parser("witness")

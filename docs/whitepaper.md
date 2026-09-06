@@ -11,24 +11,25 @@
 AZInterface is the **custodial operating environment**. It holds,
 withdraws, and witnesses. It is not AZHub.
 
-AZHub (sibling) is the Blank Key / spatial container. Interface is
-CUSTODY. The two products share a visual schema (black background, gold
-trim, white text, everblooming sigil) and must never be collapsed.
+AZHub is **separate software** (Blank Key / spatial container) under the
+one FragGate door. Interface is CUSTODY. The two products share a visual
+schema (black background, gold trim, white text, everblooming sigil)
+and must never be collapsed into one product.
 
 ## Site states (sections 5–6)
 
-Apps load in **pre-locked page cycles**. Interface app and module
-surfaces enter through explicit locked site-state cycles before any ON
-serve.
+Apps load in **five pre-locked page cycles**. Order is sealed at genesis.
+One step only. No skip. No invented cycle. No auto-unlock.
 
 ```
-OFF → [integrity check] → ON
+OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL
 ```
 
-Additional locked postures:
-
-- **FULL SHUTDOWN** — living presence off; cycle closed
-- **MEMORIAL** — commemorative lock; living apps not served
+- **OFF** — default locked posture
+- **integrity** — check recorded; does not auto-unlock ON
+- **ON** — living presence; requires a passing integrity check
+- **FULL SHUTDOWN** — living presence off; next sealed step after ON
+- **MEMORIAL** — commemorative lock; terminal
 
 **Pre-locked** means content does not serve or render as living
 presence until the operator explicitly enables ON after integrity.
@@ -40,20 +41,21 @@ is locked.
 
 ## Genesis
 
-One-time username seed. The Worker / engine computes a **Genesis Hash
-Key** and displays the hash only. The username is discarded and never
-stored. A second boot is refused (`GENESIS_ALREADY_KEYED`).
+Genesis seals the five page cycles. A one-time username seed may also
+compute a **Genesis Hash Key** (hash only). The username is discarded
+and never stored. A second boot is refused (`GENESIS_ALREADY_KEYED`).
 
 ## Integrity loop
 
-Integrity must pass in the current cycle before ON. Failure keeps the
-surface pre-locked. Leaving ON closes the living cycle; ON again
-requires a fresh integrity check.
+`integrity_check` from OFF advances to **integrity**. It does not
+auto-unlock ON. `site_state_set` to ON from integrity requires
+`integrity_ok`. Skip / invent / auto-unlock refuse
+(`AIH-CYCLE-LOCKED` / `AIH-AUTO-UNLOCK-REFUSE`).
 
 ## Witness
 
 The witness list is metadata: kind, hold id, hash, timestamp. It never
-includes vault contents. `vault_read` is stub.
+includes vault contents and is not a ranking. `vault_read` is stub.
 
 ## Hold / withdraw
 
@@ -71,7 +73,7 @@ wiped from this surface.
 
 1. Human software — Worker homepage, Flutter `mobile/`, local
    `azinterface ui`, counted `/download`.
-2. Agent / MCP — FragGate only on aziel-runtime:
+2. Agent / MCP — one FragGate door on aziel-runtime:
    `POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call`
    with `{ slug: "azinterface", op, payload }`.
 

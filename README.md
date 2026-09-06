@@ -14,22 +14,20 @@ How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Forks are welcome and always allowed.**
 
-AZHub is a **sibling** product (Blank Key / spatial container).
-Do not rebuild it here: https://github.com/AzielEliab/azhub
+AZHub is **separate software** (Blank Key / spatial container) under the
+one FragGate door. Do not rebuild it here: https://github.com/AzielEliab/azhub
 
 ## Honest scope (read this)
 
-v0.1 is a **custodial shell**. Apps load in **pre-locked page cycles**.
-Interface app/module surfaces enter through explicit locked site-state
-cycles before any ON serve:
+v0.1 is a **custodial shell**. Apps load in **five pre-locked page
+cycles**. Order is sealed. One step only. No skip. No invented cycle:
 
-`OFF → [integrity check] → ON`
-
-plus **FULL SHUTDOWN** and **MEMORIAL**.
+`OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL`
 
 Pre-locked means content does not serve or render as living presence
-until the operator explicitly enables ON after integrity. This Worker
-does **not** invent cloud-asleep availability.
+until the operator explicitly enables ON after integrity. Integrity
+does **not** auto-unlock ON. MEMORIAL is terminal. This Worker does
+**not** invent cloud-asleep availability.
 
 Scorched Earth on the hosted Worker is a **local stub/advisory only**.
 It never remotely wipes user devices.
@@ -56,7 +54,7 @@ curl -s -A 'Mozilla/5.0' -X POST https://aziel-runtime.vibelock.workers.dev/v1/f
 
 MCP clients already on aziel-runtime call `fraggate_call` with
 `slug=azinterface`. Catalog MCP: `POST https://aziel-runtime.vibelock.workers.dev/mcp`.
-Catalog listing lands in a sibling runtime PR.
+AZHub and AZInterface are separate software under that one door.
 
 Worker `/v1/{op}` is the **human UI backend** (single-segment local ops).
 `/v1/fraggate/*` and `/v1/runtime/*` **PROXY** to aziel-runtime.
@@ -123,10 +121,10 @@ Every control calls a real `/v1` handler (same op agents call). No dead buttons.
 
 | Button | Handler | Op |
 |--------|---------|-----|
-| ON | `POST /v1/site_state_set` | `site_state_set` (needs integrity) |
-| OFF | `POST /v1/site_state_set` | `site_state_set` |
-| FULL SHUTDOWN | `POST /v1/site_state_set` | `site_state_set` |
-| MEMORIAL | `POST /v1/site_state_set` | `site_state_set` |
+| ON | `POST /v1/site_state_set` | `site_state_set` (next after integrity) |
+| OFF | `POST /v1/site_state_set` | `site_state_set` (no-op at OFF; skip otherwise) |
+| FULL SHUTDOWN | `POST /v1/site_state_set` | `site_state_set` (next after ON) |
+| MEMORIAL | `POST /v1/site_state_set` | `site_state_set` (next after FULL SHUTDOWN; terminal) |
 | Integrity | `POST /v1/integrity_check` | `integrity_check` |
 | Genesis boot | `POST /v1/genesis_boot` | `genesis_boot` |
 | Genesis status | `POST /v1/genesis_status` | `genesis_status` |
@@ -200,7 +198,7 @@ SKILL.md              agent skill (also GET /v1/skill)
 - Runtime: https://github.com/AzielEliab/aziel-runtime · https://aziel-runtime.vibelock.workers.dev/
 - FragGate: https://github.com/AzielEliab/fraggate
 - Digital Library: https://www.azielcorpuslibrary.net/
-- AZHub (sibling Blank Key): https://github.com/AzielEliab/azhub
+- AZHub (separate software — Blank Key): https://github.com/AzielEliab/azhub
 - godlock.uk
 - https://www.azieleliab.com
 

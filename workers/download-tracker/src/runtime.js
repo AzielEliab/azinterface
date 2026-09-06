@@ -54,8 +54,8 @@ function toolDefs() {
     skill: "Return AZInterface skill markdown.",
     genesis_status: "Whether one-time genesis keying ran. Hash only.",
     genesis_boot: "One-time username seed → Genesis Hash Key. Never stores username.",
-    site_state_get: "Read OFF / ON / FULL_SHUTDOWN / MEMORIAL.",
-    site_state_set: "Set site state. ON requires integrity.",
+    site_state_get: "Read OFF / integrity / ON / FULL SHUTDOWN / MEMORIAL.",
+    site_state_set: "Advance one sealed cycle step. ON requires integrity.",
     integrity_check: "Integrity loop. Required before ON.",
     witness_list: "Witness metadata. Never vault contents.",
     page_cycle_status: "Pre-locked cycle. Living presence only after ON.",
@@ -166,7 +166,7 @@ function mcpDocs(origin) {
     catalog_mcp: FRAGGATE_MCP,
     body: { slug: "azinterface", op: "page_cycle_status", payload: {} },
     openapi: origin + "/openapi.json",
-    note: "AI / MCP path is FragGate only. This host /v1/fraggate/* and /v1/runtime/* PROXY to aziel-runtime. Local ops are /v1/{op} only. Catalog MCP: POST " + FRAGGATE_MCP + ". AZHub is a sibling, not this product.",
+    note: "AI / MCP path is the one FragGate door. This host /v1/fraggate/* and /v1/runtime/* PROXY to aziel-runtime. Local ops are /v1/{op} only. Catalog MCP: POST " + FRAGGATE_MCP + ". AZHub is separate software, not this product.",
     ops: OPS,
     live_ops: LIVE_OPS,
     stub_ops: STUB_OPS,
@@ -229,7 +229,7 @@ function aiHtml(origin) {
 {"slug":"azinterface","op":"page_cycle_status","payload":{}}</pre>
 <p>Catalog MCP: <code>POST ${FRAGGATE_MCP}</code>. This Worker <code>/mcp</code> is a pointer, not a second MCP.</p>
 <p>OpenAPI: <a href="${origin}/openapi.json">${origin}/openapi.json</a></p>
-<p>Kernel: <a href="${FRAGGATE}">${FRAGGATE}</a> · AZHub sibling: <a href="${AZHUB}">${AZHUB}</a></p>
+<p>Kernel: <a href="${FRAGGATE}">${FRAGGATE}</a> · AZHub (separate software): <a href="${AZHUB}">${AZHUB}</a></p>
 <p>Clients: ChatGPT, Grok, Venice, Claude, Cursor, Glama, Perplexity, Copilot, Gemini, Mistral, Meta AI, Apple Intelligence, Amazon Q, DuckAssist, You.com, Cohere.</p>
 <p><a href="/">Downloads + custody UI</a></p>
 </html>`;

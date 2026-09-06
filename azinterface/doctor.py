@@ -28,9 +28,11 @@ def _check_version() -> Check:
 
 
 def _check_identity() -> Check:
-    if IDENTITY == "Aziel Eliab":
-        return _ok("identity", IDENTITY)
-    return _fail("identity", IDENTITY)
+    if IDENTITY != "Aziel Eliab":
+        return _fail("identity", IDENTITY)
+    if "Elroi" in IDENTITY or "AKA" in LIMITATION:
+        return _fail("identity", "public alias leaked")
+    return _ok("identity", IDENTITY)
 
 
 def _check_default_off() -> Check:
@@ -47,18 +49,24 @@ def _check_default_off() -> Check:
 
 def _check_on_needs_integrity() -> Check:
     eng = Engine(Ledger())
+    skip = eng.site_state_set({"state": "ON"})
+    if skip.get("ok") or skip.get("code") != "AIH-CYCLE-LOCKED":
+        return _fail("skip on from off", str(skip.get("code")))
+    step = eng.site_state_set({"state": "integrity"})
+    if not step.get("ok"):
+        return _fail("step integrity", str(step.get("code")))
     out = eng.site_state_set({"state": "ON"})
-    if out.get("ok") or out.get("code") != "NEED_INTEGRITY":
+    if out.get("ok") or out.get("code") != "AIH-INTEGRITY-REQUIRED":
         return _fail("on needs integrity", str(out.get("code")))
     if out.get("living_presence"):
         return _fail("on needs integrity", "living while refused")
-    return _ok("on needs integrity", "NEED_INTEGRITY")
+    return _ok("on needs integrity", "AIH-CYCLE-LOCKED then AIH-INTEGRITY-REQUIRED")
 
 
 def _check_cycle_on() -> Check:
     eng = Engine(Ledger())
     integ = eng.integrity_check({})
-    if not integ.get("ok") or integ.get("living_presence"):
+    if not integ.get("ok") or integ.get("living_presence") or integ.get("current") != "integrity":
         return _fail("cycle on", "integrity should pass without enabling ON")
     on = eng.site_state_set({"state": "ON"})
     if not on.get("ok") or not on.get("living_presence"):
@@ -115,7 +123,7 @@ def _check_withdraw_locked() -> Check:
 
 def _check_stubs() -> Check:
     eng = Engine(Ledger())
-    for op in ("scorch_remote", "deanonymize", "vault_read", "scorch"):
+    for op in ("scorch_remote", "deanonymize", "vault_read", "scorch", "skip_cycle", "invent_cycle", "auto_unlock"):
         out = eng.dispatch(op, {})
         if out.get("ok") or out.get("code") != "STUB":
             return _fail("stubs", f"{op} {out.get('code')}")
@@ -180,7 +188,7 @@ def _check_ops() -> Check:
     }
     if not need <= set(LIVE_OPS):
         return _fail("live ops", str(set(LIVE_OPS)))
-    if not {"scorch_remote", "deanonymize", "vault_read"} <= set(STUB_OPS):
+    if not {"scorch_remote", "deanonymize", "vault_read", "skip_cycle", "invent_cycle"} <= set(STUB_OPS):
         return _fail("stub ops", str(STUB_OPS))
     return _ok("ops", f"{len(LIVE_OPS)} live / {len(STUB_OPS)} stub")
 
