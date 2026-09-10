@@ -30,6 +30,9 @@ def test_home_html_wires_buttons() -> None:
     assert "azchat" in html
     assert "stub / not hosted yet" in html
     assert "pipeline-btn" in html
+    assert "cycle-toast" in html
+    assert "toastMemorial" in html
+    assert "MEMORIAL is terminal" in html
     assert "No LambGate" in html
     assert "LambGate →" not in html
     assert "separate software" in html

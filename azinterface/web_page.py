@@ -83,6 +83,8 @@ pre {{ white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:#cfc
 #domains .sw.stub {{ color:var(--muted); }}
 footer {{ padding:12px 18px 28px; color:var(--muted); font-size:.82rem; }}
 footer a {{ color:var(--gold); }}
+#cycle-toast {{ display:none; margin:.6rem 0 0; border:1px solid #b54a4a; background:#2a1212; color:var(--alert); padding:.65rem .75rem; border-radius:8px; font-size:.82rem; font-weight:650; }}
+#cycle-toast.show {{ display:block; }}
 </style>
 </head>
 <body>
@@ -128,6 +130,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
       <button class="danger" data-state="FULL_SHUTDOWN" type="button">FULL SHUTDOWN</button>
       <button class="ghost" data-state="MEMORIAL" type="button">MEMORIAL</button>
     </div>
+    <div id="cycle-toast" role="status" aria-live="polite"></div>
     <pre id="state-out"></pre>
   </div>
   <div class="card">
@@ -234,6 +237,25 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
     var el = document.getElementById(id);
     if (el) el.textContent = JSON.stringify(obj, null, 2);
   }}
+  function toastMemorial(out) {{
+    var el = document.getElementById("cycle-toast");
+    if (!el) return;
+    var terminal = out && (out.code === "AIH-CYCLE-TERMINAL" || (out.refused && (out.site_state === "MEMORIAL" || out.current === "MEMORIAL")));
+    if (!terminal) {{
+      el.className = "";
+      el.textContent = "";
+      return;
+    }}
+    var title = out.display && out.display.title;
+    var summary = out.display && out.display.summary;
+    var human = title && summary
+      ? String(title).replace(/\\.$/, "") + ". " + summary
+      : (summary || title || out.error || "");
+    el.textContent = /terminal/i.test(human)
+      ? human
+      : "MEMORIAL is terminal. Cannot leave MEMORIAL. Cycles stay pre-locked.";
+    el.className = "show";
+  }}
   async function call(op, payload) {{
     var res = await fetch("/v1/" + op, {{
       method: "POST",
@@ -261,6 +283,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
     b.addEventListener("click", async function () {{
       var out = await call("site_state_set", {{ state: b.getAttribute("data-state") }});
       show("state-out", out);
+      toastMemorial(out);
       await refresh();
     }});
   }});

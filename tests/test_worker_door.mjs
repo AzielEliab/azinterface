@@ -8,6 +8,8 @@ import {
   doorTargetUrl,
   localOpFromPath,
   mapDoorPath,
+  RUNTIME_ARCH_PATH,
+  LOCAL_PATH_ALIASES,
 } from "../workers/download-tracker/src/door.js";
 import { handleRuntimeApi } from "../workers/download-tracker/src/runtime.js";
 import { dispatch, resetEngine } from "../workers/download-tracker/src/engine.js";
@@ -39,11 +41,20 @@ assert.deepEqual(classifyV1Path("/v1/mesh"), {
   path: "/v1/mesh",
   originPath: "/v1/mesh",
 });
-assert.deepEqual(classifyV1Path("/v1/azpipe/arch"), {
+assert.equal(RUNTIME_ARCH_PATH, "/v1/fraggate");
+assert.equal(LOCAL_PATH_ALIASES["/v1/azpipe/arch"], "pipeline_arch");
+assert.deepEqual(classifyV1Path("/v1/fraggate"), {
   kind: "door",
-  path: "/v1/azpipe/arch",
-  originPath: "/v1/azpipe/arch",
+  path: "/v1/fraggate",
+  originPath: "/v1/fraggate",
 });
+assert.deepEqual(classifyV1Path("/v1/azpipe/arch"), {
+  kind: "local",
+  path: "/v1/azpipe/arch",
+  op: "pipeline_arch",
+});
+assert.equal(mapDoorPath("/v1/azpipe/arch"), null);
+assert.equal(doorTargetUrl("/v1/azpipe/arch", "https://azinterface-download-tracker.vibelock.workers.dev/v1/azpipe/arch"), null);
 assert.deepEqual(classifyV1Path("/v1/pipeline_arch"), {
   kind: "local",
   path: "/v1/pipeline_arch",
@@ -150,9 +161,23 @@ try {
   });
   const azpipeRes = await handleRuntimeApi(azpipeReq, new URL(azpipeReq.url), {});
   const azpipeBody = await azpipeRes.json();
+  assert.equal(azpipeRes.status, 200);
   assert.equal(azpipeBody.ok, true);
-  assert.equal(azpipeRes.headers.get("X-Aziel-Door"), "proxy");
-  assert.ok(fetches.some((f) => f.url === DEFAULT_RUNTIME_ORIGIN + "/v1/azpipe/arch" && f.method === "GET"));
+  assert.equal(azpipeBody.controlling_design, "MASTER-33");
+  assert.equal(azpipeBody.software_count, 33);
+  assert.equal(azpipeRes.headers.get("X-Aziel-Door"), null);
+  assert.ok(!fetches.some((f) => String(f.url).includes("/v1/azpipe/arch")), "GET /v1/azpipe/arch must not proxy /v1/azpipe/arch");
+
+  fetches.length = 0;
+  const fgArchReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/v1/fraggate", {
+    method: "GET",
+    headers: { "user-agent": "Mozilla/5.0" },
+  });
+  const fgArchRes = await handleRuntimeApi(fgArchReq, new URL(fgArchReq.url), {});
+  const fgArchBody = await fgArchRes.json();
+  assert.equal(fgArchBody.ok, true);
+  assert.equal(fgArchRes.headers.get("X-Aziel-Door"), "proxy");
+  assert.ok(fetches.some((f) => f.url === DEFAULT_RUNTIME_ORIGIN + "/v1/fraggate" && f.method === "GET"));
 
   const specReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/openapi.json", { method: "GET" });
   const specRes = await handleRuntimeApi(specReq, new URL(specReq.url), {});
@@ -167,7 +192,11 @@ try {
   assert.ok(spec.paths["/v1/pair_offer"]);
   assert.ok(spec.paths["/v1/pair_status"]);
   assert.ok(spec.paths["/v1/pipeline_arch"]);
+  assert.ok(spec.paths["/v1/fraggate"]);
   assert.ok(spec.paths["/v1/azpipe/arch"]);
+  assert.match(spec.paths["/v1/fraggate"].get.summary, /pipeline_strip/);
+  assert.match(spec.paths["/v1/azpipe/arch"].get.summary, /pipeline_arch/);
+  assert.match(spec.paths["/v1/azpipe/arch"].get.summary, /embedded MASTER-33/i);
   assert.match(spec.info.description, /LOCKED suite pipeline/);
   assert.match(spec.info.description, /MASTER-33/);
   assert.match(spec.info.description, /THE SINGLE DOOR/);
@@ -186,6 +215,9 @@ try {
   assert.equal(mcp.qns.softwares_tab_qns, false);
   assert.equal(mcp.qns.via_runs_in, "qnsd");
   assert.equal(mcp.pipeline.owner, "aziel-runtime");
+  assert.equal(mcp.pipeline.path_local_alias, "/v1/azpipe/arch");
+  assert.equal(mcp.pipeline.path_runtime_cite, "/v1/fraggate");
+  assert.equal(mcp.pipeline.proxy, false);
   assert.equal(mcp.pipeline.lambgate, false);
   assert.equal(mcp.pipeline.domain_doors.slug, "4dmap");
   assert.match(mcp.mesh.spiderweb, /qnm-node/);
