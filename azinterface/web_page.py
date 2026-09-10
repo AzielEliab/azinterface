@@ -246,8 +246,12 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
       el.textContent = "";
       return;
     }}
-    var human = (out.display && (out.display.summary || out.display.title)) || out.error || "";
-    el.textContent = human && human.indexOf("MEMORIAL") !== -1
+    var title = out.display && out.display.title;
+    var summary = out.display && out.display.summary;
+    var human = title && summary
+      ? String(title).replace(/\\.$/, "") + ". " + summary
+      : (summary || title || out.error || "");
+    el.textContent = /terminal/i.test(human)
       ? human
       : "MEMORIAL is terminal. Cannot leave MEMORIAL. Cycles stay pre-locked.";
     el.className = "show";
