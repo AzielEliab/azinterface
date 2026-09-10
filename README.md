@@ -58,8 +58,9 @@ rollback, and generic truth score are absent from the core.
 
 Worker UI paints the hop strip plus the 11-domain map. Engine / MCP:
 `page_cycle_status` includes the cite; local `GET|POST /v1/pipeline_arch`
-returns it. `/v1/azpipe/*` PROXIES to aziel-runtime when that arch path
-exists. Papers: [MASTER-33](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-33-SOFTWARE.md)
+returns it. Runtime cite is `GET /v1/fraggate` (`pipeline` /
+`pipeline_strip`). Leftover `/v1/azpipe/arch` aliases that FragGate
+surface — not a Softwares door. Papers: [MASTER-33](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-33-SOFTWARE.md)
 · [MASTER-ARCHITECTURE-2.0](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-ARCHITECTURE-2.0.md)
 · [SUITE-PIPE-1.6.15](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/SUITE-PIPE-1.6.15.md).
 
@@ -141,7 +142,7 @@ URL pattern (same as sibling Aziel Eliab products):
 | `/v1/fraggate/*` | PROXY to aziel-runtime |
 | `/v1/runtime/*` | PROXY aliases (`list`/`call` → `/v1/fraggate/list`/`call`) |
 | `/v1/mesh/*` | PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF) |
-| `/v1/azpipe/*` | PROXY to aziel-runtime AZPIPE arch (cite; fabric, not Softwares-tab) |
+| `/v1/azpipe/*` | Leftover alias PROXY → `GET /v1/fraggate` (MASTER-33 pipeline / pipeline_strip) |
 | `/v1/pipeline_arch` | Local frozen LOCKED hop-list cite |
 
 - Homepage: [https://azinterface-download-tracker.vibelock.workers.dev/](https://azinterface-download-tracker.vibelock.workers.dev/)
@@ -168,7 +169,7 @@ Every control calls a real `/v1` handler (same op agents call). No dead buttons.
 | Withdraw | `POST /v1/withdraw` | `withdraw` |
 | Witness list | `POST /v1/witness_list` | `witness_list` |
 | Cycle | `POST /v1/page_cycle_status` | `page_cycle_status` |
-| Pipeline cite | `POST /v1/pipeline_arch` | `pipeline_arch` (frozen hop list; runtime owns fabric) |
+| Pipeline cite | `POST /v1/pipeline_arch` | `pipeline_arch` (frozen hop list; runtime cite `GET /v1/fraggate`) |
 | Scorched Earth local | `POST /v1/scorch_local` | `scorch_local` (advisory) |
 | Remote wipe | `POST /v1/scorch_remote` | stub refuse |
 | Live Nodes strip | `GET /v1/mesh/status` (proxy) | QNM-BUILD-1.0 + QNS-CD-1.0 cite; default OFF; GET never enables |

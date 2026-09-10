@@ -1,9 +1,12 @@
 /**
  * FragGate / runtime / suite-mesh door — classify Worker /v1 paths.
  *
- * `/v1/fraggate/*`, `/v1/runtime/*`, `/v1/mesh/*`, and `/v1/azpipe/*` PROXY to aziel-runtime
- * via AZIEL_RUNTIME or HTTPS fallback. Local engine ops are single-segment
- * `/v1/{op}` only. Multi-segment leftovers are never swallowed as op names.
+ * `/v1/fraggate/*`, `/v1/runtime/*`, and `/v1/mesh/*` PROXY to aziel-runtime
+ * via AZIEL_RUNTIME or HTTPS fallback. Leftover `/v1/azpipe` and
+ * `/v1/azpipe/arch` alias GET `/v1/fraggate` (MASTER-33 `pipeline` /
+ * `pipeline_strip` — fabric cite, not a Softwares door). Local engine ops
+ * are single-segment `/v1/{op}` only. Multi-segment leftovers are never
+ * swallowed as op names.
  *
  * Suite mesh is QNM-BUILD-1.0 rollup only (live|locked|isolated). Default OFF.
  * GET never enables. QNS-CD-1.0 vias run in local qnsd (127.0.0.1).
@@ -14,6 +17,9 @@
 
 export const DEFAULT_RUNTIME_ORIGIN = "https://aziel-runtime.vibelock.workers.dev";
 
+/** Live aziel-runtime surface that returns MASTER-33 pipeline / pipeline_strip. */
+export const RUNTIME_ARCH_PATH = "/v1/fraggate";
+
 export const DOOR_PREFIXES = Object.freeze(["fraggate", "runtime", "mesh", "azpipe"]);
 
 /** UI / leftover aliases → correct origin FragGate paths. */
@@ -22,6 +28,8 @@ export const DOOR_ALIASES = Object.freeze({
   "/v1/runtime/call": "/v1/fraggate/call",
   "/v1/runtime/describe": "/v1/fraggate/describe",
   "/v1/runtime/verify": "/v1/fraggate/verify",
+  "/v1/azpipe": RUNTIME_ARCH_PATH,
+  "/v1/azpipe/arch": RUNTIME_ARCH_PATH,
 });
 
 export function normalizeV1Path(pathname) {
@@ -36,6 +44,10 @@ export function runtimeOrigin(env) {
     return fromEnv.replace(/\/+$/, "");
   }
   return DEFAULT_RUNTIME_ORIGIN;
+}
+
+export function runtimeArchUrl(env) {
+  return runtimeOrigin(env) + RUNTIME_ARCH_PATH;
 }
 
 export function mapDoorPath(pathname) {

@@ -11,8 +11,9 @@ URL pattern after deploy (workers.dev + account subdomain, same as sibling produ
 - `GET /count` — `{views, downloads, total}`
 - `GET /v1/*` — custody ops (does **not** increment downloads)
 - `GET|POST /v1/mesh/*` — PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF)
-- `GET|POST /v1/azpipe/*` — PROXY to aziel-runtime AZPIPE arch (fabric cite; not Softwares-tab)
-- `GET|POST /v1/pipeline_arch` — local frozen LOCKED hop-list cite
+- `GET /v1/fraggate` — PROXY to aziel-runtime FragGate door (MASTER-33 `pipeline` / `pipeline_strip`)
+- `GET|POST /v1/azpipe/*` — leftover alias PROXY → `GET /v1/fraggate` (not a Softwares door)
+- `GET|POST /v1/pipeline_arch` — local frozen LOCKED hop-list cite + runtime FragGate strip when live
 
 KV binding `DOWNLOADS` (create `AZINTERFACE_DOWNLOADS` on first deploy). Account `ac575a9b822bea2bed97d0ab73aed238`.
 **Parent-deploy note:** `wrangler.toml` still has the `0000…` placeholder KV id.

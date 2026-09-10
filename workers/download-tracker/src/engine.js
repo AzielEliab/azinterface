@@ -237,7 +237,9 @@ Internal Domain Layer: 33 softwares / 11 domains after AZPIPE — isolation
 labels, not extra doors. 4DMap inspects Research. AZChat (Comms) is stub /
 not hosted yet. Lamb Lens is fabric ethics after FragGate. RoseClock is
 forward-only.
-Local op \`pipeline_arch\` returns the same cite.
+Local op \`pipeline_arch\` returns the same cite. Hosted cite reads live
+aziel-runtime \`GET /v1/fraggate\` (\`pipeline\` / \`pipeline_strip\`). Leftover
+\`/v1/azpipe/arch\` aliases that door.
 
 ## Local Worker extras (human UI \`/v1\`)
 
