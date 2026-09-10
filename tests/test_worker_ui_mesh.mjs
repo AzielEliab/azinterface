@@ -43,7 +43,8 @@ assert.match(html, /AZHome bunker/);
 assert.match(html, /Scorched Earth/);
 assert.match(html, /page_cycle_status/);
 assert.match(html, /LOCKED pipeline/);
-assert.match(html, /4DMap inspection/);
+assert.match(html, /THE SINGLE DOOR/);
+assert.match(html, /Internal Domain Layer/);
 assert.match(html, /No LambGate/);
 
 console.log("worker ui mesh strip ok");

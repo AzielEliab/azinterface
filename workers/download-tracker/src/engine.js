@@ -226,14 +226,17 @@ publish path. \`GET|POST /mcp\` here is a pointer, not a second MCP.
 
 ## LOCKED suite pipeline (cite)
 
-Runtime owns fabric hops. Interface cites the frozen list — not a Softwares-tab
-product. No LambGate.
+Controlling design: MASTER-ARCHITECTURE-2.0. SUITE-PIPE-1.6.15 is kept (runtime
+1.6.15 public strip). Runtime owns fabric hops. Interface cites — not a
+Softwares-tab product. AZInterface is the human UI, not a second door.
+FragGate is THE SINGLE DOOR. No LambGate.
 
-\`PUBLIC/UI/Agents → FragGate → SweepGate → ChainLock-IN → DecisionGATE → AZPIPE → Domain Doors (incl. 4DMap inspection) → TemporalLock → StaticClock → ChainLock-OUT → Response/Receipt\`
+\`Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains; 4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock / VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return\`
 
-4DMap (\`slug=4dmap\`, 4DM-WP-1.0) is Domain Door inspection after AZPIPE —
-not a sequential gate. Papers live on aziel-runtime (AP-WP-0.2 / SG-WP-0.1 /
-CL-WP-0.4 / 4DM-WP-1.0). Local op \`pipeline_arch\` returns the same cite.
+Internal Domain Layer: 33 softwares / 11 domains after AZPIPE — not extra
+doors. 4DMap inspects that layer. AZChat is stub / not hosted yet. Lamb Lens
+is fabric ethics (Peace / Clarity / Service). RoseClock is forward-only.
+Local op \`pipeline_arch\` returns the same cite.
 
 ## Local Worker extras (human UI \`/v1\`)
 

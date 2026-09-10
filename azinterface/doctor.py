@@ -8,7 +8,7 @@ from typing import Callable
 
 from azinterface.engine import Engine, LIVE_OPS, STUB_OPS, genesis_hash_key
 from azinterface.meta import IDENTITY, LIMITATION, LOOPBACK, SPEC, VERSION
-from azinterface.pipeline import PIPELINE_HOPS, PIPELINE_PATH, pipeline_arch
+from azinterface.pipeline import DOMAIN_MAP, PIPELINE_HOPS, PIPELINE_PATH, domain_slugs, pipeline_arch
 from azinterface.receipts import Ledger
 
 Check = tuple[str, bool, str]
@@ -184,15 +184,25 @@ def _check_pipeline() -> Check:
         return _fail("pipeline", "runtime must own fabric hops")
     if pipe.get("identity") != "Aziel Eliab":
         return _fail("pipeline", "identity")
-    doors = next((h for h in PIPELINE_HOPS if h.get("id") == "domain_doors"), None)
-    if not doors or (doors.get("inspection") or {}).get("slug") != "4dmap":
-        return _fail("pipeline", "4DMap must be Domain Door inspection")
-    if (doors.get("inspection") or {}).get("sequential_gate"):
+    door = next((h for h in PIPELINE_HOPS if h.get("single_door")), None)
+    if not door or door.get("id") != "fraggate":
+        return _fail("pipeline", "FragGate must be THE SINGLE DOOR")
+    layer = next((h for h in PIPELINE_HOPS if h.get("id") == "domain_layer"), None)
+    if not layer or (layer.get("inspection") or {}).get("slug") != "4dmap":
+        return _fail("pipeline", "4DMap must inspect the Internal Domain Layer")
+    if (layer.get("inspection") or {}).get("sequential_gate"):
         return _fail("pipeline", "4DMap must not be a sequential gate")
+    slugs = domain_slugs()
+    if len(DOMAIN_MAP) != 11 or len(slugs) != 33:
+        return _fail("pipeline", f"expected 11/33 got {len(DOMAIN_MAP)}/{len(slugs)}")
+    if "azchat" not in slugs:
+        return _fail("pipeline", "AZChat missing from domain map")
+    if pipe.get("second_door"):
+        return _fail("pipeline", "Interface must not be a second door")
     cycle = Engine(Ledger()).page_cycle_status()
     if cycle.get("pipeline_path") != PIPELINE_PATH:
         return _fail("pipeline", "page_cycle_status missing hop cite")
-    return _ok("pipeline", "LOCKED hop list; 4DMap at Domain Doors")
+    return _ok("pipeline", "MASTER 33/11; FragGate single door; 4DMap inspection")
 
 
 def _check_ops() -> Check:

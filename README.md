@@ -39,18 +39,26 @@ Witness list is metadata only. Vault contents are never served.
 
 ## LOCKED suite pipeline (cite)
 
-Interface cites the frozen hop order. **aziel-runtime owns fabric hops.**
-SweepGate / ChainLock / AZPIPE are not Softwares-tab products. No LambGate.
+Controlling design: **MASTER-ARCHITECTURE-2.0**. SUITE-PIPE-1.6.15 is the
+current runtime public strip and is **not dropped** — this Interface cite
+is the runtime 1.6.15+ migration. **aziel-runtime owns fabric hops.**
+AZInterface is the human-facing UI. **FragGate is THE SINGLE DOOR** — this
+Worker is not a second door. No LambGate.
 
-`PUBLIC/UI/Agents → FragGate → SweepGate → ChainLock-IN → DecisionGATE → AZPIPE → Domain Doors (incl. 4DMap inspection) → TemporalLock → StaticClock → ChainLock-OUT → Response/Receipt`
+`Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains; 4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock / VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return`
 
-4DMap (`slug=4dmap`, 4DM-WP-1.0) is Domain Door inspection after AZPIPE —
-not a sequential gate. Worker UI paints this as a pipeline strip; Domain
-Doors are highlighted. Engine / MCP: `page_cycle_status` includes the
-cite; local `GET|POST /v1/pipeline_arch` returns it. `/v1/azpipe/*`
-PROXIES to aziel-runtime when that arch path exists (AZIEL_RUNTIME
-binding or HTTPS). Papers: AP-WP-0.2 / SG-WP-0.1 / CL-WP-0.4 / 4DM-WP-1.0
-on [aziel-runtime](https://github.com/AzielEliab/aziel-runtime).
+Internal Domain Layer is **33 softwares in 11 domains** after AZPIPE — not
+additional doors. 4DMap (`slug=4dmap`) inspects that layer. AZChat is
+listed **stub / not hosted yet**. RoseClock is forward-only. Lamb Lens is
+fabric ethics (Peace / Clarity / Service → PASS / REFUSE / HOLD-UNCERTAIN),
+not Softwares-tab. Optional ASE / VECTOR / Oracle / Constellation are cite
+only. ZD30, rollback, and generic truth score are absent from the core.
+
+Worker UI paints the hop strip plus the 11-domain map. Engine / MCP:
+`page_cycle_status` includes the cite; local `GET|POST /v1/pipeline_arch`
+returns it. `/v1/azpipe/*` PROXIES to aziel-runtime when that arch path
+exists. Papers: [MASTER-ARCHITECTURE-2.0](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-ARCHITECTURE-2.0.md)
+· [SUITE-PIPE-1.6.15](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/SUITE-PIPE-1.6.15.md).
 
 ## Dual surface (mandatory)
 

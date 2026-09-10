@@ -21,7 +21,8 @@ assert.equal(cycle.modules.azhome.served, false);
 assert.equal(cycle.page_cycle.skip_forbidden, true);
 assert.equal(cycle.pipeline.lambgate, false);
 assert.equal(cycle.pipeline.domain_doors.slug, "4dmap");
-assert.match(cycle.pipeline_path, /Domain Doors \(incl\. 4DMap inspection\)/);
+assert.equal(cycle.pipeline.software_count, 33);
+assert.match(cycle.pipeline_path, /FragGate \(THE SINGLE DOOR\)/);
 
 const skip = await dispatch("site_state_set", { state: "ON" });
 assert.equal(skip.code, "AIH-CYCLE-LOCKED");

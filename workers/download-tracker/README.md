@@ -19,9 +19,10 @@ KV binding `DOWNLOADS` (create `AZINTERFACE_DOWNLOADS` on first deploy). Account
 A real production id was not in comments/README. Parent must create the
 namespace and replace the id before deploy. Do not invent an id.
 
-Human UI includes a **LOCKED pipeline** strip (frozen hop order;
-Domain Doors highlight 4DMap inspection; runtime owns fabric hops;
-no LambGate) and a **Live Nodes** strip (QNM-BUILD-1.0
+Human UI includes a **LOCKED pipeline** strip (MASTER-ARCHITECTURE-2.0;
+FragGate is THE SINGLE DOOR; Internal Domain Layer 33/11 with 4DMap
+inspection; runtime owns fabric hops; no LambGate) plus the 11-domain
+map, and a **Live Nodes** strip (QNM-BUILD-1.0
 live|locked|isolated + QNS-CD-1.0 cite). Radios stay off until runtime
 enable. `GET /v1/mesh` never enables. QNS-CD-1.0 photon vias run in local
 `qnm-node/` qnsd (127.0.0.1); this Worker holds pair memorial cites only.

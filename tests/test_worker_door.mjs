@@ -169,7 +169,8 @@ try {
   assert.ok(spec.paths["/v1/pipeline_arch"]);
   assert.ok(spec.paths["/v1/azpipe/arch"]);
   assert.match(spec.info.description, /LOCKED suite pipeline/);
-  assert.match(spec.info.description, /4DMap/);
+  assert.match(spec.info.description, /MASTER-ARCHITECTURE-2.0/);
+  assert.match(spec.info.description, /THE SINGLE DOOR/);
 
   const mcpReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/mcp", { method: "GET" });
   const mcpRes = await handleRuntimeApi(mcpReq, new URL(mcpReq.url), {});

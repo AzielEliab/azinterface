@@ -89,19 +89,23 @@ Canonical: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
 
 ## LOCKED suite pipeline
 
-Interface cites the frozen hop order. aziel-runtime owns fabric hops
-(SweepGate / ChainLock / AZPIPE). Those hops are not Softwares-tab
-products. LambGate is not on this list.
+Controlling design is MASTER-ARCHITECTURE-2.0. SUITE-PIPE-1.6.15 remains
+the current runtime public strip and is not dropped. aziel-runtime owns
+fabric hops. AZInterface is the human-facing UI — not a second FragGate
+door. FragGate is THE SINGLE DOOR. LambGate is not a hop.
 
 ```
-PUBLIC/UI/Agents → FragGate → SweepGate → ChainLock-IN → DecisionGATE →
-AZPIPE → Domain Doors (incl. 4DMap inspection) → TemporalLock →
-StaticClock → ChainLock-OUT → Response/Receipt
+Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) →
+Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN →
+DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains;
+4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock /
+VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return
 ```
 
-4DMap (`slug=4dmap`, 4DM-WP-1.0) is Domain Door inspection after AZPIPE —
-not a sequential gate. `page_cycle_status` and `pipeline_arch` carry the
-cite. `/v1/azpipe/*` may proxy to runtime when that arch path exists.
+The Internal Domain Layer is 33 softwares in 11 domains after AZPIPE —
+not additional doors. 4DMap inspects that layer. AZChat is stub / not
+hosted yet. RoseClock is forward-only. Lamb Lens is fabric ethics.
+`page_cycle_status` and `pipeline_arch` carry the cite.
 
 ## Dual surface
 
