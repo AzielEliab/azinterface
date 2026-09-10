@@ -2,11 +2,12 @@
  * FragGate / runtime / suite-mesh door — classify Worker /v1 paths.
  *
  * `/v1/fraggate/*`, `/v1/runtime/*`, and `/v1/mesh/*` PROXY to aziel-runtime
- * via AZIEL_RUNTIME or HTTPS fallback. Leftover `/v1/azpipe` and
- * `/v1/azpipe/arch` alias GET `/v1/fraggate` (MASTER-33 `pipeline` /
- * `pipeline_strip` — fabric cite, not a Softwares door). Local engine ops
- * are single-segment `/v1/{op}` only. Multi-segment leftovers are never
- * swallowed as op names.
+ * via AZIEL_RUNTIME or HTTPS fallback. Leftover `/v1/azpipe/arch` is a
+ * local alias of `pipeline_arch` (embedded MASTER-33 strip). It is not a
+ * Softwares door and does not proxy a runtime path that may 404.
+ * Optional runtime cite is GET `/v1/fraggate` (`pipeline` /
+ * `pipeline_strip`). Local engine ops are single-segment `/v1/{op}` only.
+ * Multi-segment leftovers are never swallowed as op names.
  *
  * Suite mesh is QNM-BUILD-1.0 rollup only (live|locked|isolated). Default OFF.
  * GET never enables. QNS-CD-1.0 vias run in local qnsd (127.0.0.1).
@@ -22,14 +23,17 @@ export const RUNTIME_ARCH_PATH = "/v1/fraggate";
 
 export const DOOR_PREFIXES = Object.freeze(["fraggate", "runtime", "mesh", "azpipe"]);
 
+/** Leftover Worker paths → local ops. Never a runtime proxy. */
+export const LOCAL_PATH_ALIASES = Object.freeze({
+  "/v1/azpipe/arch": "pipeline_arch",
+});
+
 /** UI / leftover aliases → correct origin FragGate paths. */
 export const DOOR_ALIASES = Object.freeze({
   "/v1/runtime/list": "/v1/fraggate/list",
   "/v1/runtime/call": "/v1/fraggate/call",
   "/v1/runtime/describe": "/v1/fraggate/describe",
   "/v1/runtime/verify": "/v1/fraggate/verify",
-  "/v1/azpipe": RUNTIME_ARCH_PATH,
-  "/v1/azpipe/arch": RUNTIME_ARCH_PATH,
 });
 
 export function normalizeV1Path(pathname) {
@@ -52,6 +56,7 @@ export function runtimeArchUrl(env) {
 
 export function mapDoorPath(pathname) {
   const path = normalizeV1Path(pathname);
+  if (LOCAL_PATH_ALIASES[path]) return null;
   if (DOOR_ALIASES[path]) return DOOR_ALIASES[path];
   if (path === "/v1/fraggate" || path.startsWith("/v1/fraggate/")) return path;
   if (path === "/v1/runtime" || path.startsWith("/v1/runtime/")) return path;
@@ -79,6 +84,8 @@ export function localOpFromPath(pathname) {
  */
 export function classifyV1Path(pathname) {
   const path = normalizeV1Path(pathname);
+  const localAlias = LOCAL_PATH_ALIASES[path];
+  if (localAlias) return { kind: "local", path, op: localAlias };
   const originPath = mapDoorPath(path);
   if (originPath) return { kind: "door", path, originPath };
   const op = localOpFromPath(path);

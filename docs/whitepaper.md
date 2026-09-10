@@ -108,9 +108,10 @@ isolation labels, not additional doors. 4DMap inspects Research.
 AZChat (Comms) is stub / not hosted yet. RoseClock is forward-only.
 Lamb Lens is fabric ethics after FragGate.
 `page_cycle_status` and `pipeline_arch` carry the cite. Hosted
-`pipeline_arch` cites live aziel-runtime `GET /v1/fraggate`
-(`pipeline` / `pipeline_strip`). Leftover `/v1/azpipe/arch` aliases
-that door. Local frozen hop list stays on `GET|POST /v1/pipeline_arch`.
+`pipeline_arch` and leftover `/v1/azpipe/arch` return the same
+embedded MASTER-33 strip. Optional runtime cite is
+`GET /v1/fraggate` (`pipeline` / `pipeline_strip`). Cite never
+depends on a missing runtime path.
 
 ## Dual surface
 

@@ -61,6 +61,11 @@ assert.deepEqual(classifyV1Path("/v1/pipeline_arch"), {
   path: "/v1/pipeline_arch",
   op: "pipeline_arch",
 });
+assert.deepEqual(classifyV1Path("/v1/azpipe/arch"), {
+  kind: "local",
+  path: "/v1/azpipe/arch",
+  op: "pipeline_arch",
+});
 
 const specReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/openapi.json", { method: "GET" });
 const specRes = await handleRuntimeApi(specReq, new URL(specReq.url), {});
@@ -76,7 +81,9 @@ const mcp = await mcpRes.json();
 assert.equal(mcp.pipeline.owner, "aziel-runtime");
 assert.equal(mcp.pipeline.software_count, 33);
 assert.equal(mcp.pipeline.second_door, false);
-assert.equal(mcp.pipeline.path_proxy, RUNTIME_ARCH_PATH);
+assert.equal(mcp.pipeline.path_local_alias, "/v1/azpipe/arch");
+assert.equal(mcp.pipeline.path_runtime_cite, RUNTIME_ARCH_PATH);
+assert.equal(mcp.pipeline.proxy, false);
 
 const RUNTIME_STRIP =
   "Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer → optional ASE → RoseClock (forward-only; StaticClock/VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return";
@@ -114,8 +121,8 @@ function mockRuntime(status, body) {
   };
 }
 
-async function getPipelineArch(env) {
-  const req = new Request("https://azinterface-download-tracker.vibelock.workers.dev/v1/pipeline_arch", {
+async function getPipelineArch(env, path = "/v1/pipeline_arch") {
+  const req = new Request("https://azinterface-download-tracker.vibelock.workers.dev" + path, {
     method: "GET",
     headers: { "user-agent": "Mozilla/5.0" },
   });
@@ -175,6 +182,22 @@ try {
   assert.equal(httpsCite.body.runtime_status, 200);
   assert.equal(httpsCite.body.runtime_cite.pipeline_strip, RUNTIME_STRIP);
   assert.equal(httpsCite.body.path, PIPELINE_PATH);
+
+  const aliasMissing = await getPipelineArch(mockRuntime(404, { error: "not found" }), "/v1/azpipe/arch");
+  assert.equal(aliasMissing.res.status, 200);
+  assert.equal(aliasMissing.body.ok, true);
+  assert.equal(aliasMissing.body.cited_from, "embedded");
+  assert.equal(aliasMissing.body.runtime_status, 404);
+  assert.equal(aliasMissing.body.software_count, 33);
+  assert.equal(aliasMissing.body.path, PIPELINE_PATH);
+  assert.equal(aliasMissing.body.controlling_design, "MASTER-33");
+  assert.equal(aliasMissing.body.hops.some((h) => String(h.label || "").includes("LambGate")), false);
+
+  const aliasLive = await getPipelineArch(mockRuntime(200, runtimeArchPayload()), "/v1/azpipe/arch");
+  assert.equal(aliasLive.res.status, 200);
+  assert.equal(aliasLive.body.path, PIPELINE_PATH);
+  assert.equal(aliasLive.body.software_count, 33);
+  assert.equal(aliasLive.body.cited_from, DEFAULT_RUNTIME_ORIGIN + RUNTIME_ARCH_PATH);
 } finally {
   globalThis.fetch = previousFetch;
 }

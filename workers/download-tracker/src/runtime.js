@@ -4,8 +4,9 @@
  *
  * Door paths (`/v1/fraggate/*`, `/v1/runtime/*`, `/v1/mesh/*`) PROXY to
  * aziel-runtime via AZIEL_RUNTIME or HTTPS fallback. Leftover
- * `/v1/azpipe/arch` aliases GET `/v1/fraggate` (MASTER-33 pipeline /
- * pipeline_strip). Local ops are single-segment `/v1/{op}` only.
+ * `/v1/azpipe/arch` is a local `pipeline_arch` alias (embedded MASTER-33).
+ * Optional runtime cite is GET `/v1/fraggate`. Local ops are
+ * single-segment `/v1/{op}` only.
  */
 import {
   ALIASES,
@@ -160,9 +161,15 @@ function openapiSpec(origin) {
   };
   paths["/v1/azpipe/arch"] = {
     get: {
-      operationId: "azinterface_azpipe_arch_alias_proxy",
-      summary: "Leftover alias PROXY → origin GET /v1/fraggate (pipeline / pipeline_strip). Not a Softwares door. Local frozen cite is GET /v1/pipeline_arch.",
-      responses: { "200": { description: "MASTER-33 pipeline cite via FragGate" } },
+      operationId: "azinterface_azpipe_arch_local",
+      summary: "Local alias of GET /v1/pipeline_arch. Embedded MASTER-33 strip. Not a Softwares door. Does not proxy a runtime path. Optional runtime cite is GET /v1/fraggate.",
+      responses: { "200": { description: "embedded MASTER-33 pipeline cite" } },
+    },
+    post: {
+      operationId: "azinterface_azpipe_arch_local_post",
+      summary: "Local alias of POST /v1/pipeline_arch. Embedded MASTER-33 strip.",
+      requestBody: { content: { "application/json": { schema: { type: "object" } } } },
+      responses: { "200": { description: "embedded MASTER-33 pipeline cite" } },
     },
   };
   paths["/v1/mesh"] = {
@@ -240,7 +247,7 @@ function openapiSpec(origin) {
       title: "AZInterface runtime",
       version: VERSION,
       summary: "Dual surface. Human UI is this Worker /v1. AI / MCP path is FragGate only (slug=azinterface).",
-      description: LIMITATION + " LOCKED suite pipeline (MASTER-33 on aziel-runtime; FragGate is THE SINGLE DOOR; AZInterface is not a second door; no LambGate): Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33/11 isolation labels; 4DMap inspection) → optional ASE → RoseClock (forward-only) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return. Local GET|POST /v1/pipeline_arch returns the frozen cite; runtime cite is GET /v1/fraggate (pipeline / pipeline_strip). Leftover /v1/azpipe/arch aliases that door. Agent door is FragGate only: POST " + FRAGGATE_CALL + " {slug:azinterface,op,payload}. Catalog MCP: POST " + FRAGGATE_MCP + ". This host /mcp is a pointer, not a second agent brand. Human chrome uses same-origin /v1. Suite mesh /v1/mesh/* PROXIES to aziel-runtime (AZIEL_RUNTIME or HTTPS fallback). QNM-BUILD-1.0 rollup live|locked|isolated. Default OFF until runtime enable. GET never enables. QNS-CD-1.0 photon vias run in local qnm-node qnsd (127.0.0.1). Interface holds pair memorial (pair_offer/accept/seal/cut/status). Not a Softwares-tab QNS product. AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. No auto-heal. Not anonymity. Anon-broadcast is not a publish path. No untraceable-origin claim.",
+      description: LIMITATION + " LOCKED suite pipeline (MASTER-33 on aziel-runtime; FragGate is THE SINGLE DOOR; AZInterface is not a second door; no LambGate): Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33/11 isolation labels; 4DMap inspection) → optional ASE → RoseClock (forward-only) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return. Local GET|POST /v1/pipeline_arch and leftover /v1/azpipe/arch return the same frozen MASTER-33 cite; optional runtime cite is GET /v1/fraggate (pipeline / pipeline_strip). Cite never depends on a missing runtime path. Agent door is FragGate only: POST " + FRAGGATE_CALL + " {slug:azinterface,op,payload}. Catalog MCP: POST " + FRAGGATE_MCP + ". This host /mcp is a pointer, not a second agent brand. Human chrome uses same-origin /v1. Suite mesh /v1/mesh/* PROXIES to aziel-runtime (AZIEL_RUNTIME or HTTPS fallback). QNM-BUILD-1.0 rollup live|locked|isolated. Default OFF until runtime enable. GET never enables. QNS-CD-1.0 photon vias run in local qnm-node qnsd (127.0.0.1). Interface holds pair memorial (pair_offer/accept/seal/cut/status). Not a Softwares-tab QNS product. AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. No auto-heal. Not anonymity. Anon-broadcast is not a publish path. No untraceable-origin claim.",
       license: { name: "Apache-2.0", identifier: "Apache-2.0" },
       contact: { name: IDENTITY, url: "https://github.com/AzielEliab/azinterface" },
     },
@@ -261,7 +268,7 @@ function mcpDocs(origin) {
     catalog_mcp: FRAGGATE_MCP,
     body: { slug: "azinterface", op: "page_cycle_status", payload: {} },
     openapi: origin + "/openapi.json",
-    note: "AI / MCP path is the one FragGate door. This host /v1/fraggate/* , /v1/runtime/* , and /v1/mesh/* PROXY to aziel-runtime (AZIEL_RUNTIME or HTTPS fallback to " + RUNTIME + "). Leftover /v1/azpipe/arch aliases GET /v1/fraggate. Local ops are /v1/{op} only. LOCKED pipeline cite is GET|POST /v1/pipeline_arch (frozen hop list) plus runtime GET /v1/fraggate pipeline / pipeline_strip (runtime owns fabric hops; no LambGate; 4DMap is Domain Door inspection). Catalog MCP: POST " + FRAGGATE_MCP + ". Suite mesh is slug=mesh on that catalog (QNM-BUILD-1.0; default OFF; GET never enables). QNS-CD-1.0 vias run in local qnsd (127.0.0.1); Interface holds pair memorial. Not a Softwares-tab QNS product. AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. Anon-broadcast is not a publish path. AZHub is separate software, not this product.",
+    note: "AI / MCP path is the one FragGate door. This host /v1/fraggate/* , /v1/runtime/* , and /v1/mesh/* PROXY to aziel-runtime (AZIEL_RUNTIME or HTTPS fallback to " + RUNTIME + "). Leftover /v1/azpipe/arch is a local pipeline_arch alias (embedded MASTER-33). Local ops are /v1/{op} only. LOCKED pipeline cite is GET|POST /v1/pipeline_arch (frozen hop list) plus optional runtime GET /v1/fraggate pipeline / pipeline_strip (runtime owns fabric hops; no LambGate; 4DMap is Domain Door inspection). Cite never depends on a missing runtime path. Catalog MCP: POST " + FRAGGATE_MCP + ". Suite mesh is slug=mesh on that catalog (QNM-BUILD-1.0; default OFF; GET never enables). QNS-CD-1.0 vias run in local qnsd (127.0.0.1); Interface holds pair memorial. Not a Softwares-tab QNS product. AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. Anon-broadcast is not a publish path. AZHub is separate software, not this product.",
     ops: OPS,
     live_ops: LIVE_OPS,
     stub_ops: STUB_OPS,
@@ -287,9 +294,9 @@ function mcpDocs(origin) {
     pipeline: {
       ...pipelineArch(),
       path_local: "/v1/pipeline_arch",
-      path_proxy: RUNTIME_ARCH_PATH,
-      path_proxy_alias: "/v1/azpipe/arch",
-      proxy: true,
+      path_local_alias: "/v1/azpipe/arch",
+      path_runtime_cite: RUNTIME_ARCH_PATH,
+      proxy: false,
       owner: "aziel-runtime",
       lambgate: false,
     },
@@ -325,9 +332,11 @@ function extractRuntimeArch(remote) {
       ? remote.pipeline_strip
       : pipeline && typeof pipeline.strip === "string"
         ? pipeline.strip
-        : null;
+        : typeof remote.strip === "string"
+          ? remote.strip
+          : null;
   const master = (pipeline && pipeline.master) || remote.master || null;
-  if (!strip && !pipeline) return null;
+  if (!strip && !pipeline && master !== "MASTER-33") return null;
   return {
     master: master || "MASTER-33",
     locked: pipeline ? pipeline.locked !== false : true,
@@ -438,7 +447,7 @@ export async function handleRuntimeApi(request, url, env) {
   }
   if (path === "/llms.txt" || path === "/ai.txt") {
     return new Response(
-      `AZInterface ${VERSION} by ${IDENTITY}. Apache-2.0. ${LIMITATION}\nAgent path is FragGate only: POST ${FRAGGATE_CALL} {"slug":"azinterface","op":"…","payload":{}}\nThis Worker /v1/fraggate/* , /v1/runtime/* , and /v1/mesh/* PROXY to aziel-runtime (AZIEL_RUNTIME or HTTPS fallback). Leftover /v1/azpipe/arch aliases GET /v1/fraggate.\nLOCKED pipeline cite: GET ${originOf(request)}/v1/pipeline_arch (local) · runtime GET ${RUNTIME}/v1/fraggate (pipeline / pipeline_strip)\nMASTER-33 on aziel-runtime. FragGate is THE SINGLE DOOR. AZInterface is not a second door.\nHuman → AZInterface → PUBLIC/UI/AGENT/API → FragGate → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33/11; 4DMap) → optional ASE → RoseClock → TemporalLock → ChainLock-OUT → ForgeReceipts → Return\nSUITE-PIPE-1.6.15 is historical. aziel-runtime owns fabric hops. No LambGate.\nSuite mesh default OFF. GET never enables. QNM-BUILD-1.0 rollup live|locked|isolated. QNS-CD-1.0 vias run in local qnsd (127.0.0.1). Interface holds pair memorial. Not a Softwares-tab QNS product. AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. No auto-heal. Not anonymity. Anon-broadcast is not a publish path.\nLocal ops are /v1/{op} only.\nCatalog MCP: POST ${FRAGGATE_MCP}\nThis Worker /mcp is a pointer, not a second MCP.\nHuman UI: ${originOf(request)}/\nSkill: ${originOf(request)}/v1/skill\nOpenAPI: ${originOf(request)}/openapi.json\nMesh: ${originOf(request)}/v1/mesh\nQNS: ${originOf(request)} — pair_offer/accept/seal/cut/status\nAZHub sibling: ${AZHUB}\n`,
+      `AZInterface ${VERSION} by ${IDENTITY}. Apache-2.0. ${LIMITATION}\nAgent path is FragGate only: POST ${FRAGGATE_CALL} {"slug":"azinterface","op":"…","payload":{}}\nThis Worker /v1/fraggate/* , /v1/runtime/* , and /v1/mesh/* PROXY to aziel-runtime (AZIEL_RUNTIME or HTTPS fallback). Leftover /v1/azpipe/arch is a local pipeline_arch alias.\nLOCKED pipeline cite: GET ${originOf(request)}/v1/pipeline_arch (local) · alias GET ${originOf(request)}/v1/azpipe/arch · optional runtime GET ${RUNTIME}/v1/fraggate (pipeline / pipeline_strip)\nMASTER-33 on aziel-runtime. FragGate is THE SINGLE DOOR. AZInterface is not a second door.\nHuman → AZInterface → PUBLIC/UI/AGENT/API → FragGate → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33/11; 4DMap) → optional ASE → RoseClock → TemporalLock → ChainLock-OUT → ForgeReceipts → Return\nSUITE-PIPE-1.6.15 is historical. aziel-runtime owns fabric hops. No LambGate.\nSuite mesh default OFF. GET never enables. QNM-BUILD-1.0 rollup live|locked|isolated. QNS-CD-1.0 vias run in local qnsd (127.0.0.1). Interface holds pair memorial. Not a Softwares-tab QNS product. AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. No auto-heal. Not anonymity. Anon-broadcast is not a publish path.\nLocal ops are /v1/{op} only.\nCatalog MCP: POST ${FRAGGATE_MCP}\nThis Worker /mcp is a pointer, not a second MCP.\nHuman UI: ${originOf(request)}/\nSkill: ${originOf(request)}/v1/skill\nOpenAPI: ${originOf(request)}/openapi.json\nMesh: ${originOf(request)}/v1/mesh\nQNS: ${originOf(request)} — pair_offer/accept/seal/cut/status\nAZHub sibling: ${AZHUB}\n`,
       { headers: { "Content-Type": "text/plain; charset=utf-8", ...corsHeaders() } },
     );
   }
