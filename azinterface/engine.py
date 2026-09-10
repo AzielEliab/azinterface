@@ -16,6 +16,8 @@ from typing import Any
 
 from .meta import (
     AIH_PAIR,
+    AZCLCE,
+    AZCOHERENCE,
     AZHUB,
     AZHOME,
     CLIENTS,
@@ -358,6 +360,8 @@ class Engine:
             "role": "custody",
             "hub_collapse": False,
             "sibling_hub": AZHUB,
+            "sibling_azcoherence": AZCOHERENCE,
+            "peer_azclce": AZCLCE,
             "kv_increment": False,
             "stored": False,
             "vault_contents": False,

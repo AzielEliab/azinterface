@@ -21,7 +21,14 @@ export const FRAGGATE_MCP = "https://aziel-runtime.vibelock.workers.dev/mcp";
 export const HOST = "https://azinterface-download-tracker.vibelock.workers.dev";
 export const SIGIL = "https://www.azielcorpuslibrary.net/sigil.png";
 export const AZHUB = "https://github.com/AzielEliab/azhub";
+export const AZHUB_WORKER = "https://azhub-download-tracker.vibelock.workers.dev";
 export const AZCOHERENCE = "https://github.com/AzielEliab/AZCoherence";
+export const AZCOHERENCE_WORKER = "https://azcoherence-download-tracker.vibelock.workers.dev";
+export const AZCOHERENCE_DOWNLOAD = AZCOHERENCE_WORKER + "/download";
+export const AZCLCE = "https://github.com/AzielEliab/az-clce";
+export const AZCLCE_WORKER = "https://azclce-download-tracker.vibelock.workers.dev";
+export const SOFTWARE_CATALOG = RUNTIME + "/v1/software";
+export const SORT_LAW = "plain A–Z → gate A–Z → lock A–Z (Clock ≠ Lock)";
 export const GITHUB = "https://github.com/AzielEliab/azinterface";
 export const QNS_CD = "QNS-CD-1.0";
 export const QNM_BUILD = "QNM-BUILD-1.0";
@@ -194,11 +201,15 @@ Always send \`User-Agent: Mozilla/5.0\`.
 **Agent path is the one FragGate door.** MCP / agents call aziel-runtime —
 not a second Interface MCP brand. AZHub and AZInterface are separate
 software under that door. AZCoherence (AZC-WP-0.1) is separate Softwares
-on that same door — alternate-triad double-check to neutralize AI
-hallucination in scores. Agents call \`fraggate_call\` with
-\`slug=azcoherence\`. Repo: https://github.com/AzielEliab/AZCoherence.
-Hub Softwares tabs refresh from runtime \`GET /v1/software\`. Interface
-does not hardcode that catalog and does not add a second door.
+on that same door — second-pass triad coherence review (primary vs
+alternate → PASS / FLAG / NEUTRALIZE / REFUSE). Peer of AZ-CLCE
+(Language isolation). Not AKM-TRIAD. Agents: \`fraggate_describe\` then
+\`fraggate_call\` with \`slug=azcoherence\` via aziel-runtime. Humans:
+https://azcoherence-download-tracker.vibelock.workers.dev/ and
+\`/download\`. Repo: https://github.com/AzielEliab/AZCoherence.
+Hub Softwares tabs refresh from runtime \`GET /v1/software\`
+(plain A–Z → gate A–Z → lock A–Z). Interface does not hardcode that
+catalog and does not add a second door.
 
 \`POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call\`
 body \`{"slug":"azinterface","op":"<op>","payload":{}}\`
@@ -524,6 +535,8 @@ function base(extra) {
     role: "custody",
     hub_collapse: false,
     sibling_hub: AZHUB,
+    sibling_azcoherence: AZCOHERENCE,
+    peer_azclce: AZCLCE,
     kv_increment: false,
     stored: false,
     vault_contents: false,

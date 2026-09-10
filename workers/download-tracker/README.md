@@ -38,7 +38,12 @@ on this host (`GET|POST /mcp` returns `ok: false` — agents use
 aziel-runtime FragGate/MCP; this host is custody UI only).
 
 Interface is CUSTODY. AZHub is separate software under the one FragGate
-door — never collapse them.
+door — never collapse them. AZCoherence (AZC-WP-0.1, `slug=azcoherence`)
+is separate Plain Softwares on that same door (peer of AZ-CLCE; not
+AKM-TRIAD). Humans: https://azcoherence-download-tracker.vibelock.workers.dev/
++ `/download`. Agents: FragGate `describe` then `call` via aziel-runtime.
+`GET /cite.json` and `GET /llms.txt` cite those peer links. Softwares
+tabs: `GET /v1/software` (plain A–Z).
 Scorched Earth is a local stub/advisory only. Never a remote wipe.
 
 Author: Aziel Eliab. Apache-2.0.

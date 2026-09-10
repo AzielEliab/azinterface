@@ -85,6 +85,10 @@ def test_eleven_domains_thirty_three_softwares() -> None:
     embryo = next(s for d in DOMAIN_MAP for s in d["softwares"] if s["slug"] == "embryolock")
     assert "stub" in embryo["status"]
     cite = pipeline_arch()
+    placement = next(p for p in cite["placements"] if p["slug"] == "azcoherence")
+    assert placement["placement"] == "scoring-review"
+    assert placement["bucket"] == "plain"
+    assert "AKM-TRIAD" in placement["note"]
     assert cite["software_count"] == 33
     assert cite["domain_count"] == 11
     assert "ZD30" in cite["absent_from_core"]
@@ -130,3 +134,6 @@ def test_strip_and_domain_map_html() -> None:
     assert 'data-domain="core-time"' in html
     assert 'data-slug="4dmap"' in html
     assert "aziel-runtime" in html
+    assert "AZCoherence" in html
+    assert "scoring-review" in html
+    assert "plain A–Z" in html

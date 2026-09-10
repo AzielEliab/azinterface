@@ -173,7 +173,7 @@ URL pattern (same as sibling Aziel Eliab products):
 - Homepage: [https://azinterface-download-tracker.vibelock.workers.dev/](https://azinterface-download-tracker.vibelock.workers.dev/)
 - Direct tarball: [azinterface-0.1.0.tar.gz](https://azinterface-download-tracker.vibelock.workers.dev/download?asset=azinterface-0.1.0.tar.gz)
 - Sigil: [https://www.azielcorpuslibrary.net/sigil.png](https://www.azielcorpuslibrary.net/sigil.png)
-- Cite: [cite.json](https://azinterface-download-tracker.vibelock.workers.dev/cite.json) — Eliab, Aziel. (2026). AZInterface 0.1.0 [Software]. Apache-2.0. Do not invent a DOI.
+- Cite: [cite.json](https://azinterface-download-tracker.vibelock.workers.dev/cite.json) — Eliab, Aziel. (2026). AZInterface 0.1.0 [Software]. Apache-2.0. Plain peers A–Z: AZ-CLCE, AZCoherence (`slug=azcoherence`), AZHub. Do not invent a DOI.
 
 Isolated counter: Worker `azinterface-download-tracker`, KV `AZINTERFACE_DOWNLOADS`. `/v1` and `/mcp` do not increment downloads.
 
@@ -247,6 +247,7 @@ node tests/test_worker_engine.mjs
 node tests/test_worker_door.mjs
 node tests/test_worker_ui_mesh.mjs
 node tests/test_worker_pipeline.mjs
+node tests/test_worker_cite.mjs
 azinterface doctor
 ```
 
@@ -292,8 +293,9 @@ origin claim.
 - Local qnsd: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
 - FragGate: https://github.com/AzielEliab/fraggate
 - Digital Library: https://www.azielcorpuslibrary.net/
+- AZ-CLCE (Plain peer of AZCoherence — Language isolation; do not merge): https://github.com/AzielEliab/az-clce
+- AZCoherence (separate Softwares — AZC-WP-0.1; same FragGate door, `slug=azcoherence`; peer of AZ-CLCE; not AKM-TRIAD): https://github.com/AzielEliab/AZCoherence · Worker https://azcoherence-download-tracker.vibelock.workers.dev/ · [download](https://azcoherence-download-tracker.vibelock.workers.dev/download) · agents `fraggate_describe` / `fraggate_call`
 - AZHub (separate software — Blank Key): https://github.com/AzielEliab/azhub
-- AZCoherence (separate Softwares — AZC-WP-0.1; same FragGate door, `slug=azcoherence`): https://github.com/AzielEliab/AZCoherence
 - godlock.uk
 - https://www.azieleliab.com
 

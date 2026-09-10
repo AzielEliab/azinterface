@@ -269,6 +269,17 @@ PLACEMENTS = (
         "placement": "fabric-product",
         "note": "ForgeReceipts packages Return. Catalog engine. Not an extra door.",
     },
+    {
+        "slug": "azcoherence",
+        "name": "AZCoherence",
+        "placement": "scoring-review",
+        "bucket": "plain",
+        "note": (
+            "AZCoherence is the second-pass coherence reviewer for triad scores. "
+            "Scoring-adjacent to AZ-CLCE (Language isolation). Catalog software. "
+            "Not an extra door. Not one of the 33. Not AKM-TRIAD fabric."
+        ),
+    },
 )
 
 OPTIONAL_ANALYTICAL = (
@@ -463,7 +474,10 @@ def domain_map_html() -> str:
         "<p class=\"pipe-note\">MASTER-33: 33 softwares in 11 domains after AZPIPE. Isolation labels — "
         "not additional FragGate doors. 4DMap is a Research-domain inspection frame (T/Δ/Γ/Π), "
         "not an extra door (domains_are_doors:false). AZChat is stub / not hosted yet. "
-        "AZInterface is the human UI before the door, not one of the 33. Owner: aziel-runtime. "
+        "AZInterface is the human UI before the door, not one of the 33. "
+        "Softwares-tab placements (not the 33): AZCoherence (plain, scoring-review; peer of AZ-CLCE; not AKM-TRIAD), "
+        "AZInterface (human-ui), DecisionGATE, ForgeReceipts. Live catalog sort: plain A–Z → gate A–Z → lock A–Z "
+        "at GET /v1/software. Owner: aziel-runtime. "
         "Author: Aziel Eliab only.</p>"
         f'<div class="domain-grid">{"".join(cards)}</div>'
         f'<p class="pipe-note">Optional analytical (cite only): {analytical}. '

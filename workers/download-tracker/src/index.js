@@ -1,3 +1,4 @@
+import { citeDocument } from "./cite.js";
 import { handleRuntimeApi } from "./runtime.js";
 import { homeHtml } from "./ui.js";
 
@@ -283,25 +284,14 @@ export default {
       return new Response(body, { status: 200, headers: { "Content-Type": "text/plain; charset=utf-8", ...corsHeaders() } });
     }
     if ((url.pathname === "/sitemap.xml" || url.pathname === "/sitemap.xml/") && request.method === "GET") {
-      const locs = [HOST + "/", HOST + "/download", HOST + "/install.sh", HOST + "/v1/skill", HOST + "/openapi.json", HOST + "/mcp", HOST + "/v1/mesh", HOST + "/v1/pipeline_arch", GITHUB_REPO];
+      const locs = [HOST + "/", HOST + "/download", HOST + "/install.sh", HOST + "/v1/skill", HOST + "/openapi.json", HOST + "/mcp", HOST + "/cite.json", HOST + "/llms.txt", HOST + "/v1/mesh", HOST + "/v1/pipeline_arch", GITHUB_REPO];
       const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         + locs.map((u) => "  <url><loc>" + u + "</loc></url>").join("\n")
         + "\n</urlset>\n";
       return new Response(xml, { status: 200, headers: { "Content-Type": "application/xml; charset=utf-8", ...corsHeaders() } });
     }
     if ((url.pathname === "/cite.json" || url.pathname === "/cite.json/") && request.method === "GET") {
-      return json({
-        author: "Aziel Eliab",
-        title: "AZInterface",
-        version: "0.1.0",
-        spec: "AIH-WP-1.0",
-        github: GITHUB_REPO,
-        download: HOST + "/download",
-        license: "Apache-2.0",
-        catalog: "https://aziel-runtime.vibelock.workers.dev/",
-        sibling: "https://github.com/AzielEliab/azhub",
-        note: "Do not invent a DOI. Interface is CUSTODY — never collapse into Hub.",
-      });
+      return json(citeDocument());
     }
     return json({ error: "not found" }, 404);
   },

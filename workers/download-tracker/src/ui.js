@@ -138,7 +138,7 @@ ${domainMapHtml()}
 <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code> body <code>{"slug":"azinterface","op":"…","payload":{}}</code>.
 This host <code>/mcp</code> is a pointer, not a product MCP.
 GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watchers || 0}.
-<a href="/count">/count</a> · <a href="/stats">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="/ai">AI / FragGate</a> · <a href="/v1/mesh">/v1/mesh</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/azhub">AZHub (separate software)</a> · <a href="https://github.com/AzielEliab/AZCoherence">AZCoherence (same FragGate door)</a></p>
+<a href="/count">/count</a> · <a href="/stats">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="/cite.json">cite.json</a> · <a href="/ai">AI / FragGate</a> · <a href="/v1/mesh">/v1/mesh</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/az-clce">AZ-CLCE</a> · <a href="https://github.com/AzielEliab/AZCoherence">AZCoherence</a> · <a href="https://azcoherence-download-tracker.vibelock.workers.dev/">AZCoherence Worker</a> · <a href="https://github.com/AzielEliab/azhub">AZHub</a></p>
 
 <div class="grid">
   <div class="card">
@@ -231,7 +231,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
 
 <footer>
   Interface is CUSTODY. AZHub is separate software (Blank Key) under the one FragGate door — do not collapse them.
-  AZCoherence (AZC-WP-0.1) is separate Softwares on that same door — agents use <code>fraggate_call</code> <code>slug=azcoherence</code>. Softwares tabs pull from runtime <code>GET /v1/software</code>; Interface does not host that catalog.
+  AZCoherence (AZC-WP-0.1) is separate Softwares on that same door — second-pass triad coherence (PASS/FLAG/NEUTRALIZE/REFUSE), peer of AZ-CLCE, not AKM-TRIAD. Agents: <code>fraggate_describe</code> then <code>fraggate_call</code> <code>slug=azcoherence</code>. Humans: <a href="https://azcoherence-download-tracker.vibelock.workers.dev/">AZCoherence Worker</a> + <a href="https://azcoherence-download-tracker.vibelock.workers.dev/download">/download</a>. Softwares tabs pull from runtime <code>GET /v1/software</code> (plain A–Z); Interface does not host that catalog.
   Agents use aziel-runtime FragGate/MCP:
   <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code>
   <code>{"slug":"azinterface",…}</code>
