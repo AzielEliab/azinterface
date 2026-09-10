@@ -45,13 +45,14 @@ Controlling design: **MASTER-33** on **aziel-runtime** (lock introduced
 that door — not a second door and not one of the 33 domain slugs.
 SUITE-PIPE-1.6.15 is historical (kept, not rolled back). No LambGate.
 
-`Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains; 4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock / VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return`
+`Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains; 4DMap inspection frame) → optional ASE → RoseClock (forward-only; StaticClock / VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return`
 
 Internal Domain Layer is **33 softwares in 11 domains** after AZPIPE —
 isolation labels, not additional doors. Live map: Vault/Custody, Media,
 Evidence, Language, AI, Research (`4dmap`), Comms (`azchat` stub / not
-hosted yet), Network, System, Simulation, Core Time. 4DMap inspects
-Research (T/Δ/Γ/Π). RoseClock is forward-only. Lamb Lens is fabric ethics
+hosted yet), Network, System, Simulation, Core Time. 4DMap is a
+Research-domain inspection frame (T/Δ/Γ/Π), not an extra door
+(`domains_are_doors:false`). RoseClock is forward-only. Lamb Lens is fabric ethics
 after FragGate (Peace / Clarity / Service → PASS / REFUSE / HOLD-UNCERTAIN).
 Optional ASE / VECTOR / Oracle / Constellation are cite only. ZD30,
 rollback, and generic truth score are absent from the core.

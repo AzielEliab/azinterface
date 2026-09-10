@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { dispatch, genesisHashKey, LIVE_OPS, PAGE_CYCLES, resetEngine, STUB_OPS } from "../workers/download-tracker/src/engine.js";
+import { FOURDMAP_FRAME } from "../workers/download-tracker/src/pipeline.js";
 
 assert.ok(LIVE_OPS.includes("pair_offer") && LIVE_OPS.includes("pair_status"));
 assert.ok(STUB_OPS.includes("pair_wipe"));
@@ -21,6 +22,9 @@ assert.equal(cycle.modules.azhome.served, false);
 assert.equal(cycle.page_cycle.skip_forbidden, true);
 assert.equal(cycle.pipeline.lambgate, false);
 assert.equal(cycle.pipeline.domain_doors.slug, "4dmap");
+assert.equal(cycle.pipeline.domains_are_doors, false);
+const cycleFields = Object.fromEntries((cycle.display.fields || []).map((f) => [f.label, f.value]));
+assert.equal(cycleFields["4dmap"], FOURDMAP_FRAME);
 assert.equal(cycle.pipeline.software_count, 33);
 assert.match(cycle.pipeline_path, /FragGate \(THE SINGLE DOOR\)/);
 

@@ -31,11 +31,14 @@ export const SUITE_PIPE_PATH =
   "AZPIPE → Domain Doors (incl. 4DMap inspection) → TemporalLock → " +
   "StaticClock → ChainLock-OUT → Response/Receipt";
 
+export const FOURDMAP_FRAME =
+  "inspection frame — not an extra door (domains_are_doors:false)";
+
 export const PIPELINE_PATH =
   "Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → " +
   "Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → " +
   "DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains; " +
-  "4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock / " +
+  "4DMap inspection frame) → optional ASE → RoseClock (forward-only; StaticClock / " +
   "VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return";
 
 export const PIPELINE_HOPS = Object.freeze([
@@ -69,7 +72,7 @@ export const PIPELINE_HOPS = Object.freeze([
       axes: "T/Δ/Γ/Π",
       domain: "Research",
       domain_id: "06",
-      note: "Research-domain inspection inside the 11-domain layer after AZPIPE. Not a sequential gate. Not an additional door.",
+      note: "4DMap is a Research-domain inspection frame T/Δ/Γ/Π after AZPIPE. Not a sequential gate. Not an extra door (domains_are_doors:false).",
     }),
   }),
   Object.freeze({ id: "ase", label: "optional ASE", kind: "analytical", owner: PIPELINE_OWNER, software_tab: false, optional: true, note: "Cite only. Not Softwares-tab unless already a product." }),
@@ -169,7 +172,8 @@ export const PIPELINE_NOTE =
   "FragGate is THE SINGLE DOOR. AZInterface is the human-facing UI before " +
   "that door — not a second door and not one of the 33 domain slugs. " +
   "Internal Domain Layer is 33 softwares in 11 domains (isolation labels, " +
-  "not additional doors). 4DMap is Research-domain inspection (T/Δ/Γ/Π). " +
+  "not additional doors). 4DMap is a Research-domain inspection frame " +
+  "(T/Δ/Γ/Π), not an extra door (domains_are_doors:false). " +
   "AZChat is stub / not hosted yet (Comms). RoseClock is forward-only. " +
   "ChainLock / TemporalLock are append-only evidence. Lamb Lens is fabric " +
   "ethics after FragGate (Peace / Clarity / Service → PASS / REFUSE / " +
@@ -224,6 +228,7 @@ export function pipelineArch() {
     path: PIPELINE_PATH,
     hops: PIPELINE_HOPS.map(cloneHop),
     single_door: "fraggate",
+    domains_are_doors: false,
     domain_doors: {
       inspection: "4DMap",
       slug: "4dmap",
@@ -231,9 +236,12 @@ export function pipelineArch() {
       sequential_gate: false,
       axes: "T/Δ/Γ/Π",
       additional_doors: false,
+      domains_are_doors: false,
+      role: "inspection_frame",
       layer: "Internal Domain Layer",
       domain: "Research",
       domain_id: "06",
+      note: "4DMap is an inspection frame after AZPIPE, not an extra door (domains_are_doors:false).",
     },
     domain_map: domainMap(),
     domain_count: 11,
@@ -261,7 +269,7 @@ export function pipelineStripHtml() {
     if (hop.optional) classes.push("optional");
     let badge = "";
     if (hop.badge) badge = `<em class="inspect">${hop.badge}</em>`;
-    else if (hop.inspection) badge = '<em class="inspect">4DMap inspection</em>';
+    else if (hop.inspection) badge = '<em class="inspect">4DMap inspection frame</em>';
     else if (hop.forward_only) badge = '<em class="inspect">forward-only</em>';
     return `<li class="${classes.join(" ")}" data-hop="${hop.id}" data-kind="${hop.kind || ""}"><span>${hop.label}</span>${badge}</li>`;
   }).join("");
@@ -284,7 +292,7 @@ export function domainMapHtml() {
   const analytical = OPTIONAL_ANALYTICAL.map((x) => `${x.name} (${x.note})`).join(" · ");
   return `<div id="domains">
   <strong>Internal Domain Layer</strong>
-  <p class="pipe-note">MASTER-33: 33 softwares in 11 domains after AZPIPE. Isolation labels — not additional FragGate doors. 4DMap inspects Research (T/Δ/Γ/Π). AZChat is stub / not hosted yet. AZInterface is the human UI before the door, not one of the 33. Owner: aziel-runtime. Author: Aziel Eliab only.</p>
+  <p class="pipe-note">MASTER-33: 33 softwares in 11 domains after AZPIPE. Isolation labels — not additional FragGate doors. 4DMap is a Research-domain inspection frame (T/Δ/Γ/Π), not an extra door (domains_are_doors:false). AZChat is stub / not hosted yet. AZInterface is the human UI before the door, not one of the 33. Owner: aziel-runtime. Author: Aziel Eliab only.</p>
   <div class="domain-grid">${cards}</div>
   <p class="pipe-note">Optional analytical (cite only): ${analytical}. Absent from core: ZD30, rollback, generic truth score.</p>
 </div>`;

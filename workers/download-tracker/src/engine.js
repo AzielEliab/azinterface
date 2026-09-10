@@ -6,7 +6,7 @@
  * AZHub is separate software under the one FragGate door.
  * LOCKED suite pipeline is a cite — runtime owns fabric hops. No LambGate.
  */
-import { pipelineArch } from "./pipeline.js";
+import { FOURDMAP_FRAME, pipelineArch } from "./pipeline.js";
 
 export const VERSION = "0.1.0";
 export const SPEC = "AIH-WP-1.0";
@@ -233,10 +233,11 @@ The product name is aziel-runtime — not a version+FragGate mash.
 FragGate is THE SINGLE DOOR. AZInterface is the human UI before that door,
 not a second door. SUITE-PIPE-1.6.15 is historical. No LambGate.
 
-\`Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains; 4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock / VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return\`
+\`Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains; 4DMap inspection frame) → optional ASE → RoseClock (forward-only; StaticClock / VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return\`
 
 Internal Domain Layer: 33 softwares / 11 domains after AZPIPE — isolation
-labels, not extra doors. 4DMap inspects Research. AZChat (Comms) is stub /
+labels, not extra doors. 4DMap is a Research-domain inspection frame
+(T/Δ/Γ/Π), not an extra door (domains_are_doors:false). AZChat (Comms) is stub /
 not hosted yet. Lamb Lens is fabric ethics after FragGate. RoseClock is
 forward-only.
 Local op \`pipeline_arch\` returns the same cite. Hosted
@@ -1045,7 +1046,7 @@ export async function dispatch(op, payload, _sessionId) {
         ["living_presence", cycle.living_presence],
         ["cloud_asleep", false],
         ["pipeline", cycle.pipeline_path || ""],
-        ["4dmap", "Domain Door inspection — not a sequential gate"],
+        ["4dmap", FOURDMAP_FRAME],
       ]),
     });
   }
@@ -1061,7 +1062,7 @@ export async function dispatch(op, payload, _sessionId) {
         ["path", pipe.path],
         ["owner", pipe.owner],
         ["lambgate", false],
-        ["4dmap", "Domain Door inspection"],
+        ["4dmap", FOURDMAP_FRAME],
         ["software_tab", false],
       ]),
     });

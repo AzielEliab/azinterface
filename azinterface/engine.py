@@ -41,7 +41,7 @@ from .meta import (
     SPEC_STRING,
     VERSION,
 )
-from .pipeline import PIPELINE_PATH, pipeline_arch
+from .pipeline import FOURDMAP_FRAME, PIPELINE_PATH, pipeline_arch
 from .receipts import Ledger, sha256_text
 
 PAGE_CYCLES = ("OFF", "integrity", "ON", "FULL SHUTDOWN", "MEMORIAL")
@@ -787,7 +787,7 @@ class Engine:
                     ("next", (cycle["page_cycle"] or {}).get("next") or ""),
                     ("cloud_asleep", False),
                     ("pipeline", cycle.get("pipeline_path") or PIPELINE_PATH),
-                    ("4dmap", "Domain Door inspection — not a sequential gate"),
+                    ("4dmap", FOURDMAP_FRAME),
                 ],
             ),
         )
@@ -806,7 +806,7 @@ class Engine:
                     ("path", pipe["path"]),
                     ("owner", pipe["owner"]),
                     ("lambgate", False),
-                    ("4dmap", "Domain Door inspection"),
+                    ("4dmap", FOURDMAP_FRAME),
                     ("software_tab", False),
                 ],
             ),
