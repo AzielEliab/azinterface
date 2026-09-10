@@ -47,6 +47,8 @@ def test_not_hub() -> None:
     assert health["hub_collapse"] is False
     assert health["role"] == "custody"
     assert "azhub" in health["sibling_hub"]
+    assert "AZCoherence" in health["sibling_azcoherence"]
+    assert health["peer_azclce"].endswith("/az-clce")
 
 
 def test_skill_cites_azcoherence_same_door() -> None:
@@ -55,6 +57,11 @@ def test_skill_cites_azcoherence_same_door() -> None:
     assert "AZCoherence" in md
     assert "azcoherence" in md
     assert "AZC-WP-0.1" in md
+    assert "fraggate_describe" in md
     assert "fraggate_call" in md
+    assert "azcoherence-download-tracker" in md
+    assert "AZ-CLCE" in md
+    assert "AKM-TRIAD" in md
     assert "GET /v1/software" in md
+    assert "plain A–Z" in md
     assert "does not add a second door" in md

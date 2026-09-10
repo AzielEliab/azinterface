@@ -227,6 +227,8 @@ try {
   assert.equal(mcp.mesh.spec, "QNM-BUILD-1.0");
   assert.equal(mcp.mesh.qns_cd, "QNS-CD-1.0");
   assert.equal(mcp.mesh.get_enables, false);
+  assert.equal(mcp.sibling_azcoherence, "https://github.com/AzielEliab/AZCoherence");
+  assert.match(mcp.note, /slug=azcoherence/);
   assert.equal(mcp.qns.softwares_tab_qns, false);
   assert.equal(mcp.qns.via_runs_in, "qnsd");
   assert.equal(mcp.pipeline.owner, "aziel-runtime");
@@ -251,7 +253,12 @@ try {
   assert.match(llms, /not a public Node Gate/);
   assert.match(llms, /AZCoherence/);
   assert.match(llms, /slug=azcoherence/);
+  assert.match(llms, /AZ-CLCE/);
+  assert.match(llms, /AKM-TRIAD/);
+  assert.match(llms, /azcoherence-download-tracker/);
+  assert.match(llms, /fraggate\/describe\?slug=azcoherence/);
   assert.match(llms, /\/v1\/software/);
+  assert.match(llms, /plain A–Z/);
 
   for (const path of ["/count", "/stats", "/download", "/"]) {
     const req = new Request("https://azinterface-download-tracker.vibelock.workers.dev" + path, { method: "GET" });

@@ -54,7 +54,12 @@ def test_home_html_wires_buttons() -> None:
     assert "separate software" in html
     assert "AZCoherence" in html
     assert "slug=azcoherence" in html
+    assert "AZ-CLCE" in html
+    assert "cite.json" in html
+    assert "azcoherence-download-tracker" in html
     assert "GET /v1/software" in html
+    assert "plain A–Z" in html
+    assert "AKM-TRIAD" in html
     assert "azielcorpuslibrary.net/sigil.png" in html
     local = home_html(local=True)
     assert "azinterface-download-tracker.vibelock.workers.dev/download" in local

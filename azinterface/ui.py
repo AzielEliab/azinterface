@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import urlparse
 
+from .cite import cite_document
 from .engine import Engine
 from .meta import HOST, IDENTITY, LIMITATION, LOOPBACK, PORT, SIGIL, SPEC, VERSION
 from .receipts import Ledger
@@ -48,6 +49,9 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path.rstrip("/") or "/"
         if path == "/":
             self._html(local_html())
+            return
+        if path == "/cite.json":
+            self._json(cite_document())
             return
         if path == "/v1/health":
             self._json(_ENGINE.health({}))
