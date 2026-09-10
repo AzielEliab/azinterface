@@ -6,7 +6,15 @@ from .meta import HOST, LIMITATION, SIGIL
 from .pipeline import domain_map_html, pipeline_strip_html
 
 ASSET = "azinterface-0.1.0.tar.gz"
-INSTALL_LINE = f"curl -fsSL {HOST}/install.sh | bash"
+INSTALL_LINE = f"curl -fsSL {HOST}/install.sh -o install-azinterface.sh"
+INSTALL_STEPS = "\n".join(
+    [
+        f"Download the counted tarball: {HOST}/download?asset={ASSET}",
+        f"tar -xzf {ASSET}",
+        "python3 -m venv .venv && source .venv/bin/activate && pip install -e .",
+        "azinterface ui  →  http://127.0.0.1:8880 (this computer only)",
+    ]
+)
 
 
 def home_html(*, views: int = 0, downloads: int = 0, github: dict | None = None, local: bool = False) -> str:
@@ -43,9 +51,20 @@ h1 {{ margin:0; font-size:1.4rem; color:var(--gold); }}
 @media (max-width:720px){{ .btns,.nums,.grid{{grid-template-columns:1fr;}} }}
 a.btn, button.btn {{ display:block; text-align:center; font:inherit; font-weight:750; padding:1rem; border-radius:10px; border:0; cursor:pointer; text-decoration:none; }}
 a.btn.primary {{ background:var(--ivory); color:#0b0b0b; }}
-button.btn.install {{ background:var(--gold); color:#14110a; }}
+button.btn.install {{ background:transparent; color:var(--gold); border:1px solid var(--gold-dim); }}
 .iso {{ margin:0 18px 1rem; color:#7d8696; font-size:.85rem; }}
 .iso a {{ color:#c9d4ff; }}
+.install-steps {{ margin:0 18px 1rem; padding-left:1.25rem; color:#7d8696; font-size:.85rem; }}
+.install-steps code {{ color:#c9d4ff; }}
+.advanced {{ margin:0 18px 1rem; color:#7d8696; font-size:.82rem; }}
+.advanced summary {{ cursor:pointer; color:var(--gold); }}
+.advanced pre {{ max-height:8rem; overflow:auto; }}
+.checksum-note {{ margin:.4rem 0 0; }}
+.out-panel {{ margin-top:.5rem; }}
+.out-summary {{ margin:0; color:var(--ivory); font-size:.85rem; }}
+.out-json {{ margin-top:.35rem; color:var(--muted); font-size:.78rem; }}
+.out-json summary {{ cursor:pointer; color:var(--gold); }}
+.out-pre {{ max-height:12rem; overflow:auto; margin:.4rem 0 0; white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:#cfc6ad; background:#0f0f0f; border:1px solid var(--line); border-radius:8px; padding:.6rem; }}
 .grid {{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0 18px 1rem; }}
 .card {{ background:var(--card); border:1px solid var(--gold-dim); border-radius:12px; padding:12px; }}
 h2 {{ margin:0 0 .5rem; font-size:1.05rem; color:var(--gold); }}
@@ -55,7 +74,7 @@ button.ghost {{ background:transparent; color:var(--gold); border:1px solid var(
 button.danger {{ background:transparent; color:var(--alert); border:1px solid #b54a4a; border-radius:8px; padding:.5rem .85rem; cursor:pointer; }}
 label {{ display:block; font-size:.8rem; color:var(--muted); margin:.4rem 0 .2rem; }}
 input {{ width:100%; background:#1a1a1a; color:var(--ivory); border:1px solid var(--line); border-radius:8px; padding:.5rem .6rem; font:inherit; }}
-pre {{ white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:#cfc6ad; min-height:2.4rem; }}
+pre {{ white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:#cfc6ad; max-height:12rem; overflow:auto; }}
 .lock {{ border:1px dashed var(--gold-dim); color:var(--muted); padding:1rem; border-radius:10px; text-align:center; }}
 .lock.on {{ border-style:solid; color:var(--ivory); }}
 .badge {{ display:inline-block; font-size:.75rem; font-weight:700; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--gold-dim); color:var(--gold); }}
@@ -111,11 +130,23 @@ footer a {{ color:var(--gold); }}
   <a class="btn primary" href="{download_href}">Download {ASSET}</a>
   <button class="btn install" id="install-btn" type="button">One-click install</button>
 </div>
-<pre class="iso" id="install-cmd">{INSTALL_LINE}
-Then run: azinterface ui  →  http://127.0.0.1:8880 (this computer only).</pre>
+<ol class="install-steps" id="install-steps">
+  <li>Download the counted tarball (button above).</li>
+  <li><code>tar -xzf {ASSET}</code></li>
+  <li><code>python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip install -e .</code></li>
+  <li>Run <code>azinterface ui</code> → http://127.0.0.1:8880 (this computer only).</li>
+</ol>
+<details class="advanced" id="install-advanced">
+  <summary>Advanced / optional: scripted installer (review first)</summary>
+  <p>Prefer the tarball steps. This host is custody UI only. Agents use aziel-runtime FragGate/MCP — not a second Interface MCP.</p>
+  <pre id="install-cmd">{INSTALL_LINE}
+# review install-azinterface.sh, then: bash install-azinterface.sh</pre>
+  <p class="checksum-note">Checksum note: after download, run <code>sha256sum {ASSET}</code> (or <code>shasum -a 256</code>) and compare with a hash you trust. Pipe-to-bash (<code>curl … | bash</code>) is optional and not the recommended path.</p>
+</details>
 <p class="iso">{local_note}Isolated counter: Worker <code>azinterface-download-tracker</code>, KV AZINTERFACE_DOWNLOADS. /v1 does not increment.
-<strong>Human UI is this page.</strong> AI / MCP path is FragGate only:
+<strong>Human UI is this page (custody UI only).</strong> Agents use aziel-runtime FragGate/MCP:
 <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code> body <code>{{"slug":"azinterface","op":"…","payload":{{}}}}</code>.
+This host <code>/mcp</code> is a pointer, not a product MCP.
 GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers {gh.get("watchers") or 0}.
 <a href="{count_href}">/count</a> · <a href="{stats_href}">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="https://aziel-runtime.vibelock.workers.dev/v1/fraggate/list">FragGate list</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/azhub">AZHub (separate software)</a></p>
 
@@ -131,13 +162,13 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
       <button class="ghost" data-state="MEMORIAL" type="button">MEMORIAL</button>
     </div>
     <div id="cycle-toast" role="status" aria-live="polite"></div>
-    <pre id="state-out"></pre>
+    <div class="out-panel" id="state-out"></div>
   </div>
   <div class="card">
     <h2>Integrity loop</h2>
     <p>Integrity must pass before ON. Apps stay locked through the check.</p>
     <div class="row"><button class="act" id="integrity-btn" type="button">Integrity status / check</button></div>
-    <pre id="integrity-out"></pre>
+    <div class="out-panel" id="integrity-out"></div>
   </div>
   <div class="card">
     <h2>Genesis boot</h2>
@@ -148,7 +179,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
       <button class="act" id="genesis-btn" type="button">Genesis boot</button>
       <button class="ghost" id="genesis-status-btn" type="button">Genesis status</button>
     </div>
-    <pre id="genesis-out"></pre>
+    <div class="out-panel" id="genesis-out"></div>
   </div>
   <div class="card">
     <h2>Witness / withdraw</h2>
@@ -160,7 +191,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
       <button class="ghost" id="withdraw-btn" type="button">Withdraw</button>
       <button class="ghost" id="witness-btn" type="button">Witness list</button>
     </div>
-    <pre id="custody-out"></pre>
+    <div class="out-panel" id="custody-out"></div>
   </div>
   <div class="card">
     <h2>QNS pair custody</h2>
@@ -178,7 +209,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
       <button class="danger" id="pair-cut-btn" type="button">Cut</button>
       <button class="ghost" id="pair-status-btn" type="button">Pair status</button>
     </div>
-    <pre id="pair-out"></pre>
+    <div class="out-panel" id="pair-out"></div>
   </div>
 </div>
 
@@ -195,7 +226,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
     <button class="ghost" id="scorch-local-btn" type="button">Local advisory</button>
     <button class="danger" id="scorch-remote-btn" type="button">Remote wipe (stub refuse)</button>
   </div>
-  <pre id="scorch-out"></pre>
+  <div class="out-panel" id="scorch-out"></div>
 </div>
 
 <div class="card" style="margin:0 18px 1rem;">
@@ -205,15 +236,15 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
     <button class="ghost" id="cycle-btn" type="button">Refresh cycle</button>
     <button class="ghost" id="pipeline-btn" type="button">Pipeline cite</button>
   </div>
-  <pre id="cycle-out"></pre>
+  <div class="out-panel" id="cycle-out"></div>
 </div>
 
 <footer>
   {local_note}Interface is CUSTODY. AZHub is separate software (Blank Key) under the one FragGate door — do not collapse them.
-  Agents use FragGate only:
+  Agents use aziel-runtime FragGate/MCP:
   <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code>
   <code>{{"slug":"azinterface",…}}</code>
-  — not a second MCP on this Worker
+  — this host is custody UI only, not a product MCP
   (<a href="https://github.com/AzielEliab/fraggate">kernel</a>).
   LOCKED pipeline cite: FragGate is THE SINGLE DOOR. MASTER-33 on aziel-runtime. SUITE-PIPE-1.6.15 is historical. AZInterface is not a second door. No LambGate.
   QNS-CD-1.0 pair memorial. Vias in local qnsd. QNM-BUILD-1.0 mesh default OFF. Not a Node Gate.
@@ -226,16 +257,38 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
 </footer>
 <script>
 (function () {{
-  var cmd = {INSTALL_LINE!r};
+  var cmd = {INSTALL_STEPS!r};
   var btn = document.getElementById("install-btn");
   if (btn) btn.addEventListener("click", function () {{
     if (navigator.clipboard && navigator.clipboard.writeText) {{
-      navigator.clipboard.writeText(cmd).then(function () {{ btn.textContent = "Copied — paste in Terminal, then azinterface ui"; }});
+      navigator.clipboard.writeText(cmd).then(function () {{ btn.textContent = "Copied tarball install steps — then azinterface ui"; }});
     }}
   }});
   function show(id, obj) {{
-    var el = document.getElementById(id);
-    if (el) el.textContent = JSON.stringify(obj, null, 2);
+    var host = document.getElementById(id);
+    if (!host) return;
+    var raw = JSON.stringify(obj, null, 2);
+    var title = obj && obj.display && obj.display.title;
+    var summary = obj && obj.display && obj.display.summary;
+    var line = title && summary
+      ? String(title).replace(/\\.$/, "") + ". " + summary
+      : (summary || title || (obj && (obj.error || obj.code || obj.note)) || "Response");
+    var code = obj && obj.code ? " [" + obj.code + "]" : "";
+    host.replaceChildren();
+    var compact = document.createElement("p");
+    compact.className = "out-summary";
+    compact.textContent = String(line) + code;
+    var det = document.createElement("details");
+    det.className = "out-json";
+    var sum = document.createElement("summary");
+    sum.textContent = "Full JSON (" + raw.length.toLocaleString() + " chars) — collapsed by default";
+    var pre = document.createElement("pre");
+    pre.className = "out-pre";
+    pre.textContent = raw;
+    det.appendChild(sum);
+    det.appendChild(pre);
+    host.appendChild(compact);
+    host.appendChild(det);
   }}
   function toastMemorial(out) {{
     var el = document.getElementById("cycle-toast");

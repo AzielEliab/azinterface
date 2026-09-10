@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# AZInterface one-click install. Counted download via this project's Worker.
-# Usage: curl -fsSL https://azinterface-download-tracker.vibelock.workers.dev/install.sh | bash
+# AZInterface scripted install. Counted download via this project's Worker.
+# Prefer: download the tarball, verify sha256, then extract + pip install -e .
+# Advanced / optional (review this file first; do not pipe unread scripts):
+#   curl -fsSL https://azinterface-download-tracker.vibelock.workers.dev/install.sh -o install-azinterface.sh
+#   bash install-azinterface.sh
 set -euo pipefail
 
 HOST="${AZINTERFACE_HOST:-https://azinterface-download-tracker.vibelock.workers.dev}"

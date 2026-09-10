@@ -183,7 +183,9 @@ async function collectStats(env) {
 
 function installScript() {
   return `#!/usr/bin/env bash
-# AZInterface one-click install. Counted download via this Worker.
+# AZInterface scripted install. Counted download via this Worker.
+# Prefer the counted tarball + local steps. Review this file before bash.
+# Advanced / optional: curl -fsSL ${HOST}/install.sh -o install-azinterface.sh
 set -euo pipefail
 HOST="${HOST}"
 ASSET="${DEFAULT_ASSET}"

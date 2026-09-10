@@ -94,7 +94,9 @@ not a Softwares-tab QNS product. AIH-WP-1.3 spiderweb is local
 `qnm-node/` — not a public Node Gate.
 No auto-heal. Not anonymity. Anon-broadcast is not a publish path.
 `GET|POST /mcp` and `/openapi.json` document those ops and **point at
-FragGate** — they are not a second agent brand.
+FragGate** — they are not a second agent brand. `/mcp` keeps `ok: false`
+/ not a product MCP. Agents use aziel-runtime FragGate/MCP; this host is
+custody UI only.
 
 Agents display `display.title`, `display.summary`, and `display.fields`
 in chat, then take the next input.
@@ -115,11 +117,32 @@ azinterface ui
 
 Open http://127.0.0.1:8880 (loopback only).
 
-## One-click install
+## Install (counted tarball)
+
+Prefer the counted tarball, then local steps. This host is custody UI only.
+Agents use aziel-runtime FragGate/MCP — not a second Interface MCP.
+
+1. Download [azinterface-0.1.0.tar.gz](https://azinterface-download-tracker.vibelock.workers.dev/download?asset=azinterface-0.1.0.tar.gz)
+2. `tar -xzf azinterface-0.1.0.tar.gz`
+3. `python3 -m venv .venv && source .venv/bin/activate && pip install -e .`
+4. `azinterface ui` → http://127.0.0.1:8880 (this computer only)
+
+After download, run `sha256sum azinterface-0.1.0.tar.gz` (or `shasum -a 256`)
+and compare with a hash you trust.
+
+### Advanced / optional: scripted installer
+
+Review [`/install.sh`](https://azinterface-download-tracker.vibelock.workers.dev/install.sh)
+before running it. Prefer writing the script to disk (not pipe-to-bash):
 
 ```bash
-curl -fsSL https://azinterface-download-tracker.vibelock.workers.dev/install.sh | bash
+curl -fsSL https://azinterface-download-tracker.vibelock.workers.dev/install.sh -o install-azinterface.sh
+# review install-azinterface.sh, then:
+bash install-azinterface.sh
 ```
+
+Pipe-to-bash (`curl … | bash`) remains available and is optional, not the
+recommended path. One-click on the Worker homepage copies the tarball steps.
 
 ## Counted download (Cloudflare Worker)
 
@@ -138,7 +161,7 @@ URL pattern (same as sibling Aziel Eliab products):
 | `/download` | Counted tarball |
 | `/count` | `{views, downloads, total}` |
 | `/openapi.json` | OpenAPI 3.1 (docs; agents use FragGate) |
-| `/mcp` | Pointer to FragGate (`slug=azinterface`) |
+| `/mcp` | Pointer only (`ok: false`). Agents use aziel-runtime FragGate/MCP; this host is custody UI only |
 | `/v1/{op}` | Human UI backend — single-segment local ops only |
 | `/v1/fraggate/*` | PROXY to aziel-runtime |
 | `/v1/runtime/*` | PROXY aliases (`list`/`call` → `/v1/fraggate/list`/`call`) |
