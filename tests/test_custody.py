@@ -47,3 +47,14 @@ def test_not_hub() -> None:
     assert health["hub_collapse"] is False
     assert health["role"] == "custody"
     assert "azhub" in health["sibling_hub"]
+
+
+def test_skill_cites_azcoherence_same_door() -> None:
+    skill = Engine(Ledger()).skill({})
+    md = skill["markdown"]
+    assert "AZCoherence" in md
+    assert "azcoherence" in md
+    assert "AZC-WP-0.1" in md
+    assert "fraggate_call" in md
+    assert "GET /v1/software" in md
+    assert "does not add a second door" in md

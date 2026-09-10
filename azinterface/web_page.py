@@ -148,7 +148,7 @@ footer a {{ color:var(--gold); }}
 <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code> body <code>{{"slug":"azinterface","op":"…","payload":{{}}}}</code>.
 This host <code>/mcp</code> is a pointer, not a product MCP.
 GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers {gh.get("watchers") or 0}.
-<a href="{count_href}">/count</a> · <a href="{stats_href}">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="https://aziel-runtime.vibelock.workers.dev/v1/fraggate/list">FragGate list</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/azhub">AZHub (separate software)</a></p>
+<a href="{count_href}">/count</a> · <a href="{stats_href}">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="https://aziel-runtime.vibelock.workers.dev/v1/fraggate/list">FragGate list</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/azhub">AZHub (separate software)</a> · <a href="https://github.com/AzielEliab/AZCoherence">AZCoherence (same FragGate door)</a></p>
 
 <div class="grid">
   <div class="card">
@@ -241,6 +241,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
 
 <footer>
   {local_note}Interface is CUSTODY. AZHub is separate software (Blank Key) under the one FragGate door — do not collapse them.
+  AZCoherence (AZC-WP-0.1) is separate Softwares on that same door — agents use <code>fraggate_call</code> <code>slug=azcoherence</code>. Softwares tabs pull from runtime <code>GET /v1/software</code>; Interface does not host that catalog.
   Agents use aziel-runtime FragGate/MCP:
   <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code>
   <code>{{"slug":"azinterface",…}}</code>

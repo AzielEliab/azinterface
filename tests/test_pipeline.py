@@ -75,6 +75,7 @@ def test_eleven_domains_thirty_three_softwares() -> None:
     assert "azchat" in slugs
     assert "4dmap" in slugs
     assert "azinterface" not in slugs
+    assert "azcoherence" not in slugs
     azchat = next(s for d in DOMAIN_MAP for s in d["softwares"] if s["slug"] == "azchat")
     assert azchat["status"] == "stub / not hosted yet"
     comms = next(d for d in DOMAIN_MAP if d["slug"] == "comms")
