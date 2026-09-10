@@ -4,7 +4,9 @@
  * Interface is CUSTODY. Never collapse into Hub.
  * Pre-locked cycles: OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL.
  * AZHub is separate software under the one FragGate door.
+ * LOCKED suite pipeline is a cite — runtime owns fabric hops. No LambGate.
  */
+import { pipelineArch } from "./pipeline.js";
 
 export const VERSION = "0.1.0";
 export const SPEC = "AIH-WP-1.0";
@@ -42,6 +44,7 @@ export const LIVE_OPS = [
   "integrity_check",
   "witness_list",
   "page_cycle_status",
+  "pipeline_arch",
   "hold",
   "withdraw",
   "scorch_local",
@@ -102,6 +105,8 @@ export const ALIASES = {
   state_get: "site_state_get",
   state_set: "site_state_set",
   cycle: "page_cycle_status",
+  pipeline: "pipeline_arch",
+  arch: "pipeline_arch",
   integrity: "integrity_check",
   offer: "pair_offer",
   accept: "pair_accept",
@@ -217,11 +222,22 @@ publish path. \`GET|POST /mcp\` here is a pointer, not a second MCP.
 | \`site_state_set\` | Advance one sealed step only. ON requires integrity. |
 | \`integrity_check\` | Records integrity. Advances OFF → integrity. Does not auto-unlock ON. |
 | \`witness_list\` | Witness metadata. Never vault contents. Never a ranking. |
-| \`page_cycle_status\` | Pre-locked cycle. Living presence only at ON. |
+| \`page_cycle_status\` | Pre-locked cycle. Living presence only at ON. Includes LOCKED pipeline cite. |
+
+## LOCKED suite pipeline (cite)
+
+Runtime owns fabric hops. Interface cites the frozen list — not a Softwares-tab
+product. No LambGate.
+
+\`PUBLIC/UI/Agents → FragGate → SweepGate → ChainLock-IN → DecisionGATE → AZPIPE → Domain Doors (incl. 4DMap inspection) → TemporalLock → StaticClock → ChainLock-OUT → Response/Receipt\`
+
+4DMap (\`slug=4dmap\`, 4DM-WP-1.0) is Domain Door inspection after AZPIPE —
+not a sequential gate. Papers live on aziel-runtime (AP-WP-0.2 / SG-WP-0.1 /
+CL-WP-0.4 / 4DM-WP-1.0). Local op \`pipeline_arch\` returns the same cite.
 
 ## Local Worker extras (human UI \`/v1\`)
 
-\`genesis_boot\` · \`hold\` · \`withdraw\` · \`scorch_local\` ·
+\`genesis_boot\` · \`hold\` · \`withdraw\` · \`scorch_local\` · \`pipeline_arch\` ·
 \`pair_offer\` · \`pair_accept\` · \`pair_seal\` · \`pair_cut\` · \`pair_status\`
 
 ## QNS-CD-1.0 cross-map
@@ -449,6 +465,8 @@ function pageCycleSnapshot(s) {
     ranking: false,
     separate_from: "azhub",
     modules: Object.fromEntries(MODULES.map((name) => [name, moduleSurface(s, name)])),
+    pipeline: pipelineArch(),
+    pipeline_path: pipelineArch().path,
     note: living
       ? "Living presence enabled."
       : "AIH-WP-1.0 pre-locked page cycles: OFF / integrity / ON / FULL SHUTDOWN / MEMORIAL. One step only. No skip. No cloud-asleep availability.",
@@ -503,6 +521,7 @@ function base(extra) {
     sigil: SIGIL,
     azhome: "AZHome",
     qns: qnsCrossMap(),
+    pipeline: pipelineArch(),
     ...extra,
   };
 }
@@ -735,6 +754,8 @@ export async function dispatch(op, payload, _sessionId) {
         ["hub_collapse", false],
         ["qns_cd", QNS_CD],
         ["qnsd", QNSD_BIND],
+        ["pipeline_owner", "aziel-runtime"],
+        ["lambgate", false],
       ]),
     });
   }
@@ -1013,6 +1034,25 @@ export async function dispatch(op, payload, _sessionId) {
         ["cycle", cycle.cycle],
         ["living_presence", cycle.living_presence],
         ["cloud_asleep", false],
+        ["pipeline", cycle.pipeline_path || ""],
+        ["4dmap", "Domain Door inspection — not a sequential gate"],
+      ]),
+    });
+  }
+
+  if (name === "pipeline_arch") {
+    const rec = await appendReceipt(s, "pipeline_arch", { locked: true });
+    const pipe = pipelineArch();
+    return base({
+      ok: true,
+      ...pipe,
+      receipt: rec,
+      display: displayOf("LOCKED pipeline", pipe.note, [
+        ["path", pipe.path],
+        ["owner", pipe.owner],
+        ["lambgate", false],
+        ["4dmap", "Domain Door inspection"],
+        ["software_tab", false],
       ]),
     });
   }

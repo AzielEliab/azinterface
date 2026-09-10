@@ -61,11 +61,22 @@ publish path. `GET|POST /mcp` here is a pointer, not a second MCP.
 | `site_state_set` | Advance one sealed step only. ON requires integrity. |
 | `integrity_check` | Records integrity. Advances OFF → integrity. Does not auto-unlock ON. |
 | `witness_list` | Witness metadata. Never vault contents. Never a ranking. |
-| `page_cycle_status` | Pre-locked cycle. Living presence only at ON. |
+| `page_cycle_status` | Pre-locked cycle. Living presence only at ON. Includes LOCKED pipeline cite. |
+
+## LOCKED suite pipeline (cite)
+
+Runtime owns fabric hops. Interface cites the frozen list — not a Softwares-tab
+product. No LambGate.
+
+`PUBLIC/UI/Agents → FragGate → SweepGate → ChainLock-IN → DecisionGATE → AZPIPE → Domain Doors (incl. 4DMap inspection) → TemporalLock → StaticClock → ChainLock-OUT → Response/Receipt`
+
+4DMap (`slug=4dmap`, 4DM-WP-1.0) is Domain Door inspection after AZPIPE —
+not a sequential gate. Papers live on aziel-runtime (AP-WP-0.2 / SG-WP-0.1 /
+CL-WP-0.4 / 4DM-WP-1.0). Local op `pipeline_arch` returns the same cite.
 
 ## Local Worker extras (human UI `/v1`)
 
-`genesis_boot` · `hold` · `withdraw` · `scorch_local` ·
+`genesis_boot` · `hold` · `withdraw` · `scorch_local` · `pipeline_arch` ·
 `pair_offer` · `pair_accept` · `pair_seal` · `pair_cut` · `pair_status`
 
 ## QNS-CD-1.0 cross-map

@@ -56,6 +56,7 @@ def main(argv: list[str] | None = None) -> int:
     st.add_argument("state", help="OFF | integrity | ON | FULL SHUTDOWN | MEMORIAL (one sealed step)")
     sub.add_parser("integrity")
     sub.add_parser("cycle")
+    sub.add_parser("pipeline")
     sub.add_parser("witness")
     h = sub.add_parser("hold")
     h.add_argument("--label", default="hold")
@@ -109,6 +110,8 @@ def main(argv: list[str] | None = None) -> int:
         return _print(eng.integrity_check({}))
     if args.cmd == "cycle":
         return _print(eng.page_cycle_status({}))
+    if args.cmd == "pipeline":
+        return _print(eng.pipeline_arch({}))
     if args.cmd == "witness":
         return _print(eng.witness_list({}))
     if args.cmd == "hold":

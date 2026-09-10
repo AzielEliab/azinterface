@@ -39,6 +39,16 @@ assert.deepEqual(classifyV1Path("/v1/mesh"), {
   path: "/v1/mesh",
   originPath: "/v1/mesh",
 });
+assert.deepEqual(classifyV1Path("/v1/azpipe/arch"), {
+  kind: "door",
+  path: "/v1/azpipe/arch",
+  originPath: "/v1/azpipe/arch",
+});
+assert.deepEqual(classifyV1Path("/v1/pipeline_arch"), {
+  kind: "local",
+  path: "/v1/pipeline_arch",
+  op: "pipeline_arch",
+});
 assert.deepEqual(classifyV1Path("/v1/mesh/status"), {
   kind: "door",
   path: "/v1/mesh/status",
@@ -133,6 +143,17 @@ try {
   assert.equal(fetches.length, 0, "AZIEL_RUNTIME binding must win over HTTPS fallback");
   assert.ok(boundCalls.some((f) => f.url === DEFAULT_RUNTIME_ORIGIN + "/v1/mesh/nodes"));
 
+  fetches.length = 0;
+  const azpipeReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/v1/azpipe/arch", {
+    method: "GET",
+    headers: { "user-agent": "Mozilla/5.0" },
+  });
+  const azpipeRes = await handleRuntimeApi(azpipeReq, new URL(azpipeReq.url), {});
+  const azpipeBody = await azpipeRes.json();
+  assert.equal(azpipeBody.ok, true);
+  assert.equal(azpipeRes.headers.get("X-Aziel-Door"), "proxy");
+  assert.ok(fetches.some((f) => f.url === DEFAULT_RUNTIME_ORIGIN + "/v1/azpipe/arch" && f.method === "GET"));
+
   const specReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/openapi.json", { method: "GET" });
   const specRes = await handleRuntimeApi(specReq, new URL(specReq.url), {});
   const spec = await specRes.json();
@@ -145,6 +166,10 @@ try {
   assert.match(spec.info.description, /qnm-node/);
   assert.ok(spec.paths["/v1/pair_offer"]);
   assert.ok(spec.paths["/v1/pair_status"]);
+  assert.ok(spec.paths["/v1/pipeline_arch"]);
+  assert.ok(spec.paths["/v1/azpipe/arch"]);
+  assert.match(spec.info.description, /LOCKED suite pipeline/);
+  assert.match(spec.info.description, /4DMap/);
 
   const mcpReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/mcp", { method: "GET" });
   const mcpRes = await handleRuntimeApi(mcpReq, new URL(mcpReq.url), {});
@@ -159,9 +184,13 @@ try {
   assert.equal(mcp.mesh.get_enables, false);
   assert.equal(mcp.qns.softwares_tab_qns, false);
   assert.equal(mcp.qns.via_runs_in, "qnsd");
+  assert.equal(mcp.pipeline.owner, "aziel-runtime");
+  assert.equal(mcp.pipeline.lambgate, false);
+  assert.equal(mcp.pipeline.domain_doors.slug, "4dmap");
   assert.match(mcp.mesh.spiderweb, /qnm-node/);
   assert.match(mcp.mesh.anon_broadcast, /not a publish path/);
   assert.match(mcp.note, /mesh/);
+  assert.match(mcp.note, /pipeline_arch/);
 
   const llmsReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/llms.txt", { method: "GET" });
   const llmsRes = await handleRuntimeApi(llmsReq, new URL(llmsReq.url), {});

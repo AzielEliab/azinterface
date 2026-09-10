@@ -7,6 +7,7 @@ assert.ok(STUB_OPS.includes("pair_wipe"));
 resetEngine();
 
 assert.ok(LIVE_OPS.includes("page_cycle_status") && LIVE_OPS.includes("integrity_check"));
+assert.ok(LIVE_OPS.includes("pipeline_arch"));
 assert.ok(STUB_OPS.includes("scorch_remote") && STUB_OPS.includes("vault_read"));
 assert.ok(STUB_OPS.includes("skip_cycle") && STUB_OPS.includes("invent_cycle"));
 assert.deepEqual(PAGE_CYCLES, ["OFF", "integrity", "ON", "FULL SHUTDOWN", "MEMORIAL"]);
@@ -18,6 +19,9 @@ assert.equal(cycle.living_presence, false);
 assert.equal(cycle.cloud_asleep, false);
 assert.equal(cycle.modules.azhome.served, false);
 assert.equal(cycle.page_cycle.skip_forbidden, true);
+assert.equal(cycle.pipeline.lambgate, false);
+assert.equal(cycle.pipeline.domain_doors.slug, "4dmap");
+assert.match(cycle.pipeline_path, /Domain Doors \(incl\. 4DMap inspection\)/);
 
 const skip = await dispatch("site_state_set", { state: "ON" });
 assert.equal(skip.code, "AIH-CYCLE-LOCKED");

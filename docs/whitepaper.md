@@ -87,6 +87,22 @@ Walker restriction: unknown vias and mid-handshake via changes refuse.
 Canonical: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
 — summary in [QNS-CD-1.0.md](QNS-CD-1.0.md).
 
+## LOCKED suite pipeline
+
+Interface cites the frozen hop order. aziel-runtime owns fabric hops
+(SweepGate / ChainLock / AZPIPE). Those hops are not Softwares-tab
+products. LambGate is not on this list.
+
+```
+PUBLIC/UI/Agents → FragGate → SweepGate → ChainLock-IN → DecisionGATE →
+AZPIPE → Domain Doors (incl. 4DMap inspection) → TemporalLock →
+StaticClock → ChainLock-OUT → Response/Receipt
+```
+
+4DMap (`slug=4dmap`, 4DM-WP-1.0) is Domain Door inspection after AZPIPE —
+not a sequential gate. `page_cycle_status` and `pipeline_arch` carry the
+cite. `/v1/azpipe/*` may proxy to runtime when that arch path exists.
+
 ## Dual surface
 
 1. Human software — Worker homepage, Flutter `mobile/`, local

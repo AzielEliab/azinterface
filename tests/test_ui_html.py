@@ -24,6 +24,11 @@ def test_home_html_wires_buttons() -> None:
     assert "PRE-LOCKED" in html
     assert "Never collapse Interface into Hub" in html
     assert "OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL" in html
+    assert "LOCKED pipeline" in html
+    assert "4DMap inspection" in html
+    assert "pipeline-btn" in html
+    assert "No LambGate" in html
+    assert "LambGate →" not in html
     assert "separate software" in html
     assert "azielcorpuslibrary.net/sigil.png" in html
     local = home_html(local=True)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .meta import HOST, LIMITATION, SIGIL
+from .pipeline import pipeline_strip_html
 
 ASSET = "azinterface-0.1.0.tar.gz"
 INSTALL_LINE = f"curl -fsSL {HOST}/install.sh | bash"
@@ -60,6 +61,14 @@ pre {{ white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:#cfc
 .badge {{ display:inline-block; font-size:.75rem; font-weight:700; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--gold-dim); color:var(--gold); }}
 #nodes {{ display:flex; align-items:center; gap:10px; padding:6px 18px; border-bottom:1px solid var(--gold); background:#0f0f0f; flex-wrap:wrap; color:var(--muted); font-size:12px; }}
 #nodes strong {{ color:var(--gold); font-weight:700; }}
+#pipeline {{ padding:8px 18px 10px; border-bottom:1px solid var(--gold); background:#100e08; }}
+#pipeline strong {{ color:var(--gold); font-size:.82rem; letter-spacing:.02em; }}
+#pipeline .pipe-path {{ margin:.35rem 0 .45rem; color:var(--ivory); font-size:.78rem; }}
+#pipeline .hops {{ list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }}
+#pipeline .hop {{ display:flex; flex-direction:column; gap:1px; padding:.28rem .55rem; border:1px solid var(--line); border-radius:8px; font-size:.72rem; color:var(--muted); background:#141414; }}
+#pipeline .hop.door {{ border-color:var(--gold); color:var(--gold); background:#241c0d; box-shadow:0 0 0 1px #5c4a1a inset; }}
+#pipeline .hop .inspect {{ font-style:normal; font-size:.65rem; color:#f0d78c; }}
+#pipeline .pipe-note {{ margin:.45rem 0 0; color:var(--muted); font-size:.72rem; }}
 footer {{ padding:12px 18px 28px; color:var(--muted); font-size:.82rem; }}
 footer a {{ color:var(--gold); }}
 </style>
@@ -77,6 +86,7 @@ footer a {{ color:var(--gold); }}
   <span class="off">Mesh OFF</span>
   <div>Default off. QNM-BUILD-1.0 rollup. QNS-CD-1.0 vias run in local qnsd (127.0.0.1). AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. GET never enables.</div>
 </div>
+{pipeline_strip_html()}
 <p class="banner">{LIMITATION}</p>
 <div class="nums">
   <div class="count">{v}<span>Views</span></div>
@@ -174,7 +184,11 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
 
 <div class="card" style="margin:0 18px 1rem;">
   <h2>Page cycle status</h2>
-  <div class="row"><button class="ghost" id="cycle-btn" type="button">Refresh cycle</button></div>
+  <p>Sealed custody cycle plus the LOCKED suite hop order. Runtime owns fabric hops. Domain Doors name 4DMap as inspection — not a sequential gate. No LambGate.</p>
+  <div class="row">
+    <button class="ghost" id="cycle-btn" type="button">Refresh cycle</button>
+    <button class="ghost" id="pipeline-btn" type="button">Pipeline cite</button>
+  </div>
   <pre id="cycle-out"></pre>
 </div>
 
@@ -185,6 +199,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
   <code>{{"slug":"azinterface",…}}</code>
   — not a second MCP on this Worker
   (<a href="https://github.com/AzielEliab/fraggate">kernel</a>).
+  LOCKED pipeline cite. Runtime owns fabric hops. 4DMap is Domain Door inspection. No LambGate.
   QNS-CD-1.0 pair memorial. Vias in local qnsd. QNM-BUILD-1.0 mesh default OFF. Not a Node Gate.
   Compatible clients: ChatGPT, Grok, Venice, Claude, Cursor, Glama, Perplexity, Copilot, Gemini, Mistral, Meta AI, Apple Intelligence, Amazon Q, DuckAssist, You.com, Cohere, plus other MCP/OpenAPI-capable assistants.
   <a href="https://www.azielcorpuslibrary.net/">library</a> ·
@@ -268,6 +283,9 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
     show("scorch-out", await call("scorch_remote", {{}}));
   }});
   document.getElementById("cycle-btn").addEventListener("click", refresh);
+  document.getElementById("pipeline-btn").addEventListener("click", async function () {{
+    show("cycle-out", await call("pipeline_arch", {{}}));
+  }});
   function pairPayload() {{
     return {{
       via: document.getElementById("pair-via").value,

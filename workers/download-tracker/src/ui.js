@@ -1,6 +1,7 @@
 /** Hosted AZInterface homepage: counted download + pre-locked custody UI. */
 import { LIMITATION } from "./engine.js";
 import { meshClientScript, meshStripHtml } from "./mesh.js";
+import { pipelineStripHtml } from "./pipeline.js";
 
 const HOST = "https://azinterface-download-tracker.vibelock.workers.dev";
 const INSTALL_LINE = `curl -fsSL ${HOST}/install.sh | bash`;
@@ -56,6 +57,14 @@ pre { white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:#cfc6
 #nodes strong { color:var(--gold); font-weight:700; }
 #nodes .off, #nodes .on { color:var(--gold); }
 #nodesList { flex:1; min-width:12rem; }
+#pipeline { padding:8px 18px 10px; border-bottom:1px solid var(--gold); background:#100e08; }
+#pipeline strong { color:var(--gold); font-size:.82rem; letter-spacing:.02em; }
+#pipeline .pipe-path { margin:.35rem 0 .45rem; color:var(--ivory); font-size:.78rem; }
+#pipeline .hops { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+#pipeline .hop { display:flex; flex-direction:column; gap:1px; padding:.28rem .55rem; border:1px solid var(--line); border-radius:8px; font-size:.72rem; color:var(--muted); background:#141414; }
+#pipeline .hop.door { border-color:var(--gold); color:var(--gold); background:#241c0d; box-shadow:0 0 0 1px #5c4a1a inset; }
+#pipeline .hop .inspect { font-style:normal; font-size:.65rem; color:#f0d78c; }
+#pipeline .pipe-note { margin:.45rem 0 0; color:var(--muted); font-size:.72rem; }
 footer { padding:12px 18px 28px; color:var(--muted); font-size:.82rem; }
 footer a { color:var(--gold); }
 </style>
@@ -69,6 +78,7 @@ footer a { color:var(--gold); }
   </div>
 </header>
 ${meshStripHtml()}
+${pipelineStripHtml()}
 <p class="banner">${LIMITATION}</p>
 <div class="nums">
   <div class="count">${v}<span>Views</span></div>
@@ -166,7 +176,11 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
 
 <div class="card" style="margin:0 18px 1rem;">
   <h2>Page cycle status</h2>
-  <div class="row"><button class="ghost" id="cycle-btn" type="button">Refresh cycle</button></div>
+  <p>Sealed custody cycle plus the LOCKED suite hop order. Runtime owns fabric hops. Domain Doors name 4DMap as inspection — not a sequential gate. No LambGate.</p>
+  <div class="row">
+    <button class="ghost" id="cycle-btn" type="button">Refresh cycle</button>
+    <button class="ghost" id="pipeline-btn" type="button">Pipeline cite</button>
+  </div>
   <pre id="cycle-out"></pre>
 </div>
 
@@ -177,6 +191,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   <code>{"slug":"azinterface",…}</code>
   — not a second MCP on this Worker
   (<a href="https://github.com/AzielEliab/fraggate">kernel</a>).
+  LOCKED pipeline cite: FragGate → SweepGate → ChainLock-IN → DecisionGATE → AZPIPE → Domain Doors (4DMap inspection) → TemporalLock → StaticClock → ChainLock-OUT. Runtime owns fabric hops. No LambGate.
   Suite mesh <code>/v1/mesh/*</code> PROXIES (AZIEL_RUNTIME or HTTPS). Default OFF. QNM-BUILD-1.0 rollup. QNS-CD-1.0 vias in local qnsd. Not a Node Gate. Not a publish path. GET never enables.
   Compatible clients: ChatGPT, Grok, Venice, Claude, Cursor, Glama, Perplexity, Copilot, Gemini, Mistral, Meta AI, Apple Intelligence, Amazon Q, DuckAssist, You.com, Cohere, plus other MCP/OpenAPI-capable assistants.
   <a href="https://www.azielcorpuslibrary.net/">library</a> ·
@@ -260,6 +275,9 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
     show("scorch-out", await call("scorch_remote", {}));
   });
   document.getElementById("cycle-btn").addEventListener("click", refresh);
+  document.getElementById("pipeline-btn").addEventListener("click", async function () {
+    show("cycle-out", await call("pipeline_arch", {}));
+  });
   function pairPayload() {
     return {
       via: document.getElementById("pair-via").value,

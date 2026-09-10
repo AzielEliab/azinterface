@@ -8,6 +8,7 @@ from typing import Callable
 
 from azinterface.engine import Engine, LIVE_OPS, STUB_OPS, genesis_hash_key
 from azinterface.meta import IDENTITY, LIMITATION, LOOPBACK, SPEC, VERSION
+from azinterface.pipeline import PIPELINE_HOPS, PIPELINE_PATH, pipeline_arch
 from azinterface.receipts import Ledger
 
 Check = tuple[str, bool, str]
@@ -175,6 +176,25 @@ def _check_not_hub() -> Check:
     return _ok("not hub", "Interface stays custody")
 
 
+def _check_pipeline() -> Check:
+    pipe = pipeline_arch()
+    if pipe.get("lambgate") or "LambGate" in PIPELINE_PATH:
+        return _fail("pipeline", "LambGate must not be on the locked list")
+    if pipe.get("owner") != "aziel-runtime":
+        return _fail("pipeline", "runtime must own fabric hops")
+    if pipe.get("identity") != "Aziel Eliab":
+        return _fail("pipeline", "identity")
+    doors = next((h for h in PIPELINE_HOPS if h.get("id") == "domain_doors"), None)
+    if not doors or (doors.get("inspection") or {}).get("slug") != "4dmap":
+        return _fail("pipeline", "4DMap must be Domain Door inspection")
+    if (doors.get("inspection") or {}).get("sequential_gate"):
+        return _fail("pipeline", "4DMap must not be a sequential gate")
+    cycle = Engine(Ledger()).page_cycle_status()
+    if cycle.get("pipeline_path") != PIPELINE_PATH:
+        return _fail("pipeline", "page_cycle_status missing hop cite")
+    return _ok("pipeline", "LOCKED hop list; 4DMap at Domain Doors")
+
+
 def _check_ops() -> Check:
     need = {
         "health",
@@ -185,6 +205,7 @@ def _check_ops() -> Check:
         "integrity_check",
         "witness_list",
         "page_cycle_status",
+        "pipeline_arch",
         "pair_offer",
         "pair_accept",
         "pair_seal",
@@ -212,6 +233,7 @@ CHECKS: tuple[Callable[[], Check], ...] = (
     _check_loopback,
     _check_no_remote_wipe,
     _check_not_hub,
+    _check_pipeline,
     _check_ops,
 )
 

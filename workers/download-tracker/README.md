@@ -11,13 +11,17 @@ URL pattern after deploy (workers.dev + account subdomain, same as sibling produ
 - `GET /count` — `{views, downloads, total}`
 - `GET /v1/*` — custody ops (does **not** increment downloads)
 - `GET|POST /v1/mesh/*` — PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF)
+- `GET|POST /v1/azpipe/*` — PROXY to aziel-runtime AZPIPE arch (fabric cite; not Softwares-tab)
+- `GET|POST /v1/pipeline_arch` — local frozen LOCKED hop-list cite
 
 KV binding `DOWNLOADS` (create `AZINTERFACE_DOWNLOADS` on first deploy). Account `ac575a9b822bea2bed97d0ab73aed238`.
 **Parent-deploy note:** `wrangler.toml` still has the `0000…` placeholder KV id.
 A real production id was not in comments/README. Parent must create the
 namespace and replace the id before deploy. Do not invent an id.
 
-Human UI includes a **Live Nodes** strip (QNM-BUILD-1.0
+Human UI includes a **LOCKED pipeline** strip (frozen hop order;
+Domain Doors highlight 4DMap inspection; runtime owns fabric hops;
+no LambGate) and a **Live Nodes** strip (QNM-BUILD-1.0
 live|locked|isolated + QNS-CD-1.0 cite). Radios stay off until runtime
 enable. `GET /v1/mesh` never enables. QNS-CD-1.0 photon vias run in local
 `qnm-node/` qnsd (127.0.0.1); this Worker holds pair memorial cites only.
