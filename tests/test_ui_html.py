@@ -33,6 +33,19 @@ def test_home_html_wires_buttons() -> None:
     assert "cycle-toast" in html
     assert "toastMemorial" in html
     assert "MEMORIAL is terminal" in html
+    assert "out-panel" in html
+    assert "out-pre" in html
+    assert "collapsed by default" in html
+    assert "max-height:12rem" in html
+    assert "install-steps" in html
+    assert "install-advanced" in html
+    assert "Checksum note" in html
+    assert "custody UI only" in html
+    assert "Agents use aziel-runtime FragGate/MCP" in html
+    assert "curl -fsSL" in html
+    assert html.split('id="install-advanced"', 1)[1].count("| bash") >= 1
+    assert 'id="install-cmd">curl -fsSL' in html.replace("\n", "") or "install.sh -o install-azinterface.sh" in html
+    assert "| bash" not in html.split('id="install-steps"', 1)[0]
     assert "No LambGate" in html
     assert "LambGate →" not in html
     assert "separate software" in html

@@ -46,7 +46,9 @@ QNS-CD-1.0 photon vias run in local `qnm-node/` **qnsd** (127.0.0.1).
 Interface holds pair memorial cites only — not a Softwares-tab QNS
 product. AIH-WP-1.3 spiderweb is local `qnm-node/` — not a public
 Node Gate. No auto-heal. Not anonymity. Anon-broadcast is not a
-publish path. `GET|POST /mcp` here is a pointer, not a second MCP.
+publish path. `GET|POST /mcp` here is a pointer (`ok: false`), not a
+product MCP. Agents use aziel-runtime FragGate/MCP. This host is
+custody UI only.
 
 **Human UI stays on this Worker.** AI path is FragGate + this OpenAPI.
 

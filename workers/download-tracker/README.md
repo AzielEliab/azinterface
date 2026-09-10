@@ -34,7 +34,8 @@ publish path. Not a Softwares-tab QNS product.
 Human UI is this Worker. Agent / MCP path is FragGate only:
 `POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call` with
 `{"slug":"azinterface","op":"…","payload":{}}`. There is no separate Interface MCP
-on this host (`POST /mcp` returns a pointer).
+on this host (`GET|POST /mcp` returns `ok: false` — agents use
+aziel-runtime FragGate/MCP; this host is custody UI only).
 
 Interface is CUSTODY. AZHub is separate software under the one FragGate
 door — never collapse them.

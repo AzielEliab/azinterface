@@ -200,10 +200,25 @@ try {
   assert.match(spec.info.description, /LOCKED suite pipeline/);
   assert.match(spec.info.description, /MASTER-33/);
   assert.match(spec.info.description, /THE SINGLE DOOR/);
+  assert.match(spec.info.summary, /custody UI only/);
+  assert.match(spec.paths["/mcp"].get.summary, /custody UI only/);
+  assert.match(spec.paths["/mcp"].post.summary, /not a product MCP/i);
+  assert.match(spec.paths["/v1/scorch_remote"].post.summary, /^STUB refuse \/ not hosted/);
+  assert.match(spec.paths["/v1/pair_wipe"].post.summary, /^STUB refuse \/ not hosted/);
+  assert.match(spec.paths["/v1/deanonymize"].post.summary, /^STUB refuse \/ not hosted/);
+  assert.match(spec.paths["/v1/vault_read"].post.summary, /^STUB refuse \/ not hosted/);
+  assert.match(spec.paths["/v1/scorch"].post.summary, /^STUB refuse \/ not hosted/);
+  assert.equal(spec.paths["/v1/scorch_remote"].post.summary.includes("UI action + FragGate op."), false);
+  assert.match(spec.paths["/v1/health"].get.summary, /Liveness/);
 
   const mcpReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/mcp", { method: "GET" });
   const mcpRes = await handleRuntimeApi(mcpReq, new URL(mcpReq.url), {});
   const mcp = await mcpRes.json();
+  assert.equal(mcp.ok, false);
+  assert.equal(mcp.error, "not a product MCP");
+  assert.match(mcp.message, /Agents use aziel-runtime FragGate\/MCP/);
+  assert.match(mcp.message, /custody UI only/);
+  assert.match(mcp.note, /Agents use aziel-runtime FragGate\/MCP/);
   assert.equal(mcp.mesh.path, "/v1/mesh");
   assert.equal(mcp.mesh.enabled_default, false);
   assert.equal(mcp.mesh.node_gate, false);
