@@ -3,6 +3,7 @@
  */
 import assert from "node:assert/strict";
 import { homeHtml } from "../workers/download-tracker/src/ui.js";
+import { MESH_OFF_COPY, QNS_CD, QNM_BUILD } from "../workers/download-tracker/src/mesh.js";
 
 const html = homeHtml({ views: 1, downloads: 2, github: { stars: 0 } });
 
@@ -10,9 +11,18 @@ assert.match(html, /id="nodes"/);
 assert.match(html, /Live Nodes/);
 assert.match(html, /Mesh OFF/);
 assert.match(html, /QNM-BUILD-1.0/);
+assert.match(html, /QNS-CD-1.0/);
 assert.match(html, /live\|locked\|isolated/);
 assert.match(html, /AIH-WP-1.3 spiderweb is local qnm-node/);
 assert.match(html, /not a public Node Gate/);
+assert.match(html, /GET never enables/);
+assert.match(html, /qnsd/);
+assert.equal(QNS_CD, "QNS-CD-1.0");
+assert.equal(QNM_BUILD, "QNM-BUILD-1.0");
+assert.match(MESH_OFF_COPY, /QNS-CD-1.0/);
+assert.match(MESH_OFF_COPY, /QNM-BUILD-1.0/);
+assert.match(html, /pair-offer-btn/);
+assert.match(html, /pair_offer/);
 assert.match(html, /not anonymity/);
 assert.match(html, /not a publish path/);
 assert.match(html, /\/v1\/mesh\/status/);

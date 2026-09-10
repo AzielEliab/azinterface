@@ -62,6 +62,18 @@ def main(argv: list[str] | None = None) -> int:
     w = sub.add_parser("withdraw")
     w.add_argument("--hold-id", default="")
     sub.add_parser("scorch-local")
+    offer = sub.add_parser("pair-offer")
+    offer.add_argument("--via", default="local")
+    offer.add_argument("--pair-id", default="")
+    offer.add_argument("--photon-id", default="")
+    accept = sub.add_parser("pair-accept")
+    accept.add_argument("--pair-id", default="")
+    accept.add_argument("--via", default="")
+    seal = sub.add_parser("pair-seal")
+    seal.add_argument("--pair-id", default="")
+    cut = sub.add_parser("pair-cut")
+    cut.add_argument("--pair-id", default="")
+    sub.add_parser("pair-status")
     c = sub.add_parser("call")
     c.add_argument("op")
     c.add_argument("--payload", default="{}")
@@ -105,6 +117,19 @@ def main(argv: list[str] | None = None) -> int:
         return _print(eng.withdraw({"hold_id": args.hold_id}))
     if args.cmd == "scorch-local":
         return _print(eng.scorch_local({}))
+    if args.cmd == "pair-offer":
+        return _print(eng.pair_offer({"via": args.via, "pair_id": args.pair_id, "photon_id": args.photon_id}))
+    if args.cmd == "pair-accept":
+        payload: dict[str, Any] = {"pair_id": args.pair_id}
+        if args.via:
+            payload["via"] = args.via
+        return _print(eng.pair_accept(payload))
+    if args.cmd == "pair-seal":
+        return _print(eng.pair_seal({"pair_id": args.pair_id}))
+    if args.cmd == "pair-cut":
+        return _print(eng.pair_cut({"pair_id": args.pair_id}))
+    if args.cmd == "pair-status":
+        return _print(eng.pair_status({}))
     if args.cmd == "call":
         try:
             payload: dict[str, Any] = json.loads(args.payload)

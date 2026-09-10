@@ -26,7 +26,7 @@ def test_hold_withdraw_locked_until_on() -> None:
 
 def test_stubs_refuse() -> None:
     eng = Engine(Ledger())
-    for op in ("scorch_remote", "deanonymize", "vault_read", "scorch", "skip_cycle", "invent_cycle", "auto_unlock"):
+    for op in ("scorch_remote", "deanonymize", "vault_read", "scorch", "pair_wipe", "skip_cycle", "invent_cycle", "auto_unlock"):
         out = eng.dispatch(op, {})
         assert out["ok"] is False
         assert out["code"] == "STUB"

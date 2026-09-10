@@ -20,6 +20,14 @@ export const HOST = "https://azinterface-download-tracker.vibelock.workers.dev";
 export const SIGIL = "https://www.azielcorpuslibrary.net/sigil.png";
 export const AZHUB = "https://github.com/AzielEliab/azhub";
 export const GITHUB = "https://github.com/AzielEliab/azinterface";
+export const QNS_CD = "QNS-CD-1.0";
+export const QNM_BUILD = "QNM-BUILD-1.0";
+export const AIH_PAIR = "AIH-WP-1.3";
+export const QNSD_BIND = "127.0.0.1";
+export const QNM_NODE = "https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node";
+export const QNS_DOC = "https://github.com/AzielEliab/azinterface/blob/main/docs/QNS-CD-1.0.md";
+export const QNS_VIAS = Object.freeze(["lan", "plc", "bt", "rf", "light", "qns", "operator", "local"]);
+export const PAIR_STEPS = Object.freeze(["OFFER", "ACCEPT", "SEAL"]);
 
 export const LIMITATION =
   "THIS IS: AZInterface (AIH-WP-1.0) — a custodial operating environment (hold / withdraw / witness) with five pre-locked page cycles (OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL). Cycles cannot be invented, reordered, or skipped. Genesis one-time keying, integrity loop, AZHome bunker surface, and Scorched Earth as a local stub/advisory only. Interface is CUSTODY. Agent path is the one FragGate door (slug=azinterface). THIS IS NOT: AZHub (separate software — Blank Key / spatial container — https://github.com/AzielEliab/azhub). Never collapse Interface into Hub. Never a combined hub+interface product. Hosted Worker never remotely wipes user devices, never stores a username, never serves vault contents, and never claims cloud-asleep availability. Living presence only at ON after integrity. Author: Aziel Eliab only.";
@@ -37,11 +45,17 @@ export const LIVE_OPS = [
   "hold",
   "withdraw",
   "scorch_local",
+  "pair_offer",
+  "pair_accept",
+  "pair_seal",
+  "pair_cut",
+  "pair_status",
 ];
 
 export const STUB_OPS = [
   "scorch_remote",
   "scorch",
+  "pair_wipe",
   "deanonymize",
   "vault_read",
   "auto_unlock",
@@ -89,13 +103,56 @@ export const ALIASES = {
   state_set: "site_state_set",
   cycle: "page_cycle_status",
   integrity: "integrity_check",
+  offer: "pair_offer",
+  accept: "pair_accept",
+  seal: "pair_seal",
+  cut: "pair_cut",
+  pair: "pair_status",
+  wipe_pair: "pair_wipe",
+  pair_remote_wipe: "pair_wipe",
 };
 
 export const SITE_STATES = PAGE_CYCLES;
 export const MODULES = ["azhome", "hold", "withdraw", "witness"];
 const WITNESS_CAP = 64;
+const PAIR_CAP = 64;
 const LABEL_CAP = 160;
 const ID_CAP = 80;
+const QNS_VIA_ALIASES = Object.freeze({ bluetooth: "bt", loopback: "local", localhost: "local" });
+
+export function normalizeVia(raw) {
+  if (raw == null || raw === "") return "local";
+  const text = String(raw).trim().toLowerCase().replace(/_/g, "-");
+  const via = QNS_VIA_ALIASES[text] || text;
+  return QNS_VIAS.includes(via) ? via : null;
+}
+
+export function qnsCrossMap() {
+  return {
+    spec: QNS_CD,
+    handshake: AIH_PAIR,
+    handshake_steps: PAIR_STEPS.slice(),
+    ops: ["pair_offer", "pair_accept", "pair_seal", "pair_cut", "pair_status"],
+    vias: QNS_VIAS.slice(),
+    walker_restricted: true,
+    packet: "QNS1",
+    via_runs_in: "qnsd",
+    qnsd: QNSD_BIND,
+    canonical: QNM_NODE,
+    doc: QNS_DOC,
+    catalog: "azinterface",
+    softwares_tab_qns: false,
+    mesh: QNM_BUILD,
+    mesh_default: "OFF",
+    get_enables_mesh: false,
+    node_gate: false,
+    untraceable_origin: false,
+    remote_wipe: false,
+    vault_contents: false,
+    pair_memorial: "azinterface custody",
+    note: "Vias run in local qnsd (127.0.0.1). Interface holds pair memorial cites only.",
+  };
+}
 const GENESIS_DOMAIN = "azinterface|genesis|AIH-WP-1.0";
 const ZERO = "0".repeat(64);
 
@@ -103,8 +160,9 @@ export const SKILL_MD = `---
 name: AZInterface
 description: >-
   Use when operating AZInterface (AIH-WP-1.0) custody — hold / withdraw /
-  witness, pre-locked page cycles, genesis keying, integrity, AZHome.
-  Interface is CUSTODY. Never collapse into Hub. Author Aziel Eliab.
+  witness, pre-locked page cycles, genesis keying, integrity, AZHome,
+  QNS-CD-1.0 pair memorial (offer/accept/seal/cut). Interface is CUSTODY.
+  Never collapse into Hub. Author Aziel Eliab.
 ---
 
 # AZInterface
@@ -139,10 +197,12 @@ https://github.com/AzielEliab/fraggate. Catalog is live. Human chrome uses
 this Worker \`/v1/{op}\` (single-segment local ops only). \`/v1/fraggate/*\`,
 \`/v1/runtime/*\`, and \`/v1/mesh/*\` PROXY to aziel-runtime (\`AZIEL_RUNTIME\`
 or HTTPS). Suite mesh is QNM-BUILD-1.0 rollup (live|locked|isolated);
-default OFF until runtime enable. AIH-WP-1.3 spiderweb is local
-\`qnm-node/\` — not a public Node Gate. No auto-heal. Not anonymity.
-Anon-broadcast is not a publish path. \`GET|POST /mcp\` here is a
-pointer, not a second MCP.
+default OFF until runtime enable. \`GET /v1/mesh\` never enables.
+QNS-CD-1.0 photon vias run in local \`qnm-node/\` **qnsd** (127.0.0.1).
+Interface holds pair memorial cites only — not a Softwares-tab QNS
+product. AIH-WP-1.3 spiderweb is local \`qnm-node/\` — not a public
+Node Gate. No auto-heal. Not anonymity. Anon-broadcast is not a
+publish path. \`GET|POST /mcp\` here is a pointer, not a second MCP.
 
 **Human UI stays on this Worker.** AI path is FragGate + this OpenAPI.
 
@@ -161,13 +221,34 @@ pointer, not a second MCP.
 
 ## Local Worker extras (human UI \`/v1\`)
 
-\`genesis_boot\` · \`hold\` · \`withdraw\` · \`scorch_local\`
+\`genesis_boot\` · \`hold\` · \`withdraw\` · \`scorch_local\` ·
+\`pair_offer\` · \`pair_accept\` · \`pair_seal\` · \`pair_cut\` · \`pair_status\`
+
+## QNS-CD-1.0 cross-map
+
+Canonical qnsd: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
+(bind \`127.0.0.1\`). Design summary: \`docs/QNS-CD-1.0.md\`.
+
+| Plane | Who | What |
+|-------|-----|------|
+| CUSTODY | AZInterface | Pair memorial (\`pair_id\` + \`photon_id\` cites) |
+| VIA | local qnsd | QNS1 packet on lan/plc/bt/rf/light/qns/operator/local |
+| CATALOG | aziel-runtime | \`slug=azinterface\` + QNM-BUILD-1.0 mesh rollup |
+
+Handshake is AIH-WP-1.3: \`OFFER → ACCEPT → SEAL\`. Walker restriction
+applies. Pair mutate only at ON after integrity. \`pair_status\` reads
+memorial in any cycle. \`pair_cut\` is a dissolve — not a remote wipe.
+Do not invent a Softwares-tab QNS product. Do not claim untraceable
+origin. \`GET /v1/mesh\` never enables. No Node Gate.
+
+\`hold\` / \`witness_list\` may record \`pair_id\` + \`photon_id\` cites.
+Vault contents are never stored.
 
 ## Stub (refuse)
 
-\`scorch_remote\` / \`scorch\` / \`auto_unlock\` / \`unlock\` / \`ranking\` / \`rank\` /
-\`completeness_detect\` / \`complete\` / \`completeness\` / \`skip_cycle\` /
-\`invent_cycle\` / \`deanonymize\` / \`vault_read\`
+\`scorch_remote\` / \`scorch\` / \`pair_wipe\` / \`auto_unlock\` / \`unlock\` /
+\`ranking\` / \`rank\` / \`completeness_detect\` / \`complete\` / \`completeness\` /
+\`skip_cycle\` / \`invent_cycle\` / \`deanonymize\` / \`vault_read\`
 
 Works with ChatGPT (GPT Actions / OpenAI), Grok (xAI), Venice, Claude
 (Anthropic), Cursor (MCP), Glama (MCP), Perplexity, Microsoft Copilot /
@@ -274,6 +355,7 @@ function createState() {
     genesis_keyed: false,
     holds: [],
     witnesses: [],
+    pairs: [],
     receipts: [],
   };
 }
@@ -420,6 +502,7 @@ function base(extra) {
     host: HOST,
     sigil: SIGIL,
     azhome: "AZHome",
+    qns: qnsCrossMap(),
     ...extra,
   };
 }
@@ -427,6 +510,7 @@ function base(extra) {
 function stubRefuse(op, rec) {
   const reasons = {
     scorch_remote: "Hosted Scorched Earth never remotely wipes user devices. Local stub/advisory only (scorch_local).",
+    pair_wipe: "Pair cut is a local dissolve of memorial cites. Hosted Worker never remotely wipes user devices.",
     deanonymize: "AZInterface does not deanonymize. Identity is Aziel Eliab only.",
     vault_read: "Hosted Worker never serves vault contents. Witness list is metadata only.",
     auto_unlock: "Auto-unlock is refused. Cycles advance one explicit step only.",
@@ -449,6 +533,145 @@ function stubRefuse(op, rec) {
     receipt: rec,
     display: displayOf("Stub refused", reasons[op] || "stub", [["op", op], ["code", "STUB"]]),
   });
+}
+
+function citeIds(payload) {
+  const src = payload && typeof payload === "object" ? payload : {};
+  const pairId = String(src.pair_id || src.pair || "").trim().slice(0, ID_CAP);
+  const photonId = String(src.photon_id || src.photon || "").trim().slice(0, ID_CAP);
+  return { pairId, photonId };
+}
+
+function pairPublic(row) {
+  return {
+    pair_id: row.pair_id,
+    photon_id: row.photon_id,
+    via: row.via,
+    handshake: row.handshake,
+    walker_restricted: true,
+    packet: "QNS1",
+    via_runs_in: "qnsd",
+    qnsd: QNSD_BIND,
+    spec: QNS_CD,
+    handshake_spec: AIH_PAIR,
+    vault_contents: false,
+    remote_wipe: false,
+    untraceable_origin: false,
+    transferred: false,
+  };
+}
+
+function findPair(s, pairId) {
+  if (!pairId) return null;
+  return s.pairs.find((p) => p.pair_id === pairId) || null;
+}
+
+function latestPair(s, handshake) {
+  for (let i = s.pairs.length - 1; i >= 0; i--) {
+    if (handshake == null || s.pairs[i].handshake === handshake) return s.pairs[i];
+  }
+  return null;
+}
+
+async function pairCycleRefuse(s, op) {
+  if (livingPresence(s)) return null;
+  const current = currentCycle(s);
+  if (current === "MEMORIAL") {
+    const rec = await appendReceipt(s, op + "_refused", { reason: "memorial" });
+    return base({
+      ok: false,
+      code: "AIH-CYCLE-TERMINAL",
+      refused: true,
+      error: "MEMORIAL is terminal. Pair memorial cites remain readable; pair mutate is refused.",
+      living_presence: false,
+      site_state: current,
+      current: current,
+      qns_cd: QNS_CD,
+      receipt: rec,
+      display: displayOf("Memorial is terminal", "QNS pair mutate does not run in MEMORIAL. pair_status still reads cites."),
+    });
+  }
+  if (current === "FULL SHUTDOWN") {
+    const rec = await appendReceipt(s, op + "_refused", { reason: "full_shutdown" });
+    return base({
+      ok: false,
+      code: "QNS-CYCLE-REFUSE",
+      refused: true,
+      error: "QNS pair ops require living presence (ON after integrity). FULL SHUTDOWN refuses pair mutate.",
+      living_presence: false,
+      site_state: current,
+      current: current,
+      qns_cd: QNS_CD,
+      receipt: rec,
+      display: displayOf("Cycle refuses pair", "OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL. Pair mutate only at ON."),
+    });
+  }
+  const rec = await appendReceipt(s, op + "_refused", { reason: "pre_locked" });
+  return base({
+    ok: false,
+    code: "PRE_LOCKED",
+    error: "QNS pair ops are living-presence acts. Enable ON after integrity.",
+    living_presence: false,
+    site_state: current,
+    receipt: rec,
+    display: displayOf("Pre-locked", "pair_offer / pair_accept / pair_seal / pair_cut do not run until ON after integrity."),
+  });
+}
+
+function viaOrRefuse(payload, existing) {
+  const src = payload && typeof payload === "object" ? payload : {};
+  const raw = Object.prototype.hasOwnProperty.call(src, "via") ? src.via : src.bearer;
+  if (raw == null || raw === "") return { via: existing || "local", error: null };
+  const via = normalizeVia(raw);
+  if (!via) {
+    return {
+      via: null,
+      error: base({
+        ok: false,
+        code: "QNS-VIA-UNKNOWN",
+        refused: true,
+        error: "Walker restriction: only lan/plc/bt/rf/light/qns/operator/local. Vias run in local qnsd.",
+        allowed: QNS_VIAS.slice(),
+        walker_restricted: true,
+        via_runs_in: "qnsd",
+        qnsd: QNSD_BIND,
+        display: displayOf("Via refused", "Unknown via. Walker cannot invent a hop.", [["allowed", QNS_VIAS.join(",")]]),
+      }),
+    };
+  }
+  if (existing && via !== existing) {
+    return {
+      via: null,
+      error: base({
+        ok: false,
+        code: "QNS-WALKER-RESTRICT",
+        refused: true,
+        error: "Walker restriction: via cannot change mid-handshake. qnsd owns the hop; Interface cites one via.",
+        via: existing,
+        requested: via,
+        walker_restricted: true,
+        via_runs_in: "qnsd",
+        qnsd: QNSD_BIND,
+        display: displayOf("Walker restricted", "Via is sealed on offer. Packet hops stay in local qnsd.", [["via", existing], ["requested", via]]),
+      }),
+    };
+  }
+  return { via, error: null };
+}
+
+function pushPairWitness(s, rec, kind, pairId, photonId) {
+  const witness = {
+    kind,
+    hold_id: null,
+    hash: rec.hash,
+    ts: rec.ts,
+    seq: rec.seq,
+    vault_contents: false,
+  };
+  if (pairId) witness.pair_id = pairId;
+  if (photonId) witness.photon_id = photonId;
+  s.witnesses.push(witness);
+  return witness;
 }
 
 export async function dispatch(op, payload, _sessionId) {
@@ -510,6 +733,8 @@ export async function dispatch(op, payload, _sessionId) {
         ["site_state", currentCycle(s)],
         ["living_presence", cycle.living_presence],
         ["hub_collapse", false],
+        ["qns_cd", QNS_CD],
+        ["qnsd", QNSD_BIND],
       ]),
     });
   }
@@ -823,21 +1048,29 @@ export async function dispatch(op, payload, _sessionId) {
     const label = String(payload.label || payload.name || "hold").trim().slice(0, 80);
     const labelHash = await sha256Hex(`azinterface|hold|${label}`);
     const holdId = "hold-" + labelHash.slice(0, 12);
+    const cites = citeIds(payload);
     const row = { hold_id: holdId, label_hash: labelHash, status: "held", vault_contents: false };
+    if (cites.pairId) row.pair_id = cites.pairId;
+    if (cites.photonId) row.photon_id = cites.photonId;
     s.holds.push(row);
-    const rec = await appendReceipt(s, "hold", { hold_id: holdId, label_hash: labelHash });
+    const rec = await appendReceipt(s, "hold", { hold_id: holdId, label_hash: labelHash, pair_id: cites.pairId || null, photon_id: cites.photonId || null });
     const witness = { kind: "hold", hold_id: holdId, hash: rec.hash, ts: rec.ts, seq: rec.seq, vault_contents: false };
+    if (cites.pairId) witness.pair_id = cites.pairId;
+    if (cites.photonId) witness.photon_id = cites.photonId;
     s.witnesses.push(witness);
+    const fields = [
+      ["hold_id", holdId],
+      ["status", "held"],
+      ["vault_contents", false],
+    ];
+    if (cites.pairId) fields.push(["pair_id", cites.pairId]);
+    if (cites.photonId) fields.push(["photon_id", cites.photonId]);
     return base({
       ok: true,
       hold: row,
       witness,
       vault_contents: false,
-      display: displayOf("Hold", "Custody hold recorded. Label hashed. Vault contents not stored.", [
-        ["hold_id", holdId],
-        ["status", "held"],
-        ["vault_contents", false],
-      ]),
+      display: displayOf("Hold", "Custody hold recorded. Label hashed. Pair/photon cites only — vault contents not stored.", fields),
     });
   }
 
@@ -885,6 +1118,216 @@ export async function dispatch(op, payload, _sessionId) {
       display: displayOf("Withdraw", "Custody withdraw recorded. Vault contents were never stored on this Worker.", [
         ["hold_id", target.hold_id],
         ["status", "withdrawn"],
+      ]),
+    });
+  }
+
+  if (name === "pair_offer") {
+    const gated = await pairCycleRefuse(s, "pair_offer");
+    if (gated) return gated;
+    const viaHit = viaOrRefuse(payload);
+    if (viaHit.error) return viaHit.error;
+    if (s.pairs.length >= PAIR_CAP) {
+      return base({ ok: false, code: "PAIR_CAP", error: "Pair memorial cap reached. Witness list is metadata only." });
+    }
+    const cites = citeIds(payload);
+    let pairId = cites.pairId;
+    if (!pairId) {
+      const seed = await sha256Hex(`azinterface|qns|${QNS_CD}|${viaHit.via}|${s.receipts.length ? s.receipts[s.receipts.length - 1].hash : ZERO}|${s.pairs.length}`);
+      pairId = "pair-" + seed.slice(0, 12);
+    }
+    if (findPair(s, pairId)) {
+      return base({
+        ok: false,
+        code: "PAIR_EXISTS",
+        error: "pair_id already memorialized. Use pair_accept / pair_seal / pair_cut.",
+        pair_id: pairId,
+      });
+    }
+    let photonId = cites.photonId;
+    if (!photonId) {
+      photonId = "qns1-" + (await sha256Hex(`azinterface|photon|${pairId}|${viaHit.via}`)).slice(0, 12);
+    }
+    const row = { pair_id: pairId, photon_id: photonId, via: viaHit.via, handshake: "OFFER", vault_contents: false };
+    s.pairs.push(row);
+    const rec = await appendReceipt(s, "pair_offer", { pair_id: pairId, photon_id: photonId, via: viaHit.via });
+    const witness = pushPairWitness(s, rec, "pair_offer", pairId, photonId);
+    return base({
+      ok: true,
+      pair: pairPublic(row),
+      handshake: "OFFER",
+      witness,
+      vault_contents: false,
+      remote_wipe: false,
+      display: displayOf("Pair OFFER", "AIH-WP-1.3 offer recorded. QNS1 via cite only — qnsd on 127.0.0.1 runs the hop.", [
+        ["pair_id", pairId],
+        ["photon_id", photonId],
+        ["via", viaHit.via],
+        ["handshake", "OFFER"],
+      ]),
+    });
+  }
+
+  if (name === "pair_accept") {
+    const gated = await pairCycleRefuse(s, "pair_accept");
+    if (gated) return gated;
+    const cites = citeIds(payload);
+    const target = cites.pairId ? findPair(s, cites.pairId) : latestPair(s, "OFFER");
+    if (!target) {
+      return base({
+        ok: false,
+        code: "PAIR_NOT_FOUND",
+        error: "No matching OFFER. pair_status lists pair_id cites only — never vault contents.",
+        vault_contents: false,
+      });
+    }
+    if (target.handshake !== "OFFER") {
+      return base({
+        ok: false,
+        code: "QNS-HANDSHAKE-LOCKED",
+        refused: true,
+        error: "AIH-WP-1.3 handshake is OFFER → ACCEPT → SEAL. Accept only from OFFER.",
+        pair: pairPublic(target),
+        display: displayOf("Handshake locked", "Accept only from OFFER.", [["handshake", target.handshake || ""]]),
+      });
+    }
+    const viaHit = viaOrRefuse(payload, target.via);
+    if (viaHit.error) return viaHit.error;
+    if (cites.photonId) target.photon_id = cites.photonId;
+    target.handshake = "ACCEPT";
+    const rec = await appendReceipt(s, "pair_accept", { pair_id: target.pair_id, photon_id: target.photon_id, via: target.via });
+    const witness = pushPairWitness(s, rec, "pair_accept", target.pair_id, target.photon_id);
+    return base({
+      ok: true,
+      pair: pairPublic(target),
+      handshake: "ACCEPT",
+      witness,
+      vault_contents: false,
+      remote_wipe: false,
+      display: displayOf("Pair ACCEPT", "AIH-WP-1.3 accept recorded. Via still cited; qnsd runs the packet.", [
+        ["pair_id", target.pair_id],
+        ["photon_id", target.photon_id || ""],
+        ["handshake", "ACCEPT"],
+      ]),
+    });
+  }
+
+  if (name === "pair_seal") {
+    const gated = await pairCycleRefuse(s, "pair_seal");
+    if (gated) return gated;
+    const cites = citeIds(payload);
+    const target = cites.pairId ? findPair(s, cites.pairId) : latestPair(s, "ACCEPT");
+    if (!target) {
+      return base({
+        ok: false,
+        code: "PAIR_NOT_FOUND",
+        error: "No matching ACCEPT. Seal only after accept. Witness list is metadata only.",
+        vault_contents: false,
+      });
+    }
+    if (target.handshake !== "ACCEPT") {
+      return base({
+        ok: false,
+        code: "QNS-HANDSHAKE-LOCKED",
+        refused: true,
+        error: "AIH-WP-1.3 handshake is OFFER → ACCEPT → SEAL. Seal only from ACCEPT.",
+        pair: pairPublic(target),
+        display: displayOf("Handshake locked", "Seal only from ACCEPT.", [["handshake", target.handshake || ""]]),
+      });
+    }
+    const viaHit = viaOrRefuse(payload, target.via);
+    if (viaHit.error) return viaHit.error;
+    target.handshake = "SEAL";
+    const rec = await appendReceipt(s, "pair_seal", { pair_id: target.pair_id, photon_id: target.photon_id, via: target.via });
+    const witness = pushPairWitness(s, rec, "pair_seal", target.pair_id, target.photon_id);
+    return base({
+      ok: true,
+      pair: pairPublic(target),
+      handshake: "SEAL",
+      witness,
+      memorial: true,
+      vault_contents: false,
+      remote_wipe: false,
+      display: displayOf("Pair SEAL", "Pair memorial sealed. Interface holds cites only. qnsd on 127.0.0.1 owns the via.", [
+        ["pair_id", target.pair_id],
+        ["photon_id", target.photon_id || ""],
+        ["handshake", "SEAL"],
+      ]),
+    });
+  }
+
+  if (name === "pair_cut") {
+    const gated = await pairCycleRefuse(s, "pair_cut");
+    if (gated) return gated;
+    const cites = citeIds(payload);
+    let target = cites.pairId ? findPair(s, cites.pairId) : null;
+    if (!target) {
+      for (let i = s.pairs.length - 1; i >= 0; i--) {
+        if (s.pairs[i].handshake !== "CUT") {
+          target = s.pairs[i];
+          break;
+        }
+      }
+    }
+    if (!target) {
+      return base({
+        ok: false,
+        code: "PAIR_NOT_FOUND",
+        error: "No living pair to cut. Cut is a dissolve — not a remote wipe.",
+        vault_contents: false,
+        remote_wipe: false,
+      });
+    }
+    if (target.handshake === "CUT") {
+      const rec = await appendReceipt(s, "pair_cut", { unchanged: target.pair_id });
+      return base({
+        ok: true,
+        unchanged: true,
+        pair: pairPublic(target),
+        handshake: "CUT",
+        remote_wipe: false,
+        receipt: rec,
+        display: displayOf("Pair already cut", "Memorial cite remains. No remote wipe.", [["pair_id", target.pair_id]]),
+      });
+    }
+    const prev = target.handshake;
+    target.handshake = "CUT";
+    const rec = await appendReceipt(s, "pair_cut", { pair_id: target.pair_id, photon_id: target.photon_id, from: prev });
+    const witness = pushPairWitness(s, rec, "pair_cut", target.pair_id, target.photon_id);
+    return base({
+      ok: true,
+      pair: pairPublic(target),
+      handshake: "CUT",
+      previous: prev,
+      witness,
+      vault_contents: false,
+      remote_wipe: false,
+      local_only: true,
+      display: displayOf("Pair CUT", "Pair dissolved. Memorial cite kept. Hosted Worker never remotely wipes devices.", [
+        ["pair_id", target.pair_id],
+        ["from", prev || ""],
+        ["remote_wipe", false],
+      ]),
+    });
+  }
+
+  if (name === "pair_status") {
+    const rec = await appendReceipt(s, "pair_status", { count: s.pairs.length });
+    const rows = s.pairs.map((p) => pairPublic(p));
+    return base({
+      ok: true,
+      pairs: rows,
+      count: rows.length,
+      vault_contents: false,
+      remote_wipe: false,
+      living_presence: livingPresence(s),
+      site_state: currentCycle(s),
+      receipt: rec,
+      display: displayOf("Pair memorial", "QNS-CD pair cites only. Vias run in local qnsd. Vault contents are never listed.", [
+        ["count", rows.length],
+        ["qnsd", QNSD_BIND],
+        ["vault_contents", false],
+        ["softwares_tab_qns", false],
       ]),
     });
   }

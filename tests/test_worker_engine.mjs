@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { dispatch, genesisHashKey, LIVE_OPS, PAGE_CYCLES, resetEngine, STUB_OPS } from "../workers/download-tracker/src/engine.js";
 
+assert.ok(LIVE_OPS.includes("pair_offer") && LIVE_OPS.includes("pair_status"));
+assert.ok(STUB_OPS.includes("pair_wipe"));
+
 resetEngine();
 
 assert.ok(LIVE_OPS.includes("page_cycle_status") && LIVE_OPS.includes("integrity_check"));
@@ -27,6 +30,9 @@ assert.equal(integ.ok, true);
 assert.equal(integ.living_presence, false);
 assert.equal(integ.current, "integrity");
 
+const lockedPair = await dispatch("pair_offer", { via: "local" });
+assert.equal(lockedPair.code, "PRE_LOCKED");
+
 const on = await dispatch("site_state_set", { state: "ON" });
 assert.equal(on.ok, true);
 assert.equal(on.living_presence, true);
@@ -44,6 +50,21 @@ assert.equal(again.code, "GENESIS_ALREADY_KEYED");
 const hold = await dispatch("hold", { label: "secret-box" });
 assert.equal(hold.ok, true);
 assert.equal(hold.vault_contents, false);
+
+const offer = await dispatch("pair_offer", { via: "lan", photon_id: "qns1-cite" });
+assert.equal(offer.ok, true);
+assert.equal(offer.handshake, "OFFER");
+assert.equal(offer.pair.via_runs_in, "qnsd");
+assert.equal(offer.pair.untraceable_origin, false);
+const accept = await dispatch("pair_accept", { pair_id: offer.pair.pair_id });
+assert.equal(accept.handshake, "ACCEPT");
+const skipAccept = await dispatch("pair_accept", { pair_id: offer.pair.pair_id });
+assert.equal(skipAccept.code, "QNS-HANDSHAKE-LOCKED");
+const seal = await dispatch("pair_seal", { pair_id: offer.pair.pair_id });
+assert.equal(seal.handshake, "SEAL");
+const citedHold = await dispatch("hold", { label: "paired", pair_id: offer.pair.pair_id, photon_id: "qns1-cite" });
+assert.equal(citedHold.hold.pair_id, offer.pair.pair_id);
+assert.equal(JSON.stringify(citedHold).includes("paired"), false);
 const listed = await dispatch("witness_list", {});
 assert.equal(JSON.stringify(listed).includes("secret-box"), false);
 assert.equal(listed.vault_contents, false);
@@ -61,10 +82,21 @@ assert.equal(unlock.code, "AIH-AUTO-UNLOCK-REFUSE");
 const shut = await dispatch("site_state_set", { state: "FULL_SHUTDOWN" });
 assert.equal(shut.ok, true);
 assert.equal(shut.current, "FULL SHUTDOWN");
+const shutPair = await dispatch("pair_cut", {});
+assert.equal(shutPair.code, "QNS-CYCLE-REFUSE");
 const mem = await dispatch("site_state_set", { state: "MEMORIAL" });
 assert.equal(mem.ok, true);
 const leave = await dispatch("site_state_set", { state: "ON" });
 assert.equal(leave.code, "AIH-CYCLE-TERMINAL");
+const memPair = await dispatch("pair_offer", { via: "local" });
+assert.equal(memPair.code, "AIH-CYCLE-TERMINAL");
+const memorialRead = await dispatch("pair_status", {});
+assert.equal(memorialRead.ok, true);
+assert.equal(memorialRead.count >= 1, true);
+
+const wipe = await dispatch("pair_wipe", {});
+assert.equal(wipe.code, "STUB");
+assert.equal(wipe.remote_wipe, false);
 
 const bad = await dispatch("not_real", {});
 assert.equal(bad.code, "FG-HALLUC-TOOL");

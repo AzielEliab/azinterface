@@ -2,8 +2,9 @@
 name: AZInterface
 description: >-
   Use when operating AZInterface (AIH-WP-1.0) custody — hold / withdraw /
-  witness, pre-locked page cycles, genesis keying, integrity, AZHome.
-  Interface is CUSTODY. Never collapse into Hub. Author Aziel Eliab.
+  witness, pre-locked page cycles, genesis keying, integrity, AZHome,
+  QNS-CD-1.0 pair memorial (offer/accept/seal/cut). Interface is CUSTODY.
+  Never collapse into Hub. Author Aziel Eliab.
 ---
 
 # AZInterface
@@ -40,10 +41,12 @@ https://github.com/AzielEliab/fraggate. Catalog is live. Human chrome uses
 this Worker `/v1/{op}` (single-segment local ops only). `/v1/fraggate/*`,
 `/v1/runtime/*`, and `/v1/mesh/*` PROXY to aziel-runtime (`AZIEL_RUNTIME`
 or HTTPS). Suite mesh is QNM-BUILD-1.0 rollup (live|locked|isolated);
-default OFF until runtime enable. AIH-WP-1.3 spiderweb is local
-`qnm-node/` — not a public Node Gate. No auto-heal. Not anonymity.
-Anon-broadcast is not a publish path. `GET|POST /mcp` here is a
-pointer, not a second MCP.
+default OFF until runtime enable. `GET /v1/mesh` never enables.
+QNS-CD-1.0 photon vias run in local `qnm-node/` **qnsd** (127.0.0.1).
+Interface holds pair memorial cites only — not a Softwares-tab QNS
+product. AIH-WP-1.3 spiderweb is local `qnm-node/` — not a public
+Node Gate. No auto-heal. Not anonymity. Anon-broadcast is not a
+publish path. `GET|POST /mcp` here is a pointer, not a second MCP.
 
 **Human UI stays on this Worker.** AI path is FragGate + this OpenAPI.
 
@@ -62,13 +65,34 @@ pointer, not a second MCP.
 
 ## Local Worker extras (human UI `/v1`)
 
-`genesis_boot` · `hold` · `withdraw` · `scorch_local`
+`genesis_boot` · `hold` · `withdraw` · `scorch_local` ·
+`pair_offer` · `pair_accept` · `pair_seal` · `pair_cut` · `pair_status`
+
+## QNS-CD-1.0 cross-map
+
+Canonical qnsd: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
+(bind `127.0.0.1`). Design summary: `docs/QNS-CD-1.0.md`.
+
+| Plane | Who | What |
+|-------|-----|------|
+| CUSTODY | AZInterface | Pair memorial (`pair_id` + `photon_id` cites) |
+| VIA | local qnsd | QNS1 packet on lan/plc/bt/rf/light/qns/operator/local |
+| CATALOG | aziel-runtime | `slug=azinterface` + QNM-BUILD-1.0 mesh rollup |
+
+Handshake is AIH-WP-1.3: `OFFER → ACCEPT → SEAL`. Walker restriction
+applies. Pair mutate only at ON after integrity. `pair_status` reads
+memorial in any cycle. `pair_cut` is a dissolve — not a remote wipe.
+Do not invent a Softwares-tab QNS product. Do not claim untraceable
+origin. `GET /v1/mesh` never enables. No Node Gate.
+
+`hold` / `witness_list` may record `pair_id` + `photon_id` cites.
+Vault contents are never stored.
 
 ## Stub (refuse)
 
-`scorch_remote` / `scorch` / `auto_unlock` / `unlock` / `ranking` / `rank` /
-`completeness_detect` / `complete` / `completeness` / `skip_cycle` /
-`invent_cycle` / `deanonymize` / `vault_read`
+`scorch_remote` / `scorch` / `pair_wipe` / `auto_unlock` / `unlock` /
+`ranking` / `rank` / `completeness_detect` / `complete` / `completeness` /
+`skip_cycle` / `invent_cycle` / `deanonymize` / `vault_read`
 
 Works with ChatGPT (GPT Actions / OpenAI), Grok (xAI), Venice, Claude
 (Anthropic), Cursor (MCP), Glama (MCP), Perplexity, Microsoft Copilot /

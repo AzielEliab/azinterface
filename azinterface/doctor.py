@@ -123,7 +123,7 @@ def _check_withdraw_locked() -> Check:
 
 def _check_stubs() -> Check:
     eng = Engine(Ledger())
-    for op in ("scorch_remote", "deanonymize", "vault_read", "scorch", "skip_cycle", "invent_cycle", "auto_unlock"):
+    for op in ("scorch_remote", "deanonymize", "vault_read", "scorch", "pair_wipe", "skip_cycle", "invent_cycle", "auto_unlock"):
         out = eng.dispatch(op, {})
         if out.get("ok") or out.get("code") != "STUB":
             return _fail("stubs", f"{op} {out.get('code')}")
@@ -185,10 +185,15 @@ def _check_ops() -> Check:
         "integrity_check",
         "witness_list",
         "page_cycle_status",
+        "pair_offer",
+        "pair_accept",
+        "pair_seal",
+        "pair_cut",
+        "pair_status",
     }
     if not need <= set(LIVE_OPS):
         return _fail("live ops", str(set(LIVE_OPS)))
-    if not {"scorch_remote", "deanonymize", "vault_read", "skip_cycle", "invent_cycle"} <= set(STUB_OPS):
+    if not {"scorch_remote", "pair_wipe", "deanonymize", "vault_read", "skip_cycle", "invent_cycle"} <= set(STUB_OPS):
         return _fail("stub ops", str(STUB_OPS))
     return _ok("ops", f"{len(LIVE_OPS)} live / {len(STUB_OPS)} stub")
 

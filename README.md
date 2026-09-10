@@ -60,7 +60,10 @@ Worker `/v1/{op}` is the **human UI backend** (single-segment local ops).
 `/v1/fraggate/*`, `/v1/runtime/*`, and `/v1/mesh/*` **PROXY** to
 aziel-runtime (`AZIEL_RUNTIME` or HTTPS). Suite mesh is QNM-BUILD-1.0
 rollup (live|locked|isolated); default OFF until runtime enable.
-AIH-WP-1.3 spiderweb is local `qnm-node/` — not a public Node Gate.
+`GET /v1/mesh` never enables. QNS-CD-1.0 photon vias run in local
+`qnm-node/` **qnsd** (127.0.0.1). Interface holds pair memorial cites —
+not a Softwares-tab QNS product. AIH-WP-1.3 spiderweb is local
+`qnm-node/` — not a public Node Gate.
 No auto-heal. Not anonymity. Anon-broadcast is not a publish path.
 `GET|POST /mcp` and `/openapi.json` document those ops and **point at
 FragGate** — they are not a second agent brand.
@@ -139,7 +142,12 @@ Every control calls a real `/v1` handler (same op agents call). No dead buttons.
 | Cycle | `POST /v1/page_cycle_status` | `page_cycle_status` |
 | Scorched Earth local | `POST /v1/scorch_local` | `scorch_local` (advisory) |
 | Remote wipe | `POST /v1/scorch_remote` | stub refuse |
-| Live Nodes strip | `GET /v1/mesh/status` (proxy) | QNM-BUILD-1.0 rollup; default OFF |
+| Live Nodes strip | `GET /v1/mesh/status` (proxy) | QNM-BUILD-1.0 + QNS-CD-1.0 cite; default OFF; GET never enables |
+| Offer | `POST /v1/pair_offer` | `pair_offer` (ON after integrity) |
+| Accept | `POST /v1/pair_accept` | `pair_accept` |
+| Seal | `POST /v1/pair_seal` | `pair_seal` |
+| Cut | `POST /v1/pair_cut` | `pair_cut` (dissolve; not a remote wipe) |
+| Pair status | `POST /v1/pair_status` | `pair_status` (memorial cites) |
 
 Prove locally (after `pip install -e ".[dev]"`):
 
@@ -150,6 +158,8 @@ azinterface call site_state_set --payload '{"state":"ON"}'
 azinterface call genesis_boot --payload '{"username":"seed"}'
 azinterface call witness_list
 azinterface call page_cycle_status
+azinterface call pair_offer --payload '{"via":"local"}'
+azinterface call pair_status
 ```
 
 ## CLI
@@ -162,6 +172,11 @@ azinterface genesis 'seed'
 azinterface integrity
 azinterface state-set ON
 azinterface hold --label demo
+azinterface pair-offer --via local
+azinterface pair-accept
+azinterface pair-seal
+azinterface pair-status
+azinterface pair-cut
 azinterface witness
 azinterface withdraw
 ```
@@ -194,15 +209,29 @@ flutter run
 ```
 azinterface/          library (engine, genesis, cycle, receipts, cli)
 tests/                pytest + worker smoke
-docs/                 AIH-WP-1.0 notes
+docs/                 AIH-WP-1.0 notes + QNS-CD-1.0 Interface summary
 workers/download-tracker/   Cloudflare Worker azinterface-download-tracker
 mobile/               Flutter scaffold
 SKILL.md              agent skill (also GET /v1/skill)
 ```
 
+## Cross-map (AZInterface ↔ qnm-node qnsd ↔ catalog)
+
+| Plane | Who | Role |
+|-------|-----|------|
+| CUSTODY | this product (`slug=azinterface`) | Pair memorial, cycle gate, witness cites |
+| VIA | local [`qnm-node/`](https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node) **qnsd** on `127.0.0.1` | QNS1 packet on lan/plc/bt/rf/light/qns/operator/local |
+| CATALOG | [aziel-runtime](https://github.com/AzielEliab/aziel-runtime) FragGate | AZInterface + QNM-BUILD-1.0 mesh rollup — not a Softwares-tab QNS card |
+
+Design: [docs/QNS-CD-1.0.md](docs/QNS-CD-1.0.md). Handshake is AIH-WP-1.3
+(`OFFER → ACCEPT → SEAL`). Walker restriction applies. `pair_cut` is not
+a remote wipe. `GET /v1/mesh` never enables. No Node Gate. No untraceable
+origin claim.
+
 ## Cross-links (optional, not required)
 
 - Runtime: https://github.com/AzielEliab/aziel-runtime · https://aziel-runtime.vibelock.workers.dev/
+- Local qnsd: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
 - FragGate: https://github.com/AzielEliab/fraggate
 - Digital Library: https://www.azielcorpuslibrary.net/
 - AZHub (separate software — Blank Key): https://github.com/AzielEliab/azhub

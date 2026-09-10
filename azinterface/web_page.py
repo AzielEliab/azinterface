@@ -58,6 +58,8 @@ pre {{ white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:#cfc
 .lock {{ border:1px dashed var(--gold-dim); color:var(--muted); padding:1rem; border-radius:10px; text-align:center; }}
 .lock.on {{ border-style:solid; color:var(--ivory); }}
 .badge {{ display:inline-block; font-size:.75rem; font-weight:700; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--gold-dim); color:var(--gold); }}
+#nodes {{ display:flex; align-items:center; gap:10px; padding:6px 18px; border-bottom:1px solid var(--gold); background:#0f0f0f; flex-wrap:wrap; color:var(--muted); font-size:12px; }}
+#nodes strong {{ color:var(--gold); font-weight:700; }}
 footer {{ padding:12px 18px 28px; color:var(--muted); font-size:.82rem; }}
 footer a {{ color:var(--gold); }}
 </style>
@@ -70,6 +72,11 @@ footer a {{ color:var(--gold); }}
     <div class="motto">AIH-WP-1.0 custodial operating environment. Interface is CUSTODY — never Hub. Author: Aziel Eliab only.</div>
   </div>
 </header>
+<div id="nodes">
+  <strong>Live Nodes</strong>
+  <span class="off">Mesh OFF</span>
+  <div>Default off. QNM-BUILD-1.0 rollup. QNS-CD-1.0 vias run in local qnsd (127.0.0.1). AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. GET never enables.</div>
+</div>
 <p class="banner">{LIMITATION}</p>
 <div class="nums">
   <div class="count">{v}<span>Views</span></div>
@@ -129,6 +136,24 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
     </div>
     <pre id="custody-out"></pre>
   </div>
+  <div class="card">
+    <h2>QNS pair custody</h2>
+    <p>QNS-CD-1.0 / AIH-WP-1.3: OFFER → ACCEPT → SEAL. Vias run in local qnsd (127.0.0.1). Interface holds pair_id + photon_id cites — never vault contents. Living presence only.</p>
+    <label for="pair-via">Via (lan/plc/bt/rf/light/qns/operator/local)</label>
+    <input id="pair-via" placeholder="local" value="local">
+    <label for="pair-id">pair_id (optional cite)</label>
+    <input id="pair-id" placeholder="pair-…">
+    <label for="photon-id">photon_id (optional cite)</label>
+    <input id="photon-id" placeholder="qns1-…">
+    <div class="row">
+      <button class="act" id="pair-offer-btn" type="button">Offer</button>
+      <button class="ghost" id="pair-accept-btn" type="button">Accept</button>
+      <button class="ghost" id="pair-seal-btn" type="button">Seal</button>
+      <button class="danger" id="pair-cut-btn" type="button">Cut</button>
+      <button class="ghost" id="pair-status-btn" type="button">Pair status</button>
+    </div>
+    <pre id="pair-out"></pre>
+  </div>
 </div>
 
 <div class="card" style="margin:0 18px 1rem;">
@@ -160,6 +185,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
   <code>{{"slug":"azinterface",…}}</code>
   — not a second MCP on this Worker
   (<a href="https://github.com/AzielEliab/fraggate">kernel</a>).
+  QNS-CD-1.0 pair memorial. Vias in local qnsd. QNM-BUILD-1.0 mesh default OFF. Not a Node Gate.
   Compatible clients: ChatGPT, Grok, Venice, Claude, Cursor, Glama, Perplexity, Copilot, Gemini, Mistral, Meta AI, Apple Intelligence, Amazon Q, DuckAssist, You.com, Cohere, plus other MCP/OpenAPI-capable assistants.
   <a href="https://www.azielcorpuslibrary.net/">library</a> ·
   <a href="https://godlock.uk">godlock.uk</a> ·
@@ -242,6 +268,31 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
     show("scorch-out", await call("scorch_remote", {{}}));
   }});
   document.getElementById("cycle-btn").addEventListener("click", refresh);
+  function pairPayload() {{
+    return {{
+      via: document.getElementById("pair-via").value,
+      pair_id: document.getElementById("pair-id").value,
+      photon_id: document.getElementById("photon-id").value
+    }};
+  }}
+  document.getElementById("pair-offer-btn").addEventListener("click", async function () {{
+    var out = await call("pair_offer", pairPayload());
+    if (out && out.pair && out.pair.pair_id) document.getElementById("pair-id").value = out.pair.pair_id;
+    if (out && out.pair && out.pair.photon_id) document.getElementById("photon-id").value = out.pair.photon_id;
+    show("pair-out", out);
+  }});
+  document.getElementById("pair-accept-btn").addEventListener("click", async function () {{
+    show("pair-out", await call("pair_accept", pairPayload()));
+  }});
+  document.getElementById("pair-seal-btn").addEventListener("click", async function () {{
+    show("pair-out", await call("pair_seal", pairPayload()));
+  }});
+  document.getElementById("pair-cut-btn").addEventListener("click", async function () {{
+    show("pair-out", await call("pair_cut", pairPayload()));
+  }});
+  document.getElementById("pair-status-btn").addEventListener("click", async function () {{
+    show("pair-out", await call("pair_status", {{}}));
+  }});
   refresh();
 }})();
 </script>
