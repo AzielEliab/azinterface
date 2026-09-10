@@ -27,7 +27,14 @@ assert.equal(DOMAIN_MAP.length, 11);
 assert.equal(domainSlugs().length, 33);
 assert.equal(pipe.hops.some((h) => String(h.label || "").includes("LambGate")), false);
 assert.match(pipe.note, /LambGate is not a hop/);
-assert.match(pipe.note, /MASTER-ARCHITECTURE-2.0/);
+assert.equal(pipe.controlling_design, "MASTER-33");
+assert.equal(pipe.runtime_lock, "1.7.0");
+assert.equal(pipe.suite_pipe_status, "historical");
+assert.ok(!pipe.softwares.includes("azinterface"));
+assert.ok(pipe.softwares.includes("4dmap"));
+assert.match(pipe.note, /MASTER-33/);
+assert.match(pipe.note, /aziel-runtime/);
+assert.equal(pipe.owner.includes("fraggate"), false);
 
 const cycle = await dispatch("page_cycle_status", {});
 assert.equal(cycle.pipeline_path, PIPELINE_PATH);
@@ -55,7 +62,7 @@ const specReq = new Request("https://azinterface-download-tracker.vibelock.worke
 const specRes = await handleRuntimeApi(specReq, new URL(specReq.url), {});
 const spec = await specRes.json();
 assert.ok(spec.paths["/v1/pipeline_arch"]);
-assert.match(spec.info.description, /MASTER-ARCHITECTURE-2.0/);
+assert.match(spec.info.description, /MASTER-33/);
 assert.match(spec.info.description, /THE SINGLE DOOR/);
 assert.match(spec.info.description, /no LambGate/i);
 

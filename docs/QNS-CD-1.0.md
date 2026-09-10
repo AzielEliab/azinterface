@@ -93,7 +93,7 @@ OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL
 |-------|-----|------|
 | CUSTODY | AZInterface (`slug=azinterface`) | Pair memorial, cycle gate, witness cites |
 | VIA | local `qnm-node/` **qnsd** on 127.0.0.1 | QNS1 packet transfer on sealed vias |
-| CATALOG | aziel-runtime FragGate | AZInterface + QNM-BUILD-1.0 mesh rollup |
+| CATALOG | aziel-runtime | AZInterface + QNM-BUILD-1.0 mesh rollup |
 
 ```
 AZInterface pair_*  ←memorial cites→  qnm-node qnsd (127.0.0.1)

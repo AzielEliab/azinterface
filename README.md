@@ -39,25 +39,28 @@ Witness list is metadata only. Vault contents are never served.
 
 ## LOCKED suite pipeline (cite)
 
-Controlling design: **MASTER-ARCHITECTURE-2.0**. SUITE-PIPE-1.6.15 is the
-current runtime public strip and is **not dropped** — this Interface cite
-is the runtime 1.6.15+ migration. **aziel-runtime owns fabric hops.**
-AZInterface is the human-facing UI. **FragGate is THE SINGLE DOOR** — this
-Worker is not a second door. No LambGate.
+Controlling design: **MASTER-33** on **aziel-runtime** (lock introduced
+1.7.0). The product name is `aziel-runtime` — not a version+FragGate mash.
+**FragGate is THE SINGLE DOOR.** AZInterface is the human-facing UI before
+that door — not a second door and not one of the 33 domain slugs.
+SUITE-PIPE-1.6.15 is historical (kept, not rolled back). No LambGate.
 
 `Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains; 4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock / VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return`
 
-Internal Domain Layer is **33 softwares in 11 domains** after AZPIPE — not
-additional doors. 4DMap (`slug=4dmap`) inspects that layer. AZChat is
-listed **stub / not hosted yet**. RoseClock is forward-only. Lamb Lens is
-fabric ethics (Peace / Clarity / Service → PASS / REFUSE / HOLD-UNCERTAIN),
-not Softwares-tab. Optional ASE / VECTOR / Oracle / Constellation are cite
-only. ZD30, rollback, and generic truth score are absent from the core.
+Internal Domain Layer is **33 softwares in 11 domains** after AZPIPE —
+isolation labels, not additional doors. Live map: Vault/Custody, Media,
+Evidence, Language, AI, Research (`4dmap`), Comms (`azchat` stub / not
+hosted yet), Network, System, Simulation, Core Time. 4DMap inspects
+Research (T/Δ/Γ/Π). RoseClock is forward-only. Lamb Lens is fabric ethics
+after FragGate (Peace / Clarity / Service → PASS / REFUSE / HOLD-UNCERTAIN).
+Optional ASE / VECTOR / Oracle / Constellation are cite only. ZD30,
+rollback, and generic truth score are absent from the core.
 
 Worker UI paints the hop strip plus the 11-domain map. Engine / MCP:
 `page_cycle_status` includes the cite; local `GET|POST /v1/pipeline_arch`
 returns it. `/v1/azpipe/*` PROXIES to aziel-runtime when that arch path
-exists. Papers: [MASTER-ARCHITECTURE-2.0](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-ARCHITECTURE-2.0.md)
+exists. Papers: [MASTER-33](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-33-SOFTWARE.md)
+· [MASTER-ARCHITECTURE-2.0](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-ARCHITECTURE-2.0.md)
 · [SUITE-PIPE-1.6.15](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/SUITE-PIPE-1.6.15.md).
 
 ## Dual surface (mandatory)
@@ -135,7 +138,7 @@ URL pattern (same as sibling Aziel Eliab products):
 | `/openapi.json` | OpenAPI 3.1 (docs; agents use FragGate) |
 | `/mcp` | Pointer to FragGate (`slug=azinterface`) |
 | `/v1/{op}` | Human UI backend — single-segment local ops only |
-| `/v1/fraggate/*` | PROXY to aziel-runtime FragGate door |
+| `/v1/fraggate/*` | PROXY to aziel-runtime |
 | `/v1/runtime/*` | PROXY aliases (`list`/`call` → `/v1/fraggate/list`/`call`) |
 | `/v1/mesh/*` | PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF) |
 | `/v1/azpipe/*` | PROXY to aziel-runtime AZPIPE arch (cite; fabric, not Softwares-tab) |
@@ -250,7 +253,7 @@ SKILL.md              agent skill (also GET /v1/skill)
 |-------|-----|------|
 | CUSTODY | this product (`slug=azinterface`) | Pair memorial, cycle gate, witness cites |
 | VIA | local [`qnm-node/`](https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node) **qnsd** on `127.0.0.1` | QNS1 packet on lan/plc/bt/rf/light/qns/operator/local |
-| CATALOG | [aziel-runtime](https://github.com/AzielEliab/aziel-runtime) FragGate | AZInterface + QNM-BUILD-1.0 mesh rollup — not a Softwares-tab QNS card |
+| CATALOG | [aziel-runtime](https://github.com/AzielEliab/aziel-runtime) | AZInterface + QNM-BUILD-1.0 mesh rollup — not a Softwares-tab QNS card |
 
 Design: [docs/QNS-CD-1.0.md](docs/QNS-CD-1.0.md). Handshake is AIH-WP-1.3
 (`OFFER → ACCEPT → SEAL`). Walker restriction applies. `pair_cut` is not

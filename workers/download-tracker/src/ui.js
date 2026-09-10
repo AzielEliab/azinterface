@@ -189,7 +189,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
 
 <div class="card" style="margin:0 18px 1rem;">
   <h2>Page cycle status</h2>
-  <p>Sealed custody cycle plus the MASTER-ARCHITECTURE-2.0 hop order. FragGate is THE SINGLE DOOR. Runtime owns fabric hops. Internal Domain Layer is 33/11 with 4DMap inspection — not extra doors. No LambGate.</p>
+  <p>Sealed custody cycle plus the MASTER-33 hop order on aziel-runtime. FragGate is THE SINGLE DOOR. Internal Domain Layer is 33/11 isolation labels with 4DMap inspection — not extra doors. No LambGate.</p>
   <div class="row">
     <button class="ghost" id="cycle-btn" type="button">Refresh cycle</button>
     <button class="ghost" id="pipeline-btn" type="button">Pipeline cite</button>
@@ -204,7 +204,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   <code>{"slug":"azinterface",…}</code>
   — not a second MCP on this Worker
   (<a href="https://github.com/AzielEliab/fraggate">kernel</a>).
-  LOCKED pipeline cite: FragGate is THE SINGLE DOOR. MASTER-ARCHITECTURE-2.0 / SUITE-PIPE-1.6.15. Runtime owns fabric hops. AZInterface is not a second door. No LambGate.
+  LOCKED pipeline cite: FragGate is THE SINGLE DOOR. MASTER-33 on aziel-runtime. SUITE-PIPE-1.6.15 is historical. AZInterface is not a second door. No LambGate.
   Suite mesh <code>/v1/mesh/*</code> PROXIES (AZIEL_RUNTIME or HTTPS). Default OFF. QNM-BUILD-1.0 rollup. QNS-CD-1.0 vias in local qnsd. Not a Node Gate. Not a publish path. GET never enables.
   Compatible clients: ChatGPT, Grok, Venice, Claude, Cursor, Glama, Perplexity, Copilot, Gemini, Mistral, Meta AI, Apple Intelligence, Amazon Q, DuckAssist, You.com, Cohere, plus other MCP/OpenAPI-capable assistants.
   <a href="https://www.azielcorpuslibrary.net/">library</a> ·

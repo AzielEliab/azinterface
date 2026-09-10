@@ -197,12 +197,20 @@ def _check_pipeline() -> Check:
         return _fail("pipeline", f"expected 11/33 got {len(DOMAIN_MAP)}/{len(slugs)}")
     if "azchat" not in slugs:
         return _fail("pipeline", "AZChat missing from domain map")
+    if "4dmap" not in slugs:
+        return _fail("pipeline", "4DMap missing from Research domain")
+    if "azinterface" in slugs:
+        return _fail("pipeline", "AZInterface is human UI, not one of the 33")
+    if pipe.get("controlling_design") != "MASTER-33":
+        return _fail("pipeline", "controlling design must be MASTER-33")
+    if pipe.get("owner") != "aziel-runtime" or "fraggate" in str(pipe.get("owner")):
+        return _fail("pipeline", "owner is aziel-runtime, not a version+FragGate mash")
     if pipe.get("second_door"):
         return _fail("pipeline", "Interface must not be a second door")
     cycle = Engine(Ledger()).page_cycle_status()
     if cycle.get("pipeline_path") != PIPELINE_PATH:
         return _fail("pipeline", "page_cycle_status missing hop cite")
-    return _ok("pipeline", "MASTER 33/11; FragGate single door; 4DMap inspection")
+    return _ok("pipeline", "MASTER-33 11/33 on aziel-runtime; FragGate single door")
 
 
 def _check_ops() -> Check:

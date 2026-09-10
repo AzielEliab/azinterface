@@ -28,8 +28,13 @@ def test_frozen_path_and_owner() -> None:
     assert "Internal Domain Layer" in pipe["path"]
     assert pipe["hops"][0]["label"] == "Human"
     assert pipe["hops"][-1]["label"] == "Return"
-    assert pipe["controlling_design"] == "MASTER-ARCHITECTURE-2.0"
+    assert pipe["controlling_design"] == "MASTER-33"
+    assert pipe["companion_design"] == "MASTER-ARCHITECTURE-2.0"
+    assert pipe["owner"] == "aziel-runtime"
+    assert "fraggate" not in pipe["owner"]
+    assert pipe["runtime_lock"] == "1.7.0"
     assert pipe["suite_pipe"] == "SUITE-PIPE-1.6.15"
+    assert pipe["suite_pipe_status"] == "historical"
     assert pipe["suite_pipe_path"] == SUITE_PIPE_PATH
     assert pipe["single_door"] == "fraggate"
 
@@ -50,10 +55,16 @@ def test_eleven_domains_thirty_three_softwares() -> None:
     assert len(DOMAIN_MAP) == 11
     assert len(slugs) == 33
     assert slugs[0] == "ark"
-    assert "temporallock" in slugs
+    assert slugs[-1] == "temporallock"
     assert "azchat" in slugs
+    assert "4dmap" in slugs
+    assert "azinterface" not in slugs
     azchat = next(s for d in DOMAIN_MAP for s in d["softwares"] if s["slug"] == "azchat")
     assert azchat["status"] == "stub / not hosted yet"
+    comms = next(d for d in DOMAIN_MAP if d["slug"] == "comms")
+    assert "azchat" in [s["slug"] for s in comms["softwares"]]
+    research = next(d for d in DOMAIN_MAP if d["slug"] == "research")
+    assert "4dmap" in [s["slug"] for s in research["softwares"]]
     embryo = next(s for d in DOMAIN_MAP for s in d["softwares"] if s["slug"] == "embryolock")
     assert "stub" in embryo["status"]
     cite = pipeline_arch()
@@ -95,4 +106,7 @@ def test_strip_and_domain_map_html() -> None:
     assert "stub / not hosted yet" in html
     assert "No LambGate" in html
     assert "LambGate →" not in html
-    assert "data-domain=\"vault\"" in html
+    assert 'data-domain="vault-custody"' in html
+    assert 'data-domain="core-time"' in html
+    assert 'data-slug="4dmap"' in html
+    assert "aziel-runtime" in html

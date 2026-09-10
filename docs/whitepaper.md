@@ -89,10 +89,11 @@ Canonical: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
 
 ## LOCKED suite pipeline
 
-Controlling design is MASTER-ARCHITECTURE-2.0. SUITE-PIPE-1.6.15 remains
-the current runtime public strip and is not dropped. aziel-runtime owns
-fabric hops. AZInterface is the human-facing UI — not a second FragGate
-door. FragGate is THE SINGLE DOOR. LambGate is not a hop.
+Controlling design is MASTER-33 on aziel-runtime (lock introduced 1.7.0).
+The product name is aziel-runtime — not a version+FragGate mash.
+FragGate is THE SINGLE DOOR. AZInterface is the human-facing UI before
+that door — not a second door. SUITE-PIPE-1.6.15 is historical (kept, not
+rolled back). LambGate is not a hop.
 
 ```
 Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) →
@@ -103,8 +104,9 @@ VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Retur
 ```
 
 The Internal Domain Layer is 33 softwares in 11 domains after AZPIPE —
-not additional doors. 4DMap inspects that layer. AZChat is stub / not
-hosted yet. RoseClock is forward-only. Lamb Lens is fabric ethics.
+isolation labels, not additional doors. 4DMap inspects Research.
+AZChat (Comms) is stub / not hosted yet. RoseClock is forward-only.
+Lamb Lens is fabric ethics after FragGate.
 `page_cycle_status` and `pipeline_arch` carry the cite.
 
 ## Dual surface

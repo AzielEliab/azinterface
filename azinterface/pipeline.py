@@ -1,18 +1,19 @@
-"""MASTER-ARCHITECTURE-2.0 pipeline cite — Interface cites; runtime owns fabric.
+"""MASTER-33 pipeline cite — Interface cites; aziel-runtime owns fabric.
 
 Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) →
 Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN →
 DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains;
-4DMap inspection; NOT additional doors) → optional ASE → RoseClock
-(forward-only; StaticClock / VECTOR as needed) → TemporalLock →
-ChainLock-OUT → ForgeReceipts → Return.
+isolation labels, not additional doors; 4DMap inspects Research) →
+optional ASE → RoseClock (forward-only; StaticClock / VECTOR as needed) →
+TemporalLock → ChainLock-OUT → ForgeReceipts → Return.
 
-SUITE-PIPE-1.6.15 remains the current runtime public strip (not dropped).
-This Interface cite extends toward MASTER-ARCHITECTURE-2.0 / runtime 1.6.15+.
+Live lock is MASTER-33 on aziel-runtime (introduced 1.7.0). The product
+name is aziel-runtime. FragGate is THE SINGLE DOOR — not mashed into the
+runtime name. SUITE-PIPE-1.6.15 is historical (kept, not rolled back).
 
-AZInterface is the human-facing UI. It is not a second FragGate door.
-Lamb Lens is fabric ethics (Peace / Clarity / Service → PASS / REFUSE /
-HOLD-UNCERTAIN), not a Softwares-tab product. LambGate is not a hop.
+AZInterface is the human-facing UI before the door. It is not a second
+door and is not one of the 33 domain-layer slugs. Lamb Lens is fabric
+ethics after FragGate. LambGate is not a hop.
 
 Author: Aziel Eliab only.
 """
@@ -29,10 +30,13 @@ CL_WP = "CL-WP-0.4"
 DM_WP = "4DM-WP-1.0"
 FG_WP = "FG-0.1"
 SUITE_PIPE = "SUITE-PIPE-1.6.15"
+MASTER_33 = "MASTER-33"
 MASTER_ARCH = "MASTER-ARCHITECTURE-2.0"
 
 PIPELINE_OWNER = "aziel-runtime"
-MASTER_PAPER = "https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-ARCHITECTURE-2.0.md"
+RUNTIME_LOCK = "1.7.0"
+MASTER_PAPER = "https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-33-SOFTWARE.md"
+MASTER_ARCH_PAPER = "https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-ARCHITECTURE-2.0.md"
 SUITE_PAPER = "https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/SUITE-PIPE-1.6.15.md"
 
 SUITE_PIPE_PATH = (
@@ -58,7 +62,8 @@ PIPELINE_HOPS: tuple[dict[str, Any], ...] = (
         "kind": "surface",
         "owner": "azinterface",
         "software_tab": True,
-        "note": "This product. Human-facing UI. Not a second FragGate door.",
+        "placement": "human-ui",
+        "note": "This product. Human-facing UI before FragGate. Not a second door. Not one of the 33 domain slugs.",
     },
     {"id": "public", "label": "PUBLIC/UI/AGENT/API", "kind": "surface", "owner": "azinterface", "software_tab": False},
     {
@@ -80,13 +85,13 @@ PIPELINE_HOPS: tuple[dict[str, Any], ...] = (
         "software_tab": False,
         "decisions": ("PASS", "REFUSE", "HOLD-UNCERTAIN"),
         "bases": ("Peace", "Clarity", "Service"),
-        "note": "Fabric ethics. Not Softwares-tab. Not LambGate.",
+        "note": "Fabric ethics after FragGate. Not Softwares-tab. Not LambGate. Not a second door.",
     },
     {"id": "sweepgate", "label": "SweepGate", "kind": "fabric", "spec": SG_WP, "owner": PIPELINE_OWNER, "software_tab": False},
     {"id": "sentinel", "label": "Sentinel", "kind": "fabric", "owner": PIPELINE_OWNER, "software_tab": False},
     {"id": "provenance", "label": "Provenance/Input Packet", "kind": "fabric", "owner": PIPELINE_OWNER, "software_tab": False},
     {"id": "chainlock_in", "label": "ChainLock-IN", "kind": "fabric", "spec": CL_WP, "owner": PIPELINE_OWNER, "software_tab": False, "append_only": True},
-    {"id": "decisiongate", "label": "DecisionGATE", "kind": "gate", "spec": "DecisionGATE", "owner": PIPELINE_OWNER, "software_tab": True},
+    {"id": "decisiongate", "label": "DecisionGATE", "kind": "gate", "spec": "DecisionGATE", "owner": PIPELINE_OWNER, "software_tab": True, "placement": "fabric-product"},
     {"id": "azpipe", "label": "AZPIPE", "kind": "fabric", "spec": AP_WP, "owner": PIPELINE_OWNER, "software_tab": False},
     {
         "id": "domain_layer",
@@ -98,13 +103,16 @@ PIPELINE_HOPS: tuple[dict[str, Any], ...] = (
         "additional_doors": False,
         "softwares": 33,
         "domains": 11,
+        "isolation_labels": True,
         "inspection": {
             "name": "4DMap",
             "slug": "4dmap",
             "spec": DM_WP,
             "sequential_gate": False,
             "axes": "T/Δ/Γ/Π",
-            "note": "Inspection of the 11-domain layer after AZPIPE. Not a sequential gate. Not additional doors.",
+            "domain": "Research",
+            "domain_id": "06",
+            "note": "Research-domain inspection inside the 11-domain layer after AZPIPE. Not a sequential gate. Not an additional door.",
         },
     },
     {
@@ -128,24 +136,26 @@ PIPELINE_HOPS: tuple[dict[str, Any], ...] = (
     },
     {"id": "temporallock", "label": "TemporalLock", "kind": "neighbor", "owner": PIPELINE_OWNER, "software_tab": True, "append_only": True},
     {"id": "chainlock_out", "label": "ChainLock-OUT", "kind": "fabric", "spec": CL_WP, "owner": PIPELINE_OWNER, "software_tab": False, "append_only": True},
-    {"id": "forgereceipts", "label": "ForgeReceipts", "kind": "receipt", "owner": PIPELINE_OWNER, "software_tab": True},
+    {"id": "forgereceipts", "label": "ForgeReceipts", "kind": "receipt", "owner": PIPELINE_OWNER, "software_tab": True, "placement": "fabric-product"},
     {"id": "return", "label": "Return", "kind": "surface", "owner": "azinterface", "software_tab": False},
 )
 
-# 11 domains / 33 softwares. Internal layer — not additional FragGate doors.
-# AZChat is listed stub / not hosted yet. EmbryoLock is stub / local-not-hosted.
+# Live MASTER-33 map from aziel-runtime GET /v1/software. Isolation labels — not doors.
+# AZInterface is human UI before the door (not in this 33). AZChat is stub / not hosted yet.
 DOMAIN_MAP: tuple[dict[str, Any], ...] = (
     {
-        "id": "vault",
-        "name": "Vault / Custody",
+        "id": "01",
+        "slug": "vault-custody",
+        "name": "Vault/Custody",
         "softwares": (
             {"slug": "ark", "name": "ARK", "status": "live"},
             {"slug": "embryolock", "name": "EmbryoLock", "status": "stub / local-not-hosted"},
         ),
     },
     {
-        "id": "media",
-        "name": "Media / Authenticity / Physics",
+        "id": "02",
+        "slug": "media",
+        "name": "Media",
         "softwares": (
             {"slug": "vibelock", "name": "VibeLock", "status": "live"},
             {"slug": "veillock", "name": "VeilLock", "status": "live"},
@@ -154,8 +164,9 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         ),
     },
     {
-        "id": "evidence",
-        "name": "Evidence / Provenance",
+        "id": "03",
+        "slug": "evidence",
+        "name": "Evidence",
         "softwares": (
             {"slug": "employeelock", "name": "EmployeeLock", "status": "live"},
             {"slug": "whistlelock", "name": "WhistleLock", "status": "live"},
@@ -166,8 +177,9 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         ),
     },
     {
-        "id": "language",
-        "name": "Language / Structure / Pattern",
+        "id": "04",
+        "slug": "language",
+        "name": "Language",
         "softwares": (
             {"slug": "codelock", "name": "CodeLock", "status": "live"},
             {"slug": "foldlock", "name": "FoldLock", "status": "live"},
@@ -178,32 +190,38 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         ),
     },
     {
-        "id": "cognition",
-        "name": "AI / Agent Cognition",
+        "id": "05",
+        "slug": "ai",
+        "name": "AI",
         "softwares": (
             {"slug": "azai", "name": "AZAI", "status": "live"},
             {"slug": "azbot", "name": "AZBot", "status": "live"},
             {"slug": "azhub", "name": "AZHub", "status": "live"},
-            {"slug": "azinterface", "name": "AZInterface", "status": "live"},
+        ),
+    },
+    {
+        "id": "06",
+        "slug": "research",
+        "name": "Research",
+        "softwares": (
+            {"slug": "azbrowser", "name": "AZBrowser", "status": "live"},
+            {"slug": "aziel-corpus", "name": "Aziel Corpus", "status": "live"},
+            {"slug": "4dmap", "name": "4DMap", "status": "live"},
+        ),
+    },
+    {
+        "id": "07",
+        "slug": "comms",
+        "name": "Comms",
+        "softwares": (
+            {"slug": "azmail", "name": "AZMail", "status": "live"},
             {"slug": "azchat", "name": "AZChat", "status": "stub / not hosted yet"},
         ),
     },
     {
-        "id": "research",
-        "name": "Research / Knowledge",
-        "softwares": (
-            {"slug": "azbrowser", "name": "AZBrowser", "status": "live"},
-            {"slug": "aziel-corpus", "name": "Aziel Corpus", "status": "live"},
-        ),
-    },
-    {
-        "id": "communications",
-        "name": "Communications",
-        "softwares": ({"slug": "azmail", "name": "AZMail", "status": "live"},),
-    },
-    {
-        "id": "network",
-        "name": "Network / Connectivity",
+        "id": "08",
+        "slug": "network",
+        "name": "Network",
         "softwares": (
             {"slug": "aznet", "name": "AZNet", "status": "live"},
             {"slug": "miragegrid", "name": "MirageGrid", "status": "live"},
@@ -211,22 +229,43 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         ),
     },
     {
-        "id": "system",
-        "name": "System / Local Execution",
+        "id": "09",
+        "slug": "system",
+        "name": "System",
         "softwares": ({"slug": "azos", "name": "AZ-OS", "status": "live"},),
     },
     {
-        "id": "simulation",
-        "name": "Simulation / Game",
+        "id": "10",
+        "slug": "simulation",
+        "name": "Simulation",
         "softwares": ({"slug": "postking", "name": "Post-King Chess", "status": "live"},),
     },
     {
-        "id": "core_fabric",
-        "name": "Core Fabric",
+        "id": "11",
+        "slug": "core-time",
+        "name": "Core Time",
         "softwares": (
             {"slug": "staticclock", "name": "StaticClock", "status": "live"},
             {"slug": "temporallock", "name": "TemporalLock", "status": "live"},
         ),
+    },
+)
+
+PLACEMENTS = (
+    {
+        "slug": "azinterface",
+        "placement": "human-ui",
+        "note": "AZInterface is the human UI before FragGate. Catalog software. Not an extra door. Not one of the 33.",
+    },
+    {
+        "slug": "decisiongate",
+        "placement": "fabric-product",
+        "note": "DecisionGATE is the policy hop. Catalog engine. Not an extra door.",
+    },
+    {
+        "slug": "forgereceipts",
+        "placement": "fabric-product",
+        "note": "ForgeReceipts packages Return. Catalog engine. Not an extra door.",
     },
 )
 
@@ -240,7 +279,8 @@ OPTIONAL_ANALYTICAL = (
 ABSENT_FROM_CORE = ("ZD30", "rollback", "generic truth score")
 
 PIPELINE_PAPERS = {
-    "master": MASTER_PAPER,
+    "master_33": MASTER_PAPER,
+    "master": MASTER_ARCH_PAPER,
     "suite_pipe": SUITE_PAPER,
     "azpipe": "https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/AP-WP-0.2.md",
     "sweepgate": "https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/SG-WP-0.1.md",
@@ -249,15 +289,19 @@ PIPELINE_PAPERS = {
 }
 
 PIPELINE_NOTE = (
-    "MASTER-ARCHITECTURE-2.0 locked path. Interface cites; aziel-runtime owns fabric hops. "
-    "AZInterface is the human-facing UI — not a second FragGate door. "
-    "FragGate is THE SINGLE DOOR. Internal Domain Layer is 33 softwares in 11 domains "
-    "(not additional doors). 4DMap inspects that layer. RoseClock is forward-only. "
-    "ChainLock / TemporalLock are append-only evidence. Lamb Lens is fabric ethics "
-    "(Peace / Clarity / Service → PASS / REFUSE / HOLD-UNCERTAIN), not Softwares-tab. "
-    "LambGate is not a hop. SUITE-PIPE-1.6.15 is the current runtime public strip and is "
-    "not dropped — this cite is the 1.6.15+ migration toward MASTER-ARCHITECTURE-2.0. "
-    "ZD30, rollback, and generic truth score are absent from the core."
+    "MASTER-33 locked path on aziel-runtime (lock introduced 1.7.0). "
+    "The fabric owner is aziel-runtime — not a version+FragGate mash. "
+    "FragGate is THE SINGLE DOOR. AZInterface is the human-facing UI before "
+    "that door — not a second door and not one of the 33 domain slugs. "
+    "Internal Domain Layer is 33 softwares in 11 domains (isolation labels, "
+    "not additional doors). 4DMap is Research-domain inspection (T/Δ/Γ/Π). "
+    "AZChat is stub / not hosted yet (Comms). RoseClock is forward-only. "
+    "ChainLock / TemporalLock are append-only evidence. Lamb Lens is fabric "
+    "ethics after FragGate (Peace / Clarity / Service → PASS / REFUSE / "
+    "HOLD-UNCERTAIN), not Softwares-tab. LambGate is not a hop. "
+    "SUITE-PIPE-1.6.15 is historical (kept, not rolled back). MASTER-ARCHITECTURE-2.0 "
+    "is the companion spec; MASTER-33 overrides §4.2. ZD30, rollback, and "
+    "generic truth score are absent from the core."
 )
 
 
@@ -277,6 +321,7 @@ def domain_map() -> list[dict[str, Any]]:
     for domain in DOMAIN_MAP:
         row = {
             "id": domain["id"],
+            "slug": domain["slug"],
             "name": domain["name"],
             "softwares": [dict(s) for s in domain["softwares"]],
         }
@@ -293,20 +338,24 @@ def domain_slugs() -> list[str]:
 
 
 def pipeline_arch() -> dict[str, Any]:
-    """Frozen master pipeline cite. Same hop list the Worker UI strip paints."""
+    """Frozen MASTER-33 cite. Same hop list the Worker UI strip paints."""
     slugs = domain_slugs()
     return {
         "locked": True,
         "lambgate": False,
         "second_door": False,
         "owner": PIPELINE_OWNER,
+        "owner_note": "aziel-runtime owns fabric hops. FragGate is the door hop, not part of the product name.",
         "software_tab": False,
         "fabric_hops_software_tab": False,
         "cite": "aziel-runtime fabric. Interface cites; runtime owns hops. Not a second door.",
-        "controlling_design": MASTER_ARCH,
+        "controlling_design": MASTER_33,
+        "companion_design": MASTER_ARCH,
+        "runtime_lock": RUNTIME_LOCK,
         "suite_pipe": SUITE_PIPE,
+        "suite_pipe_status": "historical",
         "suite_pipe_path": SUITE_PIPE_PATH,
-        "migration": "runtime 1.6.15+ toward MASTER-ARCHITECTURE-2.0",
+        "migration": "SUITE-PIPE-1.6.15 historical; MASTER-33 live on aziel-runtime",
         "path": PIPELINE_PATH,
         "hops": [_clone_hop(h) for h in PIPELINE_HOPS],
         "single_door": "fraggate",
@@ -318,12 +367,15 @@ def pipeline_arch() -> dict[str, Any]:
             "axes": "T/Δ/Γ/Π",
             "additional_doors": False,
             "layer": "Internal Domain Layer",
+            "domain": "Research",
+            "domain_id": "06",
         },
         "domain_map": domain_map(),
         "domain_count": 11,
         "software_count": len(slugs),
         "softwares": slugs,
-        "azchat": {"slug": "azchat", "status": "stub / not hosted yet"},
+        "placements": [dict(x) for x in PLACEMENTS],
+        "azchat": {"slug": "azchat", "status": "stub / not hosted yet", "domain": "Comms", "domain_id": "07"},
         "roseclock": {"forward_only": True, "rollback": False},
         "optional_analytical": [dict(x) for x in OPTIONAL_ANALYTICAL],
         "absent_from_core": list(ABSENT_FROM_CORE),
@@ -335,6 +387,7 @@ def pipeline_arch() -> dict[str, Any]:
             "4dmap": DM_WP,
             "fraggate": FG_WP,
             "suite_pipe": SUITE_PIPE,
+            "master_33": MASTER_33,
             "master": MASTER_ARCH,
         },
         "identity": IDENTITY,
@@ -371,10 +424,11 @@ def pipeline_strip_html() -> str:
         "<strong>LOCKED pipeline</strong>"
         f'<p class="pipe-path">{PIPELINE_PATH}</p>'
         f'<ol class="hops">{hops}</ol>'
-        '<p class="pipe-note">FragGate is THE SINGLE DOOR. AZInterface is the human UI — not a second door. '
-        "Runtime owns fabric hops. Internal Domain Layer = 33 softwares / 11 domains (not extra doors). "
-        "RoseClock is forward-only. Lamb Lens is fabric ethics. SUITE-PIPE-1.6.15 is kept; this strip is the "
-        "MASTER-ARCHITECTURE-2.0 / runtime 1.6.15+ cite. No LambGate. No ZD30. No rollback.</p>"
+        '<p class="pipe-note">FragGate is THE SINGLE DOOR. Fabric owner is aziel-runtime '
+        "(not a version+FragGate mash). AZInterface is the human UI before the door — not a second door. "
+        "Internal Domain Layer = 33 softwares / 11 domains (isolation labels, not extra doors). "
+        "RoseClock is forward-only. Lamb Lens is fabric ethics after FragGate. MASTER-33 is live; "
+        "SUITE-PIPE-1.6.15 is historical. No LambGate. No ZD30. No rollback.</p>"
         "</div>"
     )
 
@@ -391,16 +445,18 @@ def domain_map_html() -> str:
                 f'<span class="st">{row["status"]}</span></li>'
             )
         cards.append(
-            f'<section class="domain" data-domain="{domain["id"]}">'
-            f"<h3>{domain['name']}</h3>"
+            f'<section class="domain" data-domain="{domain["slug"]}">'
+            f"<h3>{domain['id']} {domain['name']}</h3>"
             f'<ul>{"".join(items)}</ul></section>'
         )
     analytical = " · ".join(f'{x["name"]} ({x["note"]})' for x in OPTIONAL_ANALYTICAL)
     return (
         '<div id="domains">'
         "<strong>Internal Domain Layer</strong>"
-        "<p class=\"pipe-note\">33 softwares in 11 domains after AZPIPE. Not additional FragGate doors. "
-        "4DMap inspects this layer. AZChat is stub / not hosted yet. Author: Aziel Eliab only.</p>"
+        "<p class=\"pipe-note\">MASTER-33: 33 softwares in 11 domains after AZPIPE. Isolation labels — "
+        "not additional FragGate doors. 4DMap inspects Research (T/Δ/Γ/Π). AZChat is stub / not hosted yet. "
+        "AZInterface is the human UI before the door, not one of the 33. Owner: aziel-runtime. "
+        "Author: Aziel Eliab only.</p>"
         f'<div class="domain-grid">{"".join(cards)}</div>'
         f'<p class="pipe-note">Optional analytical (cite only): {analytical}. '
         "Absent from core: ZD30, rollback, generic truth score.</p>"
