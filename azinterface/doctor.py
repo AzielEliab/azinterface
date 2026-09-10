@@ -8,6 +8,7 @@ from typing import Callable
 
 from azinterface.engine import Engine, LIVE_OPS, STUB_OPS, genesis_hash_key
 from azinterface.meta import IDENTITY, LIMITATION, LOOPBACK, SPEC, VERSION
+from azinterface.pipeline import DOMAIN_MAP, PIPELINE_HOPS, PIPELINE_PATH, domain_slugs, pipeline_arch
 from azinterface.receipts import Ledger
 
 Check = tuple[str, bool, str]
@@ -175,6 +176,43 @@ def _check_not_hub() -> Check:
     return _ok("not hub", "Interface stays custody")
 
 
+def _check_pipeline() -> Check:
+    pipe = pipeline_arch()
+    if pipe.get("lambgate") or "LambGate" in PIPELINE_PATH:
+        return _fail("pipeline", "LambGate must not be on the locked list")
+    if pipe.get("owner") != "aziel-runtime":
+        return _fail("pipeline", "runtime must own fabric hops")
+    if pipe.get("identity") != "Aziel Eliab":
+        return _fail("pipeline", "identity")
+    door = next((h for h in PIPELINE_HOPS if h.get("single_door")), None)
+    if not door or door.get("id") != "fraggate":
+        return _fail("pipeline", "FragGate must be THE SINGLE DOOR")
+    layer = next((h for h in PIPELINE_HOPS if h.get("id") == "domain_layer"), None)
+    if not layer or (layer.get("inspection") or {}).get("slug") != "4dmap":
+        return _fail("pipeline", "4DMap must inspect the Internal Domain Layer")
+    if (layer.get("inspection") or {}).get("sequential_gate"):
+        return _fail("pipeline", "4DMap must not be a sequential gate")
+    slugs = domain_slugs()
+    if len(DOMAIN_MAP) != 11 or len(slugs) != 33:
+        return _fail("pipeline", f"expected 11/33 got {len(DOMAIN_MAP)}/{len(slugs)}")
+    if "azchat" not in slugs:
+        return _fail("pipeline", "AZChat missing from domain map")
+    if "4dmap" not in slugs:
+        return _fail("pipeline", "4DMap missing from Research domain")
+    if "azinterface" in slugs:
+        return _fail("pipeline", "AZInterface is human UI, not one of the 33")
+    if pipe.get("controlling_design") != "MASTER-33":
+        return _fail("pipeline", "controlling design must be MASTER-33")
+    if pipe.get("owner") != "aziel-runtime" or "fraggate" in str(pipe.get("owner")):
+        return _fail("pipeline", "owner is aziel-runtime, not a version+FragGate mash")
+    if pipe.get("second_door"):
+        return _fail("pipeline", "Interface must not be a second door")
+    cycle = Engine(Ledger()).page_cycle_status()
+    if cycle.get("pipeline_path") != PIPELINE_PATH:
+        return _fail("pipeline", "page_cycle_status missing hop cite")
+    return _ok("pipeline", "MASTER-33 11/33 on aziel-runtime; FragGate single door")
+
+
 def _check_ops() -> Check:
     need = {
         "health",
@@ -185,6 +223,7 @@ def _check_ops() -> Check:
         "integrity_check",
         "witness_list",
         "page_cycle_status",
+        "pipeline_arch",
         "pair_offer",
         "pair_accept",
         "pair_seal",
@@ -212,6 +251,7 @@ CHECKS: tuple[Callable[[], Check], ...] = (
     _check_loopback,
     _check_no_remote_wipe,
     _check_not_hub,
+    _check_pipeline,
     _check_ops,
 )
 

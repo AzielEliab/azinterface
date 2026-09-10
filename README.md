@@ -37,6 +37,32 @@ Hash Key** (hash only). The username is never stored.
 
 Witness list is metadata only. Vault contents are never served.
 
+## LOCKED suite pipeline (cite)
+
+Controlling design: **MASTER-33** on **aziel-runtime** (lock introduced
+1.7.0). The product name is `aziel-runtime` — not a version+FragGate mash.
+**FragGate is THE SINGLE DOOR.** AZInterface is the human-facing UI before
+that door — not a second door and not one of the 33 domain slugs.
+SUITE-PIPE-1.6.15 is historical (kept, not rolled back). No LambGate.
+
+`Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains; 4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock / VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return`
+
+Internal Domain Layer is **33 softwares in 11 domains** after AZPIPE —
+isolation labels, not additional doors. Live map: Vault/Custody, Media,
+Evidence, Language, AI, Research (`4dmap`), Comms (`azchat` stub / not
+hosted yet), Network, System, Simulation, Core Time. 4DMap inspects
+Research (T/Δ/Γ/Π). RoseClock is forward-only. Lamb Lens is fabric ethics
+after FragGate (Peace / Clarity / Service → PASS / REFUSE / HOLD-UNCERTAIN).
+Optional ASE / VECTOR / Oracle / Constellation are cite only. ZD30,
+rollback, and generic truth score are absent from the core.
+
+Worker UI paints the hop strip plus the 11-domain map. Engine / MCP:
+`page_cycle_status` includes the cite; local `GET|POST /v1/pipeline_arch`
+returns it. `/v1/azpipe/*` PROXIES to aziel-runtime when that arch path
+exists. Papers: [MASTER-33](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-33-SOFTWARE.md)
+· [MASTER-ARCHITECTURE-2.0](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/MASTER-ARCHITECTURE-2.0.md)
+· [SUITE-PIPE-1.6.15](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/SUITE-PIPE-1.6.15.md).
+
 ## Dual surface (mandatory)
 
 1. **Human UI** — Worker homepage is complete software: site-state
@@ -112,9 +138,11 @@ URL pattern (same as sibling Aziel Eliab products):
 | `/openapi.json` | OpenAPI 3.1 (docs; agents use FragGate) |
 | `/mcp` | Pointer to FragGate (`slug=azinterface`) |
 | `/v1/{op}` | Human UI backend — single-segment local ops only |
-| `/v1/fraggate/*` | PROXY to aziel-runtime FragGate door |
+| `/v1/fraggate/*` | PROXY to aziel-runtime |
 | `/v1/runtime/*` | PROXY aliases (`list`/`call` → `/v1/fraggate/list`/`call`) |
 | `/v1/mesh/*` | PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF) |
+| `/v1/azpipe/*` | PROXY to aziel-runtime AZPIPE arch (cite; fabric, not Softwares-tab) |
+| `/v1/pipeline_arch` | Local frozen LOCKED hop-list cite |
 
 - Homepage: [https://azinterface-download-tracker.vibelock.workers.dev/](https://azinterface-download-tracker.vibelock.workers.dev/)
 - Direct tarball: [azinterface-0.1.0.tar.gz](https://azinterface-download-tracker.vibelock.workers.dev/download?asset=azinterface-0.1.0.tar.gz)
@@ -140,6 +168,7 @@ Every control calls a real `/v1` handler (same op agents call). No dead buttons.
 | Withdraw | `POST /v1/withdraw` | `withdraw` |
 | Witness list | `POST /v1/witness_list` | `witness_list` |
 | Cycle | `POST /v1/page_cycle_status` | `page_cycle_status` |
+| Pipeline cite | `POST /v1/pipeline_arch` | `pipeline_arch` (frozen hop list; runtime owns fabric) |
 | Scorched Earth local | `POST /v1/scorch_local` | `scorch_local` (advisory) |
 | Remote wipe | `POST /v1/scorch_remote` | stub refuse |
 | Live Nodes strip | `GET /v1/mesh/status` (proxy) | QNM-BUILD-1.0 + QNS-CD-1.0 cite; default OFF; GET never enables |
@@ -158,6 +187,7 @@ azinterface call site_state_set --payload '{"state":"ON"}'
 azinterface call genesis_boot --payload '{"username":"seed"}'
 azinterface call witness_list
 azinterface call page_cycle_status
+azinterface call pipeline_arch
 azinterface call pair_offer --payload '{"via":"local"}'
 azinterface call pair_status
 ```
@@ -179,6 +209,7 @@ azinterface pair-status
 azinterface pair-cut
 azinterface witness
 azinterface withdraw
+azinterface pipeline
 ```
 
 ## Tests
@@ -189,6 +220,7 @@ python -m pytest -q
 node tests/test_worker_engine.mjs
 node tests/test_worker_door.mjs
 node tests/test_worker_ui_mesh.mjs
+node tests/test_worker_pipeline.mjs
 azinterface doctor
 ```
 
@@ -207,7 +239,7 @@ flutter run
 ## Layout
 
 ```
-azinterface/          library (engine, genesis, cycle, receipts, cli)
+azinterface/          library (engine, genesis, cycle, pipeline cite, receipts, cli)
 tests/                pytest + worker smoke
 docs/                 AIH-WP-1.0 notes + QNS-CD-1.0 Interface summary
 workers/download-tracker/   Cloudflare Worker azinterface-download-tracker
@@ -221,7 +253,7 @@ SKILL.md              agent skill (also GET /v1/skill)
 |-------|-----|------|
 | CUSTODY | this product (`slug=azinterface`) | Pair memorial, cycle gate, witness cites |
 | VIA | local [`qnm-node/`](https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node) **qnsd** on `127.0.0.1` | QNS1 packet on lan/plc/bt/rf/light/qns/operator/local |
-| CATALOG | [aziel-runtime](https://github.com/AzielEliab/aziel-runtime) FragGate | AZInterface + QNM-BUILD-1.0 mesh rollup — not a Softwares-tab QNS card |
+| CATALOG | [aziel-runtime](https://github.com/AzielEliab/aziel-runtime) | AZInterface + QNM-BUILD-1.0 mesh rollup — not a Softwares-tab QNS card |
 
 Design: [docs/QNS-CD-1.0.md](docs/QNS-CD-1.0.md). Handshake is AIH-WP-1.3
 (`OFFER → ACCEPT → SEAL`). Walker restriction applies. `pair_cut` is not

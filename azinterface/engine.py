@@ -41,6 +41,7 @@ from .meta import (
     SPEC_STRING,
     VERSION,
 )
+from .pipeline import PIPELINE_PATH, pipeline_arch
 from .receipts import Ledger, sha256_text
 
 PAGE_CYCLES = ("OFF", "integrity", "ON", "FULL SHUTDOWN", "MEMORIAL")
@@ -62,6 +63,7 @@ LIVE_OPS = (
     "integrity_check",
     "witness_list",
     "page_cycle_status",
+    "pipeline_arch",
     "hold",
     "withdraw",
     "scorch_local",
@@ -121,6 +123,8 @@ ALIASES = {
     "state_get": "site_state_get",
     "state_set": "site_state_set",
     "cycle": "page_cycle_status",
+    "pipeline": "pipeline_arch",
+    "arch": "pipeline_arch",
     "integrity": "integrity_check",
     "offer": "pair_offer",
     "accept": "pair_accept",
@@ -368,6 +372,7 @@ class Engine:
             "sigil": SIGIL,
             "azhome": AZHOME,
             "qns": qns_cross_map(),
+            "pipeline": pipeline_arch(),
         }
         out.update(extra)
         return out
@@ -450,6 +455,8 @@ class Engine:
             "ranking": False,
             "separate_from": "azhub",
             "modules": {name: self.module_surface(name) for name in MODULES},
+            "pipeline": pipeline_arch(),
+            "pipeline_path": PIPELINE_PATH,
             "note": (
                 "Living presence enabled."
                 if living
@@ -483,6 +490,8 @@ class Engine:
                     ("hub_collapse", False),
                     ("qns_cd", QNS_CD),
                     ("qnsd", QNSD_BIND),
+                    ("pipeline_owner", "aziel-runtime"),
+                    ("lambgate", False),
                 ],
             ),
         )
@@ -777,6 +786,28 @@ class Engine:
                     ("living_presence", cycle["living_presence"]),
                     ("next", (cycle["page_cycle"] or {}).get("next") or ""),
                     ("cloud_asleep", False),
+                    ("pipeline", cycle.get("pipeline_path") or PIPELINE_PATH),
+                    ("4dmap", "Domain Door inspection — not a sequential gate"),
+                ],
+            ),
+        )
+
+    def pipeline_arch(self, _payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        rec = self._receipt("pipeline_arch", {"locked": True})
+        pipe = pipeline_arch()
+        return self._base(
+            ok=True,
+            **pipe,
+            receipt=rec,
+            display=display_of(
+                "LOCKED pipeline",
+                pipe["note"],
+                [
+                    ("path", pipe["path"]),
+                    ("owner", pipe["owner"]),
+                    ("lambgate", False),
+                    ("4dmap", "Domain Door inspection"),
+                    ("software_tab", False),
                 ],
             ),
         )

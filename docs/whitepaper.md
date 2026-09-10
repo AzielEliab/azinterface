@@ -87,6 +87,28 @@ Walker restriction: unknown vias and mid-handshake via changes refuse.
 Canonical: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
 — summary in [QNS-CD-1.0.md](QNS-CD-1.0.md).
 
+## LOCKED suite pipeline
+
+Controlling design is MASTER-33 on aziel-runtime (lock introduced 1.7.0).
+The product name is aziel-runtime — not a version+FragGate mash.
+FragGate is THE SINGLE DOOR. AZInterface is the human-facing UI before
+that door — not a second door. SUITE-PIPE-1.6.15 is historical (kept, not
+rolled back). LambGate is not a hop.
+
+```
+Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) →
+Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN →
+DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains;
+4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock /
+VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return
+```
+
+The Internal Domain Layer is 33 softwares in 11 domains after AZPIPE —
+isolation labels, not additional doors. 4DMap inspects Research.
+AZChat (Comms) is stub / not hosted yet. RoseClock is forward-only.
+Lamb Lens is fabric ethics after FragGate.
+`page_cycle_status` and `pipeline_arch` carry the cite.
+
 ## Dual surface
 
 1. Human software — Worker homepage, Flutter `mobile/`, local

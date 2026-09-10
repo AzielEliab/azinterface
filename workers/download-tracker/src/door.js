@@ -1,7 +1,7 @@
 /**
  * FragGate / runtime / suite-mesh door — classify Worker /v1 paths.
  *
- * `/v1/fraggate/*`, `/v1/runtime/*`, and `/v1/mesh/*` PROXY to aziel-runtime
+ * `/v1/fraggate/*`, `/v1/runtime/*`, `/v1/mesh/*`, and `/v1/azpipe/*` PROXY to aziel-runtime
  * via AZIEL_RUNTIME or HTTPS fallback. Local engine ops are single-segment
  * `/v1/{op}` only. Multi-segment leftovers are never swallowed as op names.
  *
@@ -14,7 +14,7 @@
 
 export const DEFAULT_RUNTIME_ORIGIN = "https://aziel-runtime.vibelock.workers.dev";
 
-export const DOOR_PREFIXES = Object.freeze(["fraggate", "runtime", "mesh"]);
+export const DOOR_PREFIXES = Object.freeze(["fraggate", "runtime", "mesh", "azpipe"]);
 
 /** UI / leftover aliases → correct origin FragGate paths. */
 export const DOOR_ALIASES = Object.freeze({
@@ -44,6 +44,7 @@ export function mapDoorPath(pathname) {
   if (path === "/v1/fraggate" || path.startsWith("/v1/fraggate/")) return path;
   if (path === "/v1/runtime" || path.startsWith("/v1/runtime/")) return path;
   if (path === "/v1/mesh" || path.startsWith("/v1/mesh/")) return path;
+  if (path === "/v1/azpipe" || path.startsWith("/v1/azpipe/")) return path;
   return null;
 }
 

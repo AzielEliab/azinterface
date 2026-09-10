@@ -61,11 +61,26 @@ publish path. `GET|POST /mcp` here is a pointer, not a second MCP.
 | `site_state_set` | Advance one sealed step only. ON requires integrity. |
 | `integrity_check` | Records integrity. Advances OFF → integrity. Does not auto-unlock ON. |
 | `witness_list` | Witness metadata. Never vault contents. Never a ranking. |
-| `page_cycle_status` | Pre-locked cycle. Living presence only at ON. |
+| `page_cycle_status` | Pre-locked cycle. Living presence only at ON. Includes LOCKED pipeline cite. |
+
+## LOCKED suite pipeline (cite)
+
+Controlling design: MASTER-33 on aziel-runtime (lock introduced 1.7.0).
+The product name is aziel-runtime — not a version+FragGate mash.
+FragGate is THE SINGLE DOOR. AZInterface is the human UI before that door,
+not a second door. SUITE-PIPE-1.6.15 is historical. No LambGate.
+
+`Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains; 4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock / VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return`
+
+Internal Domain Layer: 33 softwares / 11 domains after AZPIPE — isolation
+labels, not extra doors. 4DMap inspects Research. AZChat (Comms) is stub /
+not hosted yet. Lamb Lens is fabric ethics after FragGate. RoseClock is
+forward-only.
+Local op `pipeline_arch` returns the same cite.
 
 ## Local Worker extras (human UI `/v1`)
 
-`genesis_boot` · `hold` · `withdraw` · `scorch_local` ·
+`genesis_boot` · `hold` · `withdraw` · `scorch_local` · `pipeline_arch` ·
 `pair_offer` · `pair_accept` · `pair_seal` · `pair_cut` · `pair_status`
 
 ## QNS-CD-1.0 cross-map

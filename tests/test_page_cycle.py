@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from azinterface.engine import PAGE_CYCLES, Engine
+from azinterface.pipeline import PIPELINE_PATH
 from azinterface.receipts import Ledger
 
 
@@ -19,6 +20,11 @@ def test_default_is_pre_locked() -> None:
     assert cycle["cycles"] == list(PAGE_CYCLES)
     assert cycle["page_cycle"]["skip_forbidden"] is True
     assert cycle["page_cycle"]["locked_order"] is True
+    assert cycle["pipeline_path"] == PIPELINE_PATH
+    assert cycle["pipeline"]["lambgate"] is False
+    assert cycle["pipeline"]["domain_doors"]["slug"] == "4dmap"
+    assert cycle["pipeline"]["software_count"] == 33
+    assert cycle["pipeline"]["single_door"] == "fraggate"
 
 
 def test_on_from_off_is_skip() -> None:
