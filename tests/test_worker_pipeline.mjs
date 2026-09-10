@@ -39,6 +39,7 @@ assert.equal(pipe.controlling_design, "MASTER-33");
 assert.equal(pipe.runtime_lock, "1.7.0");
 assert.equal(pipe.suite_pipe_status, "historical");
 assert.ok(!pipe.softwares.includes("azinterface"));
+assert.ok(!pipe.softwares.includes("azcoherence"));
 assert.ok(pipe.softwares.includes("4dmap"));
 assert.match(pipe.note, /MASTER-33/);
 assert.match(pipe.note, /aziel-runtime/);
@@ -46,6 +47,9 @@ assert.equal(pipe.owner.includes("fraggate"), false);
 assert.match(SKILL_MD, /inspection frame/);
 assert.match(SKILL_MD, /domains_are_doors:false/);
 assert.equal(SKILL_MD.includes("Domain Door"), false);
+assert.match(SKILL_MD, /AZCoherence/);
+assert.match(SKILL_MD, /slug=azcoherence/);
+assert.match(SKILL_MD, /GET \/v1\/software/);
 
 const cycle = await dispatch("page_cycle_status", {});
 assert.equal(cycle.pipeline_path, PIPELINE_PATH);

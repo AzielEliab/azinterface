@@ -29,7 +29,12 @@ Always send `User-Agent: Mozilla/5.0`.
 
 **Agent path is the one FragGate door.** MCP / agents call aziel-runtime —
 not a second Interface MCP brand. AZHub and AZInterface are separate
-software under that door.
+software under that door. AZCoherence (AZC-WP-0.1) is separate Softwares
+on that same door — alternate-triad double-check to neutralize AI
+hallucination in scores. Agents call `fraggate_call` with
+`slug=azcoherence`. Repo: https://github.com/AzielEliab/AZCoherence.
+Hub Softwares tabs refresh from runtime `GET /v1/software`. Interface
+does not hardcode that catalog and does not add a second door.
 
 ```
 POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call

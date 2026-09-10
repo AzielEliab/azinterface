@@ -21,6 +21,7 @@ export const FRAGGATE_MCP = "https://aziel-runtime.vibelock.workers.dev/mcp";
 export const HOST = "https://azinterface-download-tracker.vibelock.workers.dev";
 export const SIGIL = "https://www.azielcorpuslibrary.net/sigil.png";
 export const AZHUB = "https://github.com/AzielEliab/azhub";
+export const AZCOHERENCE = "https://github.com/AzielEliab/AZCoherence";
 export const GITHUB = "https://github.com/AzielEliab/azinterface";
 export const QNS_CD = "QNS-CD-1.0";
 export const QNM_BUILD = "QNM-BUILD-1.0";
@@ -192,7 +193,12 @@ Always send \`User-Agent: Mozilla/5.0\`.
 
 **Agent path is the one FragGate door.** MCP / agents call aziel-runtime —
 not a second Interface MCP brand. AZHub and AZInterface are separate
-software under that door.
+software under that door. AZCoherence (AZC-WP-0.1) is separate Softwares
+on that same door — alternate-triad double-check to neutralize AI
+hallucination in scores. Agents call \`fraggate_call\` with
+\`slug=azcoherence\`. Repo: https://github.com/AzielEliab/AZCoherence.
+Hub Softwares tabs refresh from runtime \`GET /v1/software\`. Interface
+does not hardcode that catalog and does not add a second door.
 
 \`POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call\`
 body \`{"slug":"azinterface","op":"<op>","payload":{}}\`

@@ -249,6 +249,9 @@ try {
   const llms = await llmsRes.text();
   assert.match(llms, /\/v1\/mesh/);
   assert.match(llms, /not a public Node Gate/);
+  assert.match(llms, /AZCoherence/);
+  assert.match(llms, /slug=azcoherence/);
+  assert.match(llms, /\/v1\/software/);
 
   for (const path of ["/count", "/stats", "/download", "/"]) {
     const req = new Request("https://azinterface-download-tracker.vibelock.workers.dev" + path, { method: "GET" });

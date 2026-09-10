@@ -52,6 +52,9 @@ def test_home_html_wires_buttons() -> None:
     assert "No LambGate" in html
     assert "LambGate →" not in html
     assert "separate software" in html
+    assert "AZCoherence" in html
+    assert "slug=azcoherence" in html
+    assert "GET /v1/software" in html
     assert "azielcorpuslibrary.net/sigil.png" in html
     local = home_html(local=True)
     assert "azinterface-download-tracker.vibelock.workers.dev/download" in local

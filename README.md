@@ -293,6 +293,7 @@ origin claim.
 - FragGate: https://github.com/AzielEliab/fraggate
 - Digital Library: https://www.azielcorpuslibrary.net/
 - AZHub (separate software — Blank Key): https://github.com/AzielEliab/azhub
+- AZCoherence (separate Softwares — AZC-WP-0.1; same FragGate door, `slug=azcoherence`): https://github.com/AzielEliab/AZCoherence
 - godlock.uk
 - https://www.azieleliab.com
 
