@@ -15,6 +15,12 @@ def test_home_html_wires_buttons() -> None:
     assert "integrity-btn" in html
     assert "witness-btn" in html
     assert "withdraw-btn" in html
+    assert "pair-offer-btn" in html
+    assert "pair-accept-btn" in html
+    assert "pair-seal-btn" in html
+    assert "pair-cut-btn" in html
+    assert "QNS-CD-1.0" in html
+    assert "qnsd" in html
     assert "PRE-LOCKED" in html
     assert "Never collapse Interface into Hub" in html
     assert "OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL" in html

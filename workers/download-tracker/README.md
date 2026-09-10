@@ -18,10 +18,12 @@ A real production id was not in comments/README. Parent must create the
 namespace and replace the id before deploy. Do not invent an id.
 
 Human UI includes a **Live Nodes** strip (QNM-BUILD-1.0
-live|locked|isolated). Radios stay off until runtime enable. AIH-WP-1.3
-spiderweb is local `qnm-node/` — this Worker does not invent a public
-Node Gate. No auto-heal. Not anonymity. Anon-broadcast is not a publish
-path.
+live|locked|isolated + QNS-CD-1.0 cite). Radios stay off until runtime
+enable. `GET /v1/mesh` never enables. QNS-CD-1.0 photon vias run in local
+`qnm-node/` qnsd (127.0.0.1); this Worker holds pair memorial cites only.
+AIH-WP-1.3 spiderweb is local `qnm-node/` — this Worker does not invent a
+public Node Gate. No auto-heal. Not anonymity. Anon-broadcast is not a
+publish path. Not a Softwares-tab QNS product.
 
 Human UI is this Worker. Agent / MCP path is FragGate only:
 `POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call` with

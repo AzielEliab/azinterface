@@ -69,6 +69,24 @@ On the hosted Worker this is a **local stub/advisory only**.
 `scorch_remote` / `scorch` refuse. User devices are never remotely
 wiped from this surface.
 
+## QNS-CD-1.0 pair custody
+
+Photon QNS1 vias (`lan/plc/bt/rf/light/qns/operator/local`) run in local
+`qnm-node/` **qnsd** on 127.0.0.1. Interface does not transfer packets
+and does not invent a Softwares-tab QNS product.
+
+Pair handshake is AIH-WP-1.3: `OFFER → ACCEPT → SEAL`. Ops
+`pair_offer` / `pair_accept` / `pair_seal` / `pair_cut` require living
+presence (ON after integrity). They refuse in OFF (`PRE_LOCKED`),
+FULL SHUTDOWN (`QNS-CYCLE-REFUSE`), and MEMORIAL (`AIH-CYCLE-TERMINAL`).
+`pair_status` reads memorial cites in any cycle.
+
+Witness / hold may record `pair_id` + `photon_id` cites. Vault contents
+are never stored. `pair_cut` and `pair_wipe` never remotely wipe devices.
+Walker restriction: unknown vias and mid-handshake via changes refuse.
+Canonical: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
+— summary in [QNS-CD-1.0.md](QNS-CD-1.0.md).
+
 ## Dual surface
 
 1. Human software — Worker homepage, Flutter `mobile/`, local

@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from .meta import (
+    AIH_PAIR,
     AZHUB,
     AZHOME,
     CLIENTS,
@@ -26,7 +27,14 @@ from .meta import (
     IDENTITY,
     LIMITATION,
     NAME,
+    PAIR_STEPS,
     PRODUCT,
+    QNM_BUILD,
+    QNM_NODE,
+    QNS_CD,
+    QNS_DOC,
+    QNS_VIAS,
+    QNSD_BIND,
     RUNTIME,
     SIGIL,
     SPEC,
@@ -57,11 +65,17 @@ LIVE_OPS = (
     "hold",
     "withdraw",
     "scorch_local",
+    "pair_offer",
+    "pair_accept",
+    "pair_seal",
+    "pair_cut",
+    "pair_status",
 )
 
 STUB_OPS = (
     "scorch_remote",
     "scorch",
+    "pair_wipe",
     "deanonymize",
     "vault_read",
     "auto_unlock",
@@ -108,7 +122,59 @@ ALIASES = {
     "state_set": "site_state_set",
     "cycle": "page_cycle_status",
     "integrity": "integrity_check",
+    "offer": "pair_offer",
+    "accept": "pair_accept",
+    "seal": "pair_seal",
+    "cut": "pair_cut",
+    "pair": "pair_status",
+    "wipe_pair": "pair_wipe",
+    "pair_remote_wipe": "pair_wipe",
 }
+
+PAIR_CAP = 64
+QNS_VIA_ALIASES = {
+    "bluetooth": "bt",
+    "loopback": "local",
+    "localhost": "local",
+}
+
+
+def normalize_via(raw: Any) -> str | None:
+    """Sealed QNS-CD vias only. Empty defaults to local (qnsd loopback)."""
+    if raw is None or raw == "":
+        return "local"
+    text = str(raw).strip().lower().replace("_", "-")
+    text = QNS_VIA_ALIASES.get(text, text)
+    if text in QNS_VIAS:
+        return text
+    return None
+
+
+def qns_cross_map() -> dict[str, Any]:
+    return {
+        "spec": QNS_CD,
+        "handshake": AIH_PAIR,
+        "handshake_steps": list(PAIR_STEPS),
+        "ops": ["pair_offer", "pair_accept", "pair_seal", "pair_cut", "pair_status"],
+        "vias": list(QNS_VIAS),
+        "walker_restricted": True,
+        "packet": "QNS1",
+        "via_runs_in": "qnsd",
+        "qnsd": QNSD_BIND,
+        "canonical": QNM_NODE,
+        "doc": QNS_DOC,
+        "catalog": "azinterface",
+        "softwares_tab_qns": False,
+        "mesh": QNM_BUILD,
+        "mesh_default": "OFF",
+        "get_enables_mesh": False,
+        "node_gate": False,
+        "untraceable_origin": False,
+        "remote_wipe": False,
+        "vault_contents": False,
+        "pair_memorial": "azinterface custody",
+        "note": "Vias run in local qnsd (127.0.0.1). Interface holds pair memorial cites only.",
+    }
 
 GENESIS_DOMAIN = "azinterface|genesis|AIH-WP-1.0"
 
@@ -223,6 +289,7 @@ class Engine:
         self.genesis_keyed = False
         self.holds: list[dict[str, Any]] = []
         self.witnesses: list[dict[str, Any]] = []
+        self.pairs: list[dict[str, Any]] = []
         self._load_state()
 
     @property
@@ -250,6 +317,8 @@ class Engine:
             self.holds = list(data["holds"])
         if isinstance(data.get("witnesses"), list):
             self.witnesses = list(data["witnesses"])
+        if isinstance(data.get("pairs"), list):
+            self.pairs = list(data["pairs"])
 
     def _save_state(self) -> None:
         if not self.state_path:
@@ -263,6 +332,7 @@ class Engine:
             "genesis_keyed": self.genesis_keyed,
             "holds": self.holds,
             "witnesses": self.witnesses,
+            "pairs": self.pairs,
         }
         self.state_path.parent.mkdir(parents=True, exist_ok=True)
         self.state_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -297,6 +367,7 @@ class Engine:
             "host": HOST,
             "sigil": SIGIL,
             "azhome": AZHOME,
+            "qns": qns_cross_map(),
         }
         out.update(extra)
         return out
@@ -410,6 +481,8 @@ class Engine:
                     ("site_state", self.site_state),
                     ("living_presence", cycle["living_presence"]),
                     ("hub_collapse", False),
+                    ("qns_cd", QNS_CD),
+                    ("qnsd", QNSD_BIND),
                 ],
             ),
         )
@@ -709,7 +782,8 @@ class Engine:
         )
 
     def _witness_row(self, kind: str, hold_id: str | None = None, extra: dict[str, Any] | None = None) -> dict[str, Any]:
-        rec = self._receipt(kind, {"hold_id": hold_id, **(extra or {})})
+        extra = extra or {}
+        rec = self._receipt(kind, {"hold_id": hold_id, **extra})
         row = {
             "kind": kind,
             "hold_id": hold_id,
@@ -718,8 +792,126 @@ class Engine:
             "seq": rec["seq"],
             "vault_contents": False,
         }
+        pair_id = extra.get("pair_id")
+        photon_id = extra.get("photon_id")
+        if pair_id:
+            row["pair_id"] = pair_id
+        if photon_id:
+            row["photon_id"] = photon_id
         self.witnesses.append(row)
         return row
+
+    def _cite_ids(self, payload: dict[str, Any]) -> tuple[str, str]:
+        pair_id = str(payload.get("pair_id") or payload.get("pair") or "").strip()[:ID_CAP]
+        photon_id = str(payload.get("photon_id") or payload.get("photon") or "").strip()[:ID_CAP]
+        return pair_id, photon_id
+
+    def _pair_public(self, row: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "pair_id": row.get("pair_id"),
+            "photon_id": row.get("photon_id"),
+            "via": row.get("via"),
+            "handshake": row.get("handshake"),
+            "walker_restricted": True,
+            "packet": "QNS1",
+            "via_runs_in": "qnsd",
+            "qnsd": QNSD_BIND,
+            "spec": QNS_CD,
+            "handshake_spec": AIH_PAIR,
+            "vault_contents": False,
+            "remote_wipe": False,
+            "untraceable_origin": False,
+            "transferred": False,
+        }
+
+    def _find_pair(self, pair_id: str) -> dict[str, Any] | None:
+        if not pair_id:
+            return None
+        for row in self.pairs:
+            if row.get("pair_id") == pair_id:
+                return row
+        return None
+
+    def _latest_pair(self, handshake: str | None = None) -> dict[str, Any] | None:
+        for row in reversed(self.pairs):
+            if handshake is None or row.get("handshake") == handshake:
+                return row
+        return None
+
+    def _pair_cycle_refuse(self, op: str) -> dict[str, Any] | None:
+        current = self.site_state
+        if self.living_presence():
+            return None
+        if current == "MEMORIAL":
+            rec = self._receipt(f"{op}_refused", {"reason": "memorial"})
+            return self._base(
+                ok=False,
+                code="AIH-CYCLE-TERMINAL",
+                refused=True,
+                error="MEMORIAL is terminal. Pair memorial cites remain readable; pair mutate is refused.",
+                living_presence=False,
+                site_state=current,
+                current=current,
+                qns_cd=QNS_CD,
+                receipt=rec,
+                display=display_of("Memorial is terminal", "QNS pair mutate does not run in MEMORIAL. pair_status still reads cites."),
+            )
+        if current == "FULL SHUTDOWN":
+            rec = self._receipt(f"{op}_refused", {"reason": "full_shutdown"})
+            return self._base(
+                ok=False,
+                code="QNS-CYCLE-REFUSE",
+                refused=True,
+                error="QNS pair ops require living presence (ON after integrity). FULL SHUTDOWN refuses pair mutate.",
+                living_presence=False,
+                site_state=current,
+                current=current,
+                qns_cd=QNS_CD,
+                receipt=rec,
+                display=display_of("Cycle refuses pair", "OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL. Pair mutate only at ON."),
+            )
+        rec = self._receipt(f"{op}_refused", {"reason": "pre_locked"})
+        return self._base(
+            ok=False,
+            code="PRE_LOCKED",
+            error="QNS pair ops are living-presence acts. Enable ON after integrity.",
+            living_presence=False,
+            site_state=current,
+            receipt=rec,
+            display=display_of("Pre-locked", "pair_offer / pair_accept / pair_seal / pair_cut do not run until ON after integrity."),
+        )
+
+    def _via_or_refuse(self, payload: dict[str, Any], existing: str | None = None) -> tuple[str | None, dict[str, Any] | None]:
+        raw = payload.get("via") if "via" in payload else payload.get("bearer")
+        if raw is None or raw == "":
+            return existing or "local", None
+        via = normalize_via(raw)
+        if via is None:
+            return None, self._base(
+                ok=False,
+                code="QNS-VIA-UNKNOWN",
+                refused=True,
+                error="Walker restriction: only lan/plc/bt/rf/light/qns/operator/local. Vias run in local qnsd.",
+                allowed=list(QNS_VIAS),
+                walker_restricted=True,
+                via_runs_in="qnsd",
+                qnsd=QNSD_BIND,
+                display=display_of("Via refused", "Unknown via. Walker cannot invent a hop.", [("allowed", ",".join(QNS_VIAS))]),
+            )
+        if existing and via != existing:
+            return None, self._base(
+                ok=False,
+                code="QNS-WALKER-RESTRICT",
+                refused=True,
+                error="Walker restriction: via cannot change mid-handshake. qnsd owns the hop; Interface cites one via.",
+                via=existing,
+                requested=via,
+                walker_restricted=True,
+                via_runs_in="qnsd",
+                qnsd=QNSD_BIND,
+                display=display_of("Walker restricted", "Via is sealed on offer. Packet hops stay in local qnsd.", [("via", existing), ("requested", via)]),
+            )
+        return via, None
 
     def witness_list(self, _payload: dict[str, Any] | None = None) -> dict[str, Any]:
         rec = self._receipt("witness_list", {"count": len(self.witnesses)})
@@ -753,15 +945,30 @@ class Engine:
         label = str(payload.get("label") or payload.get("name") or "hold").strip()[:80]
         label_hash = sha256_text(f"azinterface|hold|{label}")
         hold_id = "hold-" + label_hash[:12]
+        pair_id, photon_id = self._cite_ids(payload)
         row = {
             "hold_id": hold_id,
             "label_hash": label_hash,
             "status": "held",
             "vault_contents": False,
         }
+        if pair_id:
+            row["pair_id"] = pair_id
+        if photon_id:
+            row["photon_id"] = photon_id
         self.holds.append(row)
-        witness = self._witness_row("hold", hold_id, {"label_hash": label_hash})
+        extra = {"label_hash": label_hash}
+        if pair_id:
+            extra["pair_id"] = pair_id
+        if photon_id:
+            extra["photon_id"] = photon_id
+        witness = self._witness_row("hold", hold_id, extra)
         self._save_state()
+        fields = [("hold_id", hold_id), ("status", "held"), ("vault_contents", False)]
+        if pair_id:
+            fields.append(("pair_id", pair_id))
+        if photon_id:
+            fields.append(("photon_id", photon_id))
         return self._base(
             ok=True,
             hold=row,
@@ -769,8 +976,8 @@ class Engine:
             vault_contents=False,
             display=display_of(
                 "Hold",
-                "Custody hold recorded. Label hashed. Vault contents not stored.",
-                [("hold_id", hold_id), ("status", "held"), ("vault_contents", False)],
+                "Custody hold recorded. Label hashed. Pair/photon cites only — vault contents not stored.",
+                fields,
             ),
         )
 
@@ -818,6 +1025,220 @@ class Engine:
             ),
         )
 
+    def pair_offer(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        payload = payload or {}
+        gated = self._pair_cycle_refuse("pair_offer")
+        if gated:
+            return gated
+        via, via_err = self._via_or_refuse(payload)
+        if via_err:
+            return via_err
+        if len(self.pairs) >= PAIR_CAP:
+            return self._base(ok=False, code="PAIR_CAP", error="Pair memorial cap reached. Witness list is metadata only.")
+        pair_id, photon_id = self._cite_ids(payload)
+        if not pair_id:
+            seed = sha256_text(f"azinterface|qns|{QNS_CD}|{via}|{self.ledger.tip}|{len(self.pairs)}")
+            pair_id = "pair-" + seed[:12]
+        if self._find_pair(pair_id):
+            return self._base(
+                ok=False,
+                code="PAIR_EXISTS",
+                error="pair_id already memorialized. Use pair_accept / pair_seal / pair_cut.",
+                pair_id=pair_id,
+            )
+        if not photon_id:
+            photon_id = "qns1-" + sha256_text(f"azinterface|photon|{pair_id}|{via}")[:12]
+        row = {
+            "pair_id": pair_id,
+            "photon_id": photon_id,
+            "via": via,
+            "handshake": "OFFER",
+            "vault_contents": False,
+        }
+        self.pairs.append(row)
+        witness = self._witness_row("pair_offer", None, {"pair_id": pair_id, "photon_id": photon_id, "via": via})
+        self._save_state()
+        pub = self._pair_public(row)
+        return self._base(
+            ok=True,
+            pair=pub,
+            handshake="OFFER",
+            witness=witness,
+            vault_contents=False,
+            remote_wipe=False,
+            display=display_of(
+                "Pair OFFER",
+                "AIH-WP-1.3 offer recorded. QNS1 via cite only — qnsd on 127.0.0.1 runs the hop.",
+                [("pair_id", pair_id), ("photon_id", photon_id), ("via", via or ""), ("handshake", "OFFER")],
+            ),
+        )
+
+    def pair_accept(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        payload = payload or {}
+        gated = self._pair_cycle_refuse("pair_accept")
+        if gated:
+            return gated
+        pair_id, _photon = self._cite_ids(payload)
+        target = self._find_pair(pair_id) if pair_id else self._latest_pair("OFFER")
+        if not target:
+            return self._base(
+                ok=False,
+                code="PAIR_NOT_FOUND",
+                error="No matching OFFER. pair_status lists pair_id cites only — never vault contents.",
+                vault_contents=False,
+            )
+        if target.get("handshake") != "OFFER":
+            return self._base(
+                ok=False,
+                code="QNS-HANDSHAKE-LOCKED",
+                refused=True,
+                error="AIH-WP-1.3 handshake is OFFER → ACCEPT → SEAL. Accept only from OFFER.",
+                pair=self._pair_public(target),
+                display=display_of("Handshake locked", "Accept only from OFFER.", [("handshake", target.get("handshake") or "")]),
+            )
+        _via, via_err = self._via_or_refuse(payload, existing=target.get("via"))
+        if via_err:
+            return via_err
+        photon_cite = _photon or target.get("photon_id")
+        if photon_cite:
+            target["photon_id"] = photon_cite
+        target["handshake"] = "ACCEPT"
+        witness = self._witness_row("pair_accept", None, {"pair_id": target["pair_id"], "photon_id": target.get("photon_id"), "via": target.get("via")})
+        self._save_state()
+        pub = self._pair_public(target)
+        return self._base(
+            ok=True,
+            pair=pub,
+            handshake="ACCEPT",
+            witness=witness,
+            vault_contents=False,
+            remote_wipe=False,
+            display=display_of(
+                "Pair ACCEPT",
+                "AIH-WP-1.3 accept recorded. Via still cited; qnsd runs the packet.",
+                [("pair_id", target["pair_id"]), ("photon_id", target.get("photon_id") or ""), ("handshake", "ACCEPT")],
+            ),
+        )
+
+    def pair_seal(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        payload = payload or {}
+        gated = self._pair_cycle_refuse("pair_seal")
+        if gated:
+            return gated
+        pair_id, _photon = self._cite_ids(payload)
+        target = self._find_pair(pair_id) if pair_id else self._latest_pair("ACCEPT")
+        if not target:
+            return self._base(
+                ok=False,
+                code="PAIR_NOT_FOUND",
+                error="No matching ACCEPT. Seal only after accept. Witness list is metadata only.",
+                vault_contents=False,
+            )
+        if target.get("handshake") != "ACCEPT":
+            return self._base(
+                ok=False,
+                code="QNS-HANDSHAKE-LOCKED",
+                refused=True,
+                error="AIH-WP-1.3 handshake is OFFER → ACCEPT → SEAL. Seal only from ACCEPT.",
+                pair=self._pair_public(target),
+                display=display_of("Handshake locked", "Seal only from ACCEPT.", [("handshake", target.get("handshake") or "")]),
+            )
+        _via, via_err = self._via_or_refuse(payload, existing=target.get("via"))
+        if via_err:
+            return via_err
+        target["handshake"] = "SEAL"
+        witness = self._witness_row("pair_seal", None, {"pair_id": target["pair_id"], "photon_id": target.get("photon_id"), "via": target.get("via")})
+        self._save_state()
+        pub = self._pair_public(target)
+        return self._base(
+            ok=True,
+            pair=pub,
+            handshake="SEAL",
+            witness=witness,
+            memorial=True,
+            vault_contents=False,
+            remote_wipe=False,
+            display=display_of(
+                "Pair SEAL",
+                "Pair memorial sealed. Interface holds cites only. qnsd on 127.0.0.1 owns the via.",
+                [("pair_id", target["pair_id"]), ("photon_id", target.get("photon_id") or ""), ("handshake", "SEAL")],
+            ),
+        )
+
+    def pair_cut(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        payload = payload or {}
+        gated = self._pair_cycle_refuse("pair_cut")
+        if gated:
+            return gated
+        pair_id, _photon = self._cite_ids(payload)
+        target = self._find_pair(pair_id) if pair_id else None
+        if not target:
+            for row in reversed(self.pairs):
+                if row.get("handshake") != "CUT":
+                    target = row
+                    break
+        if not target:
+            return self._base(
+                ok=False,
+                code="PAIR_NOT_FOUND",
+                error="No living pair to cut. Cut is a dissolve — not a remote wipe.",
+                vault_contents=False,
+                remote_wipe=False,
+            )
+        if target.get("handshake") == "CUT":
+            rec = self._receipt("pair_cut", {"unchanged": target["pair_id"]})
+            return self._base(
+                ok=True,
+                unchanged=True,
+                pair=self._pair_public(target),
+                handshake="CUT",
+                remote_wipe=False,
+                receipt=rec,
+                display=display_of("Pair already cut", "Memorial cite remains. No remote wipe.", [("pair_id", target["pair_id"])]),
+            )
+        prev = target.get("handshake")
+        target["handshake"] = "CUT"
+        witness = self._witness_row("pair_cut", None, {"pair_id": target["pair_id"], "photon_id": target.get("photon_id"), "from": prev})
+        self._save_state()
+        pub = self._pair_public(target)
+        return self._base(
+            ok=True,
+            pair=pub,
+            handshake="CUT",
+            previous=prev,
+            witness=witness,
+            vault_contents=False,
+            remote_wipe=False,
+            local_only=True,
+            display=display_of(
+                "Pair CUT",
+                "Pair dissolved. Memorial cite kept. Hosted Worker never remotely wipes devices.",
+                [("pair_id", target["pair_id"]), ("from", prev or ""), ("remote_wipe", False)],
+            ),
+        )
+
+    def pair_status(self, _payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        rec = self._receipt("pair_status", {"count": len(self.pairs)})
+        rows = [self._pair_public(p) for p in self.pairs]
+        return self._base(
+            ok=True,
+            pairs=rows,
+            count=len(rows),
+            vault_contents=False,
+            remote_wipe=False,
+            living_presence=self.living_presence(),
+            site_state=self.site_state,
+            receipt=rec,
+            display=display_of(
+                "Pair memorial",
+                "QNS-CD pair cites only. Vias run in local qnsd. Vault contents are never listed.",
+                [("count", len(rows)), ("qnsd", QNSD_BIND), ("vault_contents", False), ("softwares_tab_qns", False)],
+            ),
+        )
+
+    def pair_wipe(self, _payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        return self._stub("pair_wipe")
+
     def scorch_local(self, _payload: dict[str, Any] | None = None) -> dict[str, Any]:
         rec = self._receipt("scorch_local_advisory", {"remote_wipe": False})
         return self._base(
@@ -839,6 +1260,7 @@ class Engine:
         rec = self._receipt("stub_refuse", {"op": op})
         reasons = {
             "scorch_remote": "Hosted Scorched Earth never remotely wipes user devices. Local stub/advisory only (scorch_local).",
+            "pair_wipe": "Pair cut is a local dissolve of memorial cites. Hosted Worker never remotely wipes user devices.",
             "deanonymize": "AZInterface does not deanonymize. Identity is Aziel Eliab only.",
             "vault_read": "Hosted Worker never serves vault contents. Witness list is metadata only.",
             "auto_unlock": "Auto-unlock is refused. Cycles advance one explicit step only.",

@@ -52,7 +52,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/v1/health":
             self._json(_ENGINE.health({}))
             return
-        if path in ("/v1/genesis_status", "/v1/site_state_get", "/v1/page_cycle_status", "/v1/witness_list"):
+        if path in ("/v1/genesis_status", "/v1/site_state_get", "/v1/page_cycle_status", "/v1/witness_list", "/v1/pair_status"):
             op = path.rsplit("/", 1)[-1]
             self._json(_ENGINE.dispatch(op, {}))
             return

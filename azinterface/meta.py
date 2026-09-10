@@ -25,6 +25,14 @@ LIBRARY = "https://www.azielcorpuslibrary.net/"
 AZHUB = "https://github.com/AzielEliab/azhub"
 AZHUB_WORKER = "https://azhub-download-tracker.vibelock.workers.dev"
 AZHOME = "AZHome"
+QNS_CD = "QNS-CD-1.0"
+QNM_BUILD = "QNM-BUILD-1.0"
+AIH_PAIR = "AIH-WP-1.3"
+QNSD_BIND = "127.0.0.1"
+QNM_NODE = "https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node"
+QNS_DOC = "https://github.com/AzielEliab/azinterface/blob/main/docs/QNS-CD-1.0.md"
+QNS_VIAS = ("lan", "plc", "bt", "rf", "light", "qns", "operator", "local")
+PAIR_STEPS = ("OFFER", "ACCEPT", "SEAL")
 
 LIMITATION = (
     "THIS IS: AZInterface (AIH-WP-1.0) — a custodial operating environment "

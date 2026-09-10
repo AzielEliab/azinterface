@@ -141,7 +141,10 @@ try {
   assert.ok(spec.paths["/v1/mesh/broadcast"]);
   assert.match(spec.info.description, /\/v1\/mesh/);
   assert.match(spec.info.description, /QNM-BUILD-1.0/);
+  assert.match(spec.info.description, /QNS-CD-1.0/);
   assert.match(spec.info.description, /qnm-node/);
+  assert.ok(spec.paths["/v1/pair_offer"]);
+  assert.ok(spec.paths["/v1/pair_status"]);
 
   const mcpReq = new Request("https://azinterface-download-tracker.vibelock.workers.dev/mcp", { method: "GET" });
   const mcpRes = await handleRuntimeApi(mcpReq, new URL(mcpReq.url), {});
@@ -152,6 +155,10 @@ try {
   assert.equal(mcp.mesh.auto_heal, false);
   assert.equal(mcp.mesh.anonymity, false);
   assert.equal(mcp.mesh.spec, "QNM-BUILD-1.0");
+  assert.equal(mcp.mesh.qns_cd, "QNS-CD-1.0");
+  assert.equal(mcp.mesh.get_enables, false);
+  assert.equal(mcp.qns.softwares_tab_qns, false);
+  assert.equal(mcp.qns.via_runs_in, "qnsd");
   assert.match(mcp.mesh.spiderweb, /qnm-node/);
   assert.match(mcp.mesh.anon_broadcast, /not a publish path/);
   assert.match(mcp.note, /mesh/);
