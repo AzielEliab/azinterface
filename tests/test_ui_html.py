@@ -27,6 +27,9 @@ def test_home_html_wires_buttons() -> None:
     assert "LOCKED pipeline" in html
     assert "THE SINGLE DOOR" in html
     assert "Internal Domain Layer" in html
+    assert "4DMap inspection frame" in html
+    assert "domains_are_doors:false" in html
+    assert "Domain Door" not in html
     assert "azchat" in html
     assert "stub / not hosted yet" in html
     assert "pipeline-btn" in html

@@ -221,7 +221,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
 
 <div class="card" style="margin:0 18px 1rem;">
   <h2>Page cycle status</h2>
-  <p>Sealed custody cycle plus the MASTER-33 hop order on aziel-runtime. FragGate is THE SINGLE DOOR. Internal Domain Layer is 33/11 isolation labels with 4DMap inspection — not extra doors. No LambGate.</p>
+  <p>Sealed custody cycle plus the MASTER-33 hop order on aziel-runtime. FragGate is THE SINGLE DOOR. Internal Domain Layer is 33/11 isolation labels with 4DMap inspection frame — not an extra door (domains_are_doors:false). No LambGate.</p>
   <div class="row">
     <button class="ghost" id="cycle-btn" type="button">Refresh cycle</button>
     <button class="ghost" id="pipeline-btn" type="button">Pipeline cite</button>

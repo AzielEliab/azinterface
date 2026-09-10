@@ -3,6 +3,7 @@
 from azinterface.engine import Engine, LIVE_OPS
 from azinterface.pipeline import (
     DOMAIN_MAP,
+    FOURDMAP_FRAME,
     PIPELINE_HOPS,
     PIPELINE_PATH,
     SUITE_PIPE_PATH,
@@ -36,6 +37,7 @@ def test_frozen_path_and_owner() -> None:
     assert pipe["suite_pipe"] == "SUITE-PIPE-1.6.15"
     assert pipe["suite_pipe_status"] == "historical"
     assert pipe["suite_pipe_path"] == SUITE_PIPE_PATH
+    assert "Domain Doors" in SUITE_PIPE_PATH  # historical 1.6.15 quote only
     assert pipe["single_door"] == "fraggate"
 
 
@@ -48,6 +50,20 @@ def test_domain_layer_is_4dmap_inspection() -> None:
     cite = pipeline_arch()
     assert cite["domain_doors"]["slug"] == "4dmap"
     assert cite["domain_doors"]["additional_doors"] is False
+    assert cite["domains_are_doors"] is False
+    assert cite["domain_doors"]["domains_are_doors"] is False
+    assert cite["domain_doors"]["role"] == "inspection_frame"
+    assert "inspection frame" in cite["note"]
+    assert "domains_are_doors:false" in cite["note"]
+    assert "Domain Door" not in cite["note"]
+    assert "Domain Door" not in PIPELINE_PATH
+    assert "inspection frame" in PIPELINE_PATH
+    out = Engine(Ledger()).pipeline_arch({})
+    labels = {row["label"]: row["value"] for row in out["display"]["fields"]}
+    assert labels["4dmap"] == FOURDMAP_FRAME
+    cycle = Engine(Ledger()).page_cycle_status()
+    cycle_labels = {row["label"]: row["value"] for row in cycle["display"]["fields"]}
+    assert cycle_labels["4dmap"] == FOURDMAP_FRAME
 
 
 def test_eleven_domains_thirty_three_softwares() -> None:
@@ -101,6 +117,9 @@ def test_strip_and_domain_map_html() -> None:
     assert 'id="pipeline"' in html
     assert "THE SINGLE DOOR" in html
     assert "Internal Domain Layer" in html
+    assert "4DMap inspection frame" in html
+    assert "domains_are_doors:false" in html
+    assert "Domain Door" not in html
     assert 'id="domains"' in html
     assert 'data-slug="azchat"' in html
     assert "stub / not hosted yet" in html

@@ -23,6 +23,7 @@ def test_default_is_pre_locked() -> None:
     assert cycle["pipeline_path"] == PIPELINE_PATH
     assert cycle["pipeline"]["lambgate"] is False
     assert cycle["pipeline"]["domain_doors"]["slug"] == "4dmap"
+    assert cycle["pipeline"]["domains_are_doors"] is False
     assert cycle["pipeline"]["software_count"] == 33
     assert cycle["pipeline"]["single_door"] == "fraggate"
 

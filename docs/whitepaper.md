@@ -99,12 +99,13 @@ rolled back). LambGate is not a hop.
 Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) →
 Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN →
 DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains;
-4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock /
+4DMap inspection frame) → optional ASE → RoseClock (forward-only; StaticClock /
 VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return
 ```
 
 The Internal Domain Layer is 33 softwares in 11 domains after AZPIPE —
-isolation labels, not additional doors. 4DMap inspects Research.
+isolation labels, not additional doors. 4DMap is a Research-domain
+inspection frame (T/Δ/Γ/Π), not an extra door (`domains_are_doors:false`).
 AZChat (Comms) is stub / not hosted yet. RoseClock is forward-only.
 Lamb Lens is fabric ethics after FragGate.
 `page_cycle_status` and `pipeline_arch` carry the cite. Hosted

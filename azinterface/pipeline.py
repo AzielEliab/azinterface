@@ -3,7 +3,7 @@
 Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) →
 Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN →
 DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains;
-isolation labels, not additional doors; 4DMap inspects Research) →
+isolation labels, not additional doors; 4DMap inspection frame) →
 optional ASE → RoseClock (forward-only; StaticClock / VECTOR as needed) →
 TemporalLock → ChainLock-OUT → ForgeReceipts → Return.
 
@@ -45,11 +45,13 @@ SUITE_PIPE_PATH = (
     "StaticClock → ChainLock-OUT → Response/Receipt"
 )
 
+FOURDMAP_FRAME = "inspection frame — not an extra door (domains_are_doors:false)"
+
 PIPELINE_PATH = (
     "Human → AZInterface → PUBLIC/UI/AGENT/API → FragGate (THE SINGLE DOOR) → "
     "Lamb Lens → SweepGate → Sentinel → Provenance/Input Packet → ChainLock-IN → "
     "DecisionGATE → AZPIPE → Internal Domain Layer (33 softwares / 11 domains; "
-    "4DMap inspection) → optional ASE → RoseClock (forward-only; StaticClock / "
+    "4DMap inspection frame) → optional ASE → RoseClock (forward-only; StaticClock / "
     "VECTOR as needed) → TemporalLock → ChainLock-OUT → ForgeReceipts → Return"
 )
 
@@ -112,7 +114,7 @@ PIPELINE_HOPS: tuple[dict[str, Any], ...] = (
             "axes": "T/Δ/Γ/Π",
             "domain": "Research",
             "domain_id": "06",
-            "note": "Research-domain inspection inside the 11-domain layer after AZPIPE. Not a sequential gate. Not an additional door.",
+            "note": "4DMap is a Research-domain inspection frame T/Δ/Γ/Π after AZPIPE. Not a sequential gate. Not an extra door (domains_are_doors:false).",
         },
     },
     {
@@ -294,7 +296,8 @@ PIPELINE_NOTE = (
     "FragGate is THE SINGLE DOOR. AZInterface is the human-facing UI before "
     "that door — not a second door and not one of the 33 domain slugs. "
     "Internal Domain Layer is 33 softwares in 11 domains (isolation labels, "
-    "not additional doors). 4DMap is Research-domain inspection (T/Δ/Γ/Π). "
+    "not additional doors). 4DMap is a Research-domain inspection frame "
+    "(T/Δ/Γ/Π), not an extra door (domains_are_doors:false). "
     "AZChat is stub / not hosted yet (Comms). RoseClock is forward-only. "
     "ChainLock / TemporalLock are append-only evidence. Lamb Lens is fabric "
     "ethics after FragGate (Peace / Clarity / Service → PASS / REFUSE / "
@@ -359,6 +362,7 @@ def pipeline_arch() -> dict[str, Any]:
         "path": PIPELINE_PATH,
         "hops": [_clone_hop(h) for h in PIPELINE_HOPS],
         "single_door": "fraggate",
+        "domains_are_doors": False,
         "domain_doors": {
             "inspection": "4DMap",
             "slug": "4dmap",
@@ -366,9 +370,12 @@ def pipeline_arch() -> dict[str, Any]:
             "sequential_gate": False,
             "axes": "T/Δ/Γ/Π",
             "additional_doors": False,
+            "domains_are_doors": False,
+            "role": "inspection_frame",
             "layer": "Internal Domain Layer",
             "domain": "Research",
             "domain_id": "06",
+            "note": "4DMap is an inspection frame after AZPIPE, not an extra door (domains_are_doors:false).",
         },
         "domain_map": domain_map(),
         "domain_count": 11,
@@ -411,7 +418,7 @@ def pipeline_strip_html() -> str:
         if hop.get("badge"):
             badge = f'<em class="inspect">{hop["badge"]}</em>'
         elif hop.get("inspection"):
-            badge = '<em class="inspect">4DMap inspection</em>'
+            badge = '<em class="inspect">4DMap inspection frame</em>'
         elif hop.get("forward_only"):
             badge = '<em class="inspect">forward-only</em>'
         chips.append(
@@ -454,7 +461,8 @@ def domain_map_html() -> str:
         '<div id="domains">'
         "<strong>Internal Domain Layer</strong>"
         "<p class=\"pipe-note\">MASTER-33: 33 softwares in 11 domains after AZPIPE. Isolation labels — "
-        "not additional FragGate doors. 4DMap inspects Research (T/Δ/Γ/Π). AZChat is stub / not hosted yet. "
+        "not additional FragGate doors. 4DMap is a Research-domain inspection frame (T/Δ/Γ/Π), "
+        "not an extra door (domains_are_doors:false). AZChat is stub / not hosted yet. "
         "AZInterface is the human UI before the door, not one of the 33. Owner: aziel-runtime. "
         "Author: Aziel Eliab only.</p>"
         f'<div class="domain-grid">{"".join(cards)}</div>'

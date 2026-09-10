@@ -235,6 +235,10 @@ try {
   assert.equal(mcp.pipeline.proxy, false);
   assert.equal(mcp.pipeline.lambgate, false);
   assert.equal(mcp.pipeline.domain_doors.slug, "4dmap");
+  assert.equal(mcp.pipeline.domains_are_doors, false);
+  assert.match(mcp.note, /inspection frame/);
+  assert.match(mcp.note, /domains_are_doors:false/);
+  assert.equal(mcp.note.includes("Domain Door"), false);
   assert.match(mcp.mesh.spiderweb, /qnm-node/);
   assert.match(mcp.mesh.anon_broadcast, /not a publish path/);
   assert.match(mcp.note, /mesh/);

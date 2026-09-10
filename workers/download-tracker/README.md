@@ -22,7 +22,7 @@ namespace and replace the id before deploy. Do not invent an id.
 
 Human UI includes a **LOCKED pipeline** strip (MASTER-33 on aziel-runtime;
 FragGate is THE SINGLE DOOR; Internal Domain Layer 33/11 isolation labels
-with 4DMap inspection; no LambGate) plus the 11-domain
+with 4DMap inspection frame, not an extra door (`domains_are_doors:false`); no LambGate) plus the 11-domain
 map, and a **Live Nodes** strip (QNM-BUILD-1.0)
 live|locked|isolated + QNS-CD-1.0 cite). Radios stay off until runtime
 enable. `GET /v1/mesh` never enables. QNS-CD-1.0 photon vias run in local

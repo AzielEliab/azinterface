@@ -192,6 +192,12 @@ def _check_pipeline() -> Check:
         return _fail("pipeline", "4DMap must inspect the Internal Domain Layer")
     if (layer.get("inspection") or {}).get("sequential_gate"):
         return _fail("pipeline", "4DMap must not be a sequential gate")
+    if pipe.get("domains_are_doors") is not False:
+        return _fail("pipeline", "domains_are_doors must be false")
+    if "Domain Door" in PIPELINE_PATH or "Domain Door" in str(pipe.get("note") or ""):
+        return _fail("pipeline", "current cite must not call 4DMap a Domain Door")
+    if "inspection frame" not in str(pipe.get("note") or ""):
+        return _fail("pipeline", "4DMap must be an inspection frame")
     slugs = domain_slugs()
     if len(DOMAIN_MAP) != 11 or len(slugs) != 33:
         return _fail("pipeline", f"expected 11/33 got {len(DOMAIN_MAP)}/{len(slugs)}")
