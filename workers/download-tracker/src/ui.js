@@ -238,7 +238,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   — this host is custody UI only, not a product MCP
   (<a href="https://github.com/AzielEliab/fraggate">kernel</a>).
   LOCKED pipeline cite: FragGate is THE SINGLE DOOR. MASTER-33 on aziel-runtime. SUITE-PIPE-1.6.15 is historical. AZInterface is not a second door. No LambGate.
-  Suite mesh <code>/v1/mesh/*</code> PROXIES (AZIEL_RUNTIME or HTTPS). Default OFF. QNM-BUILD-1.0 rollup. QNS-CD-1.0 vias in local qnsd. Not a Node Gate. Not a publish path. GET never enables.
+  Suite mesh <code>/v1/mesh/*</code> PROXIES (AZIEL_RUNTIME or HTTPS). Live Nodes read-only. QNM-BUILD-1.0 rollup. QNS-CD-1.0 vias in local qnsd. Not a Node Gate. Not a publish path. GET never enables.
   Compatible clients: ChatGPT, Grok, Venice, Claude, Cursor, Glama, Perplexity, Copilot, Gemini, Mistral, Meta AI, Apple Intelligence, Amazon Q, DuckAssist, You.com, Cohere, plus other MCP/OpenAPI-capable assistants.
   <a href="https://www.azielcorpuslibrary.net/">library</a> ·
   <a href="https://godlock.uk">godlock.uk</a> ·

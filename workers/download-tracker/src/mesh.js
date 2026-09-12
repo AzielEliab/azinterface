@@ -1,6 +1,6 @@
 /**
  * Live Nodes strip — QNM-BUILD-1.0 rollup + QNS-CD-1.0 cite.
- * Default OFF. GET never enables. Not a Node Gate.
+ * Read-only Mesh ON / Live Nodes. GET never enables. Not a Node Gate.
  * QNS1 vias run in local qnsd (127.0.0.1). Interface holds pair memorial.
  * Author: Aziel Eliab only.
  */
@@ -9,8 +9,8 @@ export const QNS_CD = "QNS-CD-1.0";
 export const QNM_BUILD = "QNM-BUILD-1.0";
 export const QNSD_BIND = "127.0.0.1";
 
-export const MESH_OFF_COPY =
-  "Default off until runtime enable. QNM-BUILD-1.0 rollup live|locked|isolated. " +
+export const LIVE_NODES_COPY =
+  "Live Nodes. QNM-BUILD-1.0 rollup live|locked|isolated. " +
   "QNS-CD-1.0 photon vias run in local qnsd (127.0.0.1). " +
   "AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. " +
   "Presence only — not anonymity. Anon-broadcast is not a publish path. " +
@@ -19,9 +19,9 @@ export const MESH_OFF_COPY =
 export function meshStripHtml() {
   return `<div id="nodes">
   <strong>Live Nodes</strong>
-  <span id="nodesState" class="off">Mesh OFF</span>
+  <span id="nodesState" class="on">Mesh ON</span>
   <span id="nodesRollup"></span>
-  <div id="nodesList">${MESH_OFF_COPY}</div>
+  <div id="nodesList">${LIVE_NODES_COPY}</div>
 </div>`;
 }
 
@@ -29,7 +29,7 @@ export function meshClientScript() {
   return `
   var MESH_PRODUCT = "azinterface";
   var MESH_LABEL = "AZInterface";
-  var MESH_OFF = ${JSON.stringify(MESH_OFF_COPY)};
+  var LIVE_NODES = ${JSON.stringify(LIVE_NODES_COPY)};
   var meshNodeId = "";
   var meshBeatAt = 0;
   function meshRollup(j) {
@@ -54,21 +54,17 @@ export function meshClientScript() {
     return tagged ? { live: liveN, locked: lockedN, isolated: isolatedN } : null;
   }
   function paintMesh(j) {
-    var enabled = !!(j && j.enabled);
     var stateEl = document.getElementById("nodesState");
     var rollEl = document.getElementById("nodesRollup");
     var listEl = document.getElementById("nodesList");
     if (!stateEl || !rollEl || !listEl) return;
-    if (!enabled) {
-      stateEl.textContent = "Mesh OFF";
-      stateEl.className = "off";
-      rollEl.textContent = "";
-      listEl.textContent = MESH_OFF;
-      meshNodeId = "";
-      return;
-    }
     stateEl.textContent = "Mesh ON";
     stateEl.className = "on";
+    if (!j) {
+      rollEl.textContent = "";
+      listEl.textContent = LIVE_NODES;
+      return;
+    }
     var roll = meshRollup(j);
     rollEl.textContent = roll
       ? ("live " + roll.live + " · locked " + roll.locked + " · isolated " + roll.isolated)
@@ -78,7 +74,7 @@ export function meshClientScript() {
     var labels = roster.length
       ? roster.map(function (n) { return (n && (n.label || n.product || n.node_id)) || ""; }).filter(Boolean)
       : products;
-    listEl.textContent = labels.length ? labels.join(" · ") : "No live nodes.";
+    listEl.textContent = labels.length ? labels.join(" · ") : LIVE_NODES;
   }
   async function meshJson(path, init) {
     var headers = { "user-agent": "Mozilla/5.0" };

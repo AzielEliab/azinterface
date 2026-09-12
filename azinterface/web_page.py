@@ -80,6 +80,8 @@ pre {{ white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:#cfc
 .badge {{ display:inline-block; font-size:.75rem; font-weight:700; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--gold-dim); color:var(--gold); }}
 #nodes {{ display:flex; align-items:center; gap:10px; padding:6px 18px; border-bottom:1px solid var(--gold); background:#0f0f0f; flex-wrap:wrap; color:var(--muted); font-size:12px; }}
 #nodes strong {{ color:var(--gold); font-weight:700; }}
+#nodes .on {{ color:var(--gold); }}
+#nodesList {{ flex:1; min-width:12rem; }}
 #pipeline {{ padding:8px 18px 10px; border-bottom:1px solid var(--gold); background:#100e08; }}
 #pipeline strong {{ color:var(--gold); font-size:.82rem; letter-spacing:.02em; }}
 #pipeline .pipe-path {{ margin:.35rem 0 .45rem; color:var(--ivory); font-size:.78rem; }}
@@ -116,8 +118,9 @@ footer a {{ color:var(--gold); }}
 </header>
 <div id="nodes">
   <strong>Live Nodes</strong>
-  <span class="off">Mesh OFF</span>
-  <div>Default off. QNM-BUILD-1.0 rollup. QNS-CD-1.0 vias run in local qnsd (127.0.0.1). AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. GET never enables.</div>
+  <span id="nodesState" class="on">Mesh ON</span>
+  <span id="nodesRollup"></span>
+  <div id="nodesList">Live Nodes. QNM-BUILD-1.0 rollup live|locked|isolated. QNS-CD-1.0 photon vias run in local qnsd (127.0.0.1). AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. Presence only — not anonymity. Anon-broadcast is not a publish path. GET never enables.</div>
 </div>
 {pipeline_strip_html()}
 {domain_map_html()}
@@ -248,7 +251,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
   — this host is custody UI only, not a product MCP
   (<a href="https://github.com/AzielEliab/fraggate">kernel</a>).
   LOCKED pipeline cite: FragGate is THE SINGLE DOOR. MASTER-33 on aziel-runtime. SUITE-PIPE-1.6.15 is historical. AZInterface is not a second door. No LambGate.
-  QNS-CD-1.0 pair memorial. Vias in local qnsd. QNM-BUILD-1.0 mesh default OFF. Not a Node Gate.
+  QNS-CD-1.0 pair memorial. Vias in local qnsd. QNM-BUILD-1.0 Live Nodes read-only. Not a Node Gate.
   Compatible clients: ChatGPT, Grok, Venice, Claude, Cursor, Glama, Perplexity, Copilot, Gemini, Mistral, Meta AI, Apple Intelligence, Amazon Q, DuckAssist, You.com, Cohere, plus other MCP/OpenAPI-capable assistants.
   <a href="https://www.azielcorpuslibrary.net/">library</a> ·
   <a href="https://godlock.uk">godlock.uk</a> ·
@@ -401,7 +404,55 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
   document.getElementById("pair-status-btn").addEventListener("click", async function () {{
     show("pair-out", await call("pair_status", {{}}));
   }});
+  var MESH_STATUS = "{HOST}/v1/mesh/status";
+  var MESH_NODES = "{HOST}/v1/mesh/nodes";
+  function meshRollup(j) {{
+    if (j && j.rollup && typeof j.rollup === "object") {{
+      var live = Number(j.rollup.live);
+      var locked = Number(j.rollup.locked);
+      var isolated = Number(j.rollup.isolated);
+      if ([live, locked, isolated].some(Number.isFinite)) {{
+        return {{ live: Number.isFinite(live) ? live : 0, locked: Number.isFinite(locked) ? locked : 0, isolated: Number.isFinite(isolated) ? isolated : 0 }};
+      }}
+    }}
+    return null;
+  }}
+  function paintMesh(j) {{
+    var stateEl = document.getElementById("nodesState");
+    var rollEl = document.getElementById("nodesRollup");
+    var listEl = document.getElementById("nodesList");
+    if (!stateEl || !rollEl || !listEl) return;
+    stateEl.textContent = "Mesh ON";
+    stateEl.className = "on";
+    if (!j) return;
+    var roll = meshRollup(j);
+    rollEl.textContent = roll
+      ? ("live " + roll.live + " · locked " + roll.locked + " · isolated " + roll.isolated)
+      : ((j.live_nodes || 0) + " live");
+    var products = j.products_present || j.products || [];
+    var roster = j.nodes || [];
+    var labels = roster.length
+      ? roster.map(function (n) {{ return (n && (n.label || n.product || n.node_id)) || ""; }}).filter(Boolean)
+      : products;
+    if (labels.length) listEl.textContent = labels.join(" · ");
+  }}
+  async function meshJson(path) {{
+    var r = await fetch(path, {{ headers: {{ "user-agent": "Mozilla/5.0" }} }});
+    return r.json();
+  }}
+  async function meshTick() {{
+    var status;
+    try {{ status = await meshJson(MESH_STATUS); }} catch (e) {{ return; }}
+    var view = status;
+    try {{
+      var extra = await meshJson(MESH_NODES);
+      if (extra && extra.nodes) view = Object.assign({{}}, status, extra);
+    }} catch (e) {{ /* status is enough */ }}
+    paintMesh(view);
+  }}
   refresh();
+  meshTick();
+  setInterval(meshTick, 20000);
 }})();
 </script>
 </body>
