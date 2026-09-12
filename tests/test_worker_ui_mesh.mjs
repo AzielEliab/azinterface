@@ -3,13 +3,18 @@
  */
 import assert from "node:assert/strict";
 import { homeHtml } from "../workers/download-tracker/src/ui.js";
-import { MESH_OFF_COPY, QNS_CD, QNM_BUILD } from "../workers/download-tracker/src/mesh.js";
+import { LIVE_NODES_COPY, QNS_CD, QNM_BUILD } from "../workers/download-tracker/src/mesh.js";
 
 const html = homeHtml({ views: 1, downloads: 2, github: { stars: 0 } });
 
 assert.match(html, /id="nodes"/);
 assert.match(html, /Live Nodes/);
-assert.match(html, /Mesh OFF/);
+assert.match(html, /Mesh ON/);
+assert.equal(html.includes("Mesh OFF"), false);
+assert.equal(html.includes("MESH_OFF"), false);
+assert.equal(/mesh-off/i.test(html), false);
+assert.equal(html.includes("/v1/mesh/disable"), false);
+assert.equal(/disable button/i.test(html), false);
 assert.match(html, /QNM-BUILD-1.0/);
 assert.match(html, /QNS-CD-1.0/);
 assert.match(html, /live\|locked\|isolated/);
@@ -19,16 +24,22 @@ assert.match(html, /GET never enables/);
 assert.match(html, /qnsd/);
 assert.equal(QNS_CD, "QNS-CD-1.0");
 assert.equal(QNM_BUILD, "QNM-BUILD-1.0");
-assert.match(MESH_OFF_COPY, /QNS-CD-1.0/);
-assert.match(MESH_OFF_COPY, /QNM-BUILD-1.0/);
+assert.match(LIVE_NODES_COPY, /QNS-CD-1.0/);
+assert.match(LIVE_NODES_COPY, /QNM-BUILD-1.0/);
+assert.match(LIVE_NODES_COPY, /Live Nodes/);
+assert.equal(LIVE_NODES_COPY.includes("Mesh OFF"), false);
+assert.equal(/default off/i.test(LIVE_NODES_COPY), false);
 assert.match(html, /pair-offer-btn/);
 assert.match(html, /pair_offer/);
 assert.match(html, /not anonymity/);
 assert.match(html, /not a publish path/);
 assert.match(html, /\/v1\/mesh\/status/);
+assert.match(html, /\/v1\/mesh\/nodes/);
 assert.match(html, /no auto-heal/);
 assert.match(html, /product: MESH_PRODUCT/);
 assert.match(html, /azinterface/);
+assert.match(html, /Live Nodes read-only/);
+assert.equal(/Default OFF/.test(html.split('id="nodes"')[1]?.split("</footer>")[0] || html), false);
 
 assert.match(html, /data-state="ON"/);
 assert.match(html, /data-state="OFF"/);

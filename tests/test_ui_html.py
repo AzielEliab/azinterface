@@ -61,6 +61,14 @@ def test_home_html_wires_buttons() -> None:
     assert "plain A–Z" in html
     assert "AKM-TRIAD" in html
     assert "azielcorpuslibrary.net/sigil.png" in html
+    assert "Live Nodes" in html
+    assert "Mesh ON" in html
+    assert "Mesh OFF" not in html
+    assert "mesh/disable" not in html
+    assert "Default off" not in html
+    assert "mesh default OFF" not in html
+    assert "/v1/mesh/status" in html
+    assert "/v1/mesh/nodes" in html
     local = home_html(local=True)
     assert "azinterface-download-tracker.vibelock.workers.dev/download" in local
     assert "azinterface-download-tracker.vibelock.workers.dev/count" in local
