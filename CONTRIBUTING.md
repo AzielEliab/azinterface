@@ -16,6 +16,7 @@ node tests/test_worker_engine.mjs
 node tests/test_worker_door.mjs
 node tests/test_worker_pipeline.mjs
 node tests/test_worker_ui_mesh.mjs
+node tests/test_worker_mesh_law.mjs
 node tests/test_worker_cite.mjs
 ```
 
@@ -42,7 +43,10 @@ No network. No ML. Not a remote wipe service.
    (OFFER → ACCEPT → SEAL). Pair mutate only at ON after integrity.
    Vias run in local qnsd (127.0.0.1). Do not invent a Softwares-tab QNS
    product, enable mesh from GET, add a Node Gate, or claim untraceable
-   origin.
+   origin. Keep SPLIT THE WIRES (1s loop and 777s gate never share a
+   socket) and COLD-COPY SURVIVAL (no live body sync; server pull cannot
+   wipe cold replicas). REHEAL refuse: isolate+local phoenix; no
+   neighbor vote-to-fix; allowed live/locked/isolated/tip-hash only.
 7. **UI binds loopback only** (`127.0.0.1:8880`). Do not listen on
    `0.0.0.0`. No telemetry. No CDN.
 8. **Do not mix the download tracker** with any other product's Worker
@@ -55,7 +59,7 @@ No network. No ML. Not a remote wipe service.
 
 - Engine / cycle / genesis / witness: `azinterface/engine.py`
 - CLI / doctor / UI: `azinterface/cli.py`, `azinterface/doctor.py`, `azinterface/ui.py`, `azinterface/web_page.py`
-- Spec: `docs/whitepaper.md`, `docs/QNS-CD-1.0.md`
+- Spec: `docs/whitepaper.md`, `docs/QNS-CD-1.0.md`, `docs/SPLIT-THE-WIRES.md`
 - Skill: `SKILL.md` (same text at Worker `GET /v1/skill`)
 - Flutter: `mobile/`
 - Isolated counter: `workers/download-tracker/`

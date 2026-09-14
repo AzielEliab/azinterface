@@ -93,6 +93,12 @@ rollup (live|locked|isolated); default OFF until runtime enable.
 `qnm-node/` **qnsd** (127.0.0.1). Interface holds pair memorial cites —
 not a Softwares-tab QNS product. AIH-WP-1.3 spiderweb is local
 `qnm-node/` — not a public Node Gate.
+SPLIT THE WIRES (0.5–1s tip tick vs 777s pull-only gate; never share a
+socket) and COLD-COPY SURVIVAL (multiply cold copies; refuse live body
+sync; server pull cannot wipe cold replicas). REHEAL refuse:
+isolate+local phoenix; no neighbor vote-to-fix; allowed
+live/locked/isolated/tip-hash only. See
+[docs/SPLIT-THE-WIRES.md](docs/SPLIT-THE-WIRES.md).
 No auto-heal. Not anonymity. Anon-broadcast is not a publish path.
 `GET|POST /mcp` and `/openapi.json` document those ops and **point at
 FragGate** — they are not a second agent brand. `/mcp` keeps `ok: false`
@@ -166,7 +172,7 @@ URL pattern (same as sibling Aziel Eliab products):
 | `/v1/{op}` | Human UI backend — single-segment local ops only |
 | `/v1/fraggate/*` | PROXY to aziel-runtime |
 | `/v1/runtime/*` | PROXY aliases (`list`/`call` → `/v1/fraggate/list`/`call`) |
-| `/v1/mesh/*` | PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF) |
+| `/v1/mesh/*` | PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF). SPLIT THE WIRES + COLD-COPY SURVIVAL cite |
 | `/v1/azpipe/arch` | Local alias of `/v1/pipeline_arch` (embedded MASTER-33; never a runtime 404) |
 | `/v1/pipeline_arch` | Local frozen LOCKED hop-list cite |
 
@@ -197,7 +203,7 @@ Every control calls a real `/v1` handler (same op agents call). No dead buttons.
 | Pipeline cite | `POST /v1/pipeline_arch` | `pipeline_arch` (embedded hop list; alias `/v1/azpipe/arch`; optional `GET /v1/fraggate`) |
 | Scorched Earth local | `POST /v1/scorch_local` | `scorch_local` (advisory) |
 | Remote wipe | `POST /v1/scorch_remote` | stub refuse |
-| Live Nodes strip | `GET /v1/mesh/status` (proxy) | QNM-BUILD-1.0 + QNS-CD-1.0 cite; default OFF; GET never enables |
+| Live Nodes strip | `GET /v1/mesh/status` (proxy) | QNM-BUILD-1.0 + QNS-CD-1.0 + SPLIT THE WIRES + COLD-COPY SURVIVAL; default OFF; GET never enables |
 | Offer | `POST /v1/pair_offer` | `pair_offer` (ON after integrity) |
 | Accept | `POST /v1/pair_accept` | `pair_accept` |
 | Seal | `POST /v1/pair_seal` | `pair_seal` |
@@ -246,6 +252,7 @@ python -m pytest -q
 node tests/test_worker_engine.mjs
 node tests/test_worker_door.mjs
 node tests/test_worker_ui_mesh.mjs
+node tests/test_worker_mesh_law.mjs
 node tests/test_worker_pipeline.mjs
 node tests/test_worker_cite.mjs
 azinterface doctor
@@ -268,7 +275,7 @@ flutter run
 ```
 azinterface/          library (engine, genesis, cycle, pipeline cite, receipts, cli)
 tests/                pytest + worker smoke
-docs/                 AIH-WP-1.0 notes + QNS-CD-1.0 Interface summary
+docs/                 AIH-WP-1.0 notes + QNS-CD-1.0 + SPLIT THE WIRES / COLD-COPY SURVIVAL
 workers/download-tracker/   Cloudflare Worker azinterface-download-tracker
 mobile/               Flutter scaffold
 SKILL.md              agent skill (also GET /v1/skill)
@@ -281,11 +288,12 @@ SKILL.md              agent skill (also GET /v1/skill)
 | CUSTODY | this product (`slug=azinterface`) | Pair memorial, cycle gate, witness cites |
 | VIA | local [`qnm-node/`](https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node) **qnsd** on `127.0.0.1` | QNS1 packet on lan/plc/bt/rf/light/qns/operator/local |
 | CATALOG | [aziel-runtime](https://github.com/AzielEliab/aziel-runtime) | AZInterface + QNM-BUILD-1.0 mesh rollup — not a Softwares-tab QNS card |
+| FABRIC | local `qnm-node` | [SPLIT THE WIRES](docs/SPLIT-THE-WIRES.md) + COLD-COPY SURVIVAL |
 
 Design: [docs/QNS-CD-1.0.md](docs/QNS-CD-1.0.md). Handshake is AIH-WP-1.3
 (`OFFER → ACCEPT → SEAL`). Walker restriction applies. `pair_cut` is not
 a remote wipe. `GET /v1/mesh` never enables. No Node Gate. No untraceable
-origin claim.
+origin claim. Fabric law: [docs/SPLIT-THE-WIRES.md](docs/SPLIT-THE-WIRES.md).
 
 ## Cross-links (optional, not required)
 

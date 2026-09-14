@@ -16,6 +16,7 @@ Local **qnsd** lives in runtime `qnm-node/` and binds **127.0.0.1** only.
 - Canonical tree: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
 - Suite rollup (not the node): [QNM-BUILD-1.0](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/NODE_MESH.md)
 - Fabric concept: [QNM-WP-1.0](https://github.com/AzielEliab/aziel-runtime/blob/main/docs/designs/QNM-WP-1.0.md)
+- Fabric law: [SPLIT THE WIRES + COLD-COPY SURVIVAL](SPLIT-THE-WIRES.md)
 
 AZInterface holds **pair memorial** (pair_id + photon_id cites). Local qnsd
 moves **QNS1** packets. aziel-runtime catalogs AZInterface (`slug=azinterface`)
@@ -102,8 +103,12 @@ AZInterface pair_*  ←memorial cites→  qnm-node qnsd (127.0.0.1)
         (not a second MCP; not a QNS Softwares-tab card)
 ```
 
-`GET /v1/mesh` never enables radios. Live Nodes strip cites QNS-CD-1.0 and
-QNM-BUILD-1.0. No Node Gate. No untraceable-origin claim.
+`GET /v1/mesh` never enables radios. Live Nodes strip cites QNS-CD-1.0,
+QNM-BUILD-1.0, SPLIT THE WIRES, and COLD-COPY SURVIVAL. No Node Gate.
+No untraceable-origin claim. Tip tick and 777s gate never share a socket.
+Server pull cannot wipe cold replicas.
+REHEAL refuse: isolate+local phoenix; no neighbor vote-to-fix;
+allowed live/locked/isolated/tip-hash only.
 
 ## Agent path
 

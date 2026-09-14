@@ -38,6 +38,10 @@ AIH_PAIR = "AIH-WP-1.3"
 QNSD_BIND = "127.0.0.1"
 QNM_NODE = "https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node"
 QNS_DOC = "https://github.com/AzielEliab/azinterface/blob/main/docs/QNS-CD-1.0.md"
+SPLIT_THE_WIRES = "SPLIT THE WIRES"
+COLD_COPY_SURVIVAL = "COLD-COPY SURVIVAL"
+REHEAL = "REHEAL"
+STW_DOC = "https://github.com/AzielEliab/azinterface/blob/main/docs/SPLIT-THE-WIRES.md"
 QNS_VIAS = ("lan", "plc", "bt", "rf", "light", "qns", "operator", "local")
 PAIR_STEPS = ("OFFER", "ACCEPT", "SEAL")
 

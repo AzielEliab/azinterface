@@ -10,7 +10,7 @@ URL pattern after deploy (workers.dev + account subdomain, same as sibling produ
 - `GET /download` — counted tarball (HTTP 200 gzip, no 302)
 - `GET /count` — `{views, downloads, total}`
 - `GET /v1/*` — custody ops (does **not** increment downloads)
-- `GET|POST /v1/mesh/*` — PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF)
+- `GET|POST /v1/mesh/*` — PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF). Cites SPLIT THE WIRES + COLD-COPY SURVIVAL.
 - `GET /v1/fraggate` — PROXY to aziel-runtime FragGate door (MASTER-33 `pipeline` / `pipeline_strip`)
 - `GET|POST /v1/azpipe/arch` — local alias of `pipeline_arch` (embedded MASTER-33; not a Softwares door)
 - `GET|POST /v1/pipeline_arch` — local frozen LOCKED hop-list cite; optional runtime FragGate strip when live
@@ -24,12 +24,15 @@ Human UI includes a **LOCKED pipeline** strip (MASTER-33 on aziel-runtime;
 FragGate is THE SINGLE DOOR; Internal Domain Layer 33/11 isolation labels
 with 4DMap inspection frame, not an extra door (`domains_are_doors:false`); no LambGate) plus the 11-domain
 map, and a **Live Nodes** strip (QNM-BUILD-1.0)
-live|locked|isolated + QNS-CD-1.0 cite). Radios stay off until runtime
+live|locked|isolated + QNS-CD-1.0 cite + SPLIT THE WIRES + COLD-COPY
+SURVIVAL + REHEAL refuse). Radios stay off until runtime
 enable. `GET /v1/mesh` never enables. QNS-CD-1.0 photon vias run in local
 `qnm-node/` qnsd (127.0.0.1); this Worker holds pair memorial cites only.
 AIH-WP-1.3 spiderweb is local `qnm-node/` — this Worker does not invent a
-public Node Gate. No auto-heal. Not anonymity. Anon-broadcast is not a
-publish path. Not a Softwares-tab QNS product.
+public Node Gate. Tip tick is presence+tip hash only; payload is pull-only
+on a second plane; 1s loop and 777s gate never share a socket. Multiply
+cold copies; refuse live body sync; server pull cannot wipe cold replicas.
+No auto-heal. Not anonymity. Anon-broadcast is not a publish path. Not a Softwares-tab QNS product.
 
 Human UI is this Worker. Agent / MCP path is FragGate only:
 `POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call` with
