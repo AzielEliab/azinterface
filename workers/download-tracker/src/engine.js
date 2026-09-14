@@ -7,6 +7,7 @@
  * LOCKED suite pipeline is a cite — runtime owns fabric hops. No LambGate.
  */
 import { FOURDMAP_FRAME, pipelineArch } from "./pipeline.js";
+import { COLD_COPY_SURVIVAL, SPLIT_THE_WIRES, STW_DOC } from "./mesh.js";
 
 export const VERSION = "0.1.0";
 export const SPEC = "AIH-WP-1.0";
@@ -36,6 +37,7 @@ export const AIH_PAIR = "AIH-WP-1.3";
 export const QNSD_BIND = "127.0.0.1";
 export const QNM_NODE = "https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node";
 export const QNS_DOC = "https://github.com/AzielEliab/azinterface/blob/main/docs/QNS-CD-1.0.md";
+export { COLD_COPY_SURVIVAL, SPLIT_THE_WIRES, STW_DOC };
 export const QNS_VIAS = Object.freeze(["lan", "plc", "bt", "rf", "light", "qns", "operator", "local"]);
 export const PAIR_STEPS = Object.freeze(["OFFER", "ACCEPT", "SEAL"]);
 
@@ -158,6 +160,11 @@ export function qnsCrossMap() {
     mesh: QNM_BUILD,
     mesh_default: "OFF",
     get_enables_mesh: false,
+    split_the_wires: SPLIT_THE_WIRES,
+    cold_copy_survival: COLD_COPY_SURVIVAL,
+    stw_doc: STW_DOC,
+    live_body_sync: false,
+    server_pull_wipes_cold: false,
     node_gate: false,
     untraceable_origin: false,
     remote_wipe: false,
@@ -220,6 +227,15 @@ this Worker \`/v1/{op}\` (single-segment local ops only). \`/v1/fraggate/*\`,
 \`/v1/runtime/*\`, and \`/v1/mesh/*\` PROXY to aziel-runtime (\`AZIEL_RUNTIME\`
 or HTTPS). Suite mesh is QNM-BUILD-1.0 rollup (live|locked|isolated);
 default OFF until runtime enable. \`GET /v1/mesh\` never enables.
+SPLIT THE WIRES: 0.5–1s tip tick is presence+tip hash only (fixed-size);
+payload is pull-only on a second plane; update is proof, not a timer
+(cite prev+lockset fail-closed; 777s dwell; clock desync ≠ yes;
+ambiguous = isolate). Equivocation ends the peer. Emit last locally.
+Phoenix local only. Partition does not auto-splice. Heartbeat loss ≠
+poison ≠ apply last packet. The 1s loop and the 777s gate never share
+a socket. COLD-COPY SURVIVAL: multiply cold copies; refuse live body
+sync; tip expensive to erase; server pull cannot wipe cold replicas;
+hash-absolute poison refuse; data outlives creators.
 QNS-CD-1.0 photon vias run in local \`qnm-node/\` **qnsd** (127.0.0.1).
 Interface holds pair memorial cites only — not a Softwares-tab QNS
 product. AIH-WP-1.3 spiderweb is local \`qnm-node/\` — not a public
@@ -278,12 +294,14 @@ Canonical qnsd: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
 | CUSTODY | AZInterface | Pair memorial (\`pair_id\` + \`photon_id\` cites) |
 | VIA | local qnsd | QNS1 packet on lan/plc/bt/rf/light/qns/operator/local |
 | CATALOG | aziel-runtime | \`slug=azinterface\` + QNM-BUILD-1.0 mesh rollup |
+| FABRIC | local qnm-node | SPLIT THE WIRES + COLD-COPY SURVIVAL (\`docs/SPLIT-THE-WIRES.md\`) |
 
 Handshake is AIH-WP-1.3: \`OFFER → ACCEPT → SEAL\`. Walker restriction
 applies. Pair mutate only at ON after integrity. \`pair_status\` reads
 memorial in any cycle. \`pair_cut\` is a dissolve — not a remote wipe.
 Do not invent a Softwares-tab QNS product. Do not claim untraceable
-origin. \`GET /v1/mesh\` never enables. No Node Gate.
+origin. \`GET /v1/mesh\` never enables. No Node Gate. Keep SPLIT THE
+WIRES (split sockets) and COLD-COPY SURVIVAL (no live body sync).
 
 \`hold\` / \`witness_list\` may record \`pair_id\` + \`photon_id\` cites.
 Vault contents are never stored.

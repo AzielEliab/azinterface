@@ -12,6 +12,8 @@
  * Suite mesh is QNM-BUILD-1.0 rollup only (live|locked|isolated). Default OFF.
  * GET never enables. QNS-CD-1.0 vias run in local qnsd (127.0.0.1).
  * AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate.
+ * SPLIT THE WIRES: 1s tip loop and 777s gate never share a socket.
+ * COLD-COPY SURVIVAL: no live body sync; server pull cannot wipe cold replicas.
  *
  * Author: Aziel Eliab only.
  */

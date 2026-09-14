@@ -62,6 +62,8 @@ def test_home_html_wires_buttons() -> None:
     assert "AKM-TRIAD" in html
     assert "azielcorpuslibrary.net/sigil.png" in html
     assert "Live Nodes" in html
+    assert "SPLIT THE WIRES" in html
+    assert "COLD-COPY SURVIVAL" in html
     assert "Mesh ON" in html
     assert "Mesh OFF" not in html
     assert "mesh/disable" not in html

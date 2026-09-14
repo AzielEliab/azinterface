@@ -86,6 +86,10 @@ are never stored. `pair_cut` and `pair_wipe` never remotely wipe devices.
 Walker restriction: unknown vias and mid-handshake via changes refuse.
 Canonical: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node
 — summary in [QNS-CD-1.0.md](QNS-CD-1.0.md).
+Mesh fabric law is [SPLIT THE WIRES](SPLIT-THE-WIRES.md): 0.5–1s tip tick
+(presence+tip hash only) and a 777s pull-only gate never share a socket.
+COLD-COPY SURVIVAL multiplies cold copies, refuses live body sync, and
+does not let a server pull wipe replicas. Data outlives creators.
 
 ## LOCKED suite pipeline
 
