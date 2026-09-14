@@ -25,7 +25,7 @@ FragGate is THE SINGLE DOOR; Internal Domain Layer 33/11 isolation labels
 with 4DMap inspection frame, not an extra door (`domains_are_doors:false`); no LambGate) plus the 11-domain
 map, and a **Live Nodes** strip (QNM-BUILD-1.0)
 live|locked|isolated + QNS-CD-1.0 cite + SPLIT THE WIRES + COLD-COPY
-SURVIVAL). Radios stay off until runtime
+SURVIVAL + REHEAL refuse). Radios stay off until runtime
 enable. `GET /v1/mesh` never enables. QNS-CD-1.0 photon vias run in local
 `qnm-node/` qnsd (127.0.0.1); this Worker holds pair memorial cites only.
 AIH-WP-1.3 spiderweb is local `qnm-node/` — this Worker does not invent a

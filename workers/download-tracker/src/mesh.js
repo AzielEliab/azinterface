@@ -6,6 +6,7 @@
  * Locked fabric law (this Worker encodes; local qnm-node executes):
  *   SPLIT THE WIRES — two planes, never one socket.
  *   COLD-COPY SURVIVAL — multiply cold copies; live body sync refused.
+ *   REHEAL refuse — isolate + local phoenix; no neighbor vote-to-fix.
  *
  * Author: Aziel Eliab only.
  */
@@ -18,6 +19,8 @@ export const SPLIT_THE_WIRES = "SPLIT THE WIRES";
 export const SPLIT_THE_WIRES_SPEC = "STW-1.0";
 export const COLD_COPY_SURVIVAL = "COLD-COPY SURVIVAL";
 export const COLD_COPY_SPEC = "CCS-1.0";
+export const REHEAL = "REHEAL";
+export const REHEAL_SPEC = "REHEAL-REFUSE";
 export const MESH_LAW_AUTHOR = "Aziel Eliab only";
 export const STW_DOC = "https://github.com/AzielEliab/azinterface/blob/main/docs/SPLIT-THE-WIRES.md";
 
@@ -28,6 +31,7 @@ export const TIP_SOCKET = "tip-tick-1s";
 export const GATE_SOCKET = "gate-777";
 export const TIP_FIELDS = Object.freeze(["presence", "tip_hash"]);
 export const TIP_PRESENCE = Object.freeze(["live", "locked", "isolated"]);
+export const REHEAL_ALLOWED = Object.freeze(["live", "locked", "isolated", "tip-hash"]);
 export const TIP_HASH_HEX_LEN = 64;
 export const TIP_PRESENCE_PAD = 8;
 export const TIP_TICK_FIXED_CHARS = TIP_PRESENCE_PAD + TIP_HASH_HEX_LEN;
@@ -84,6 +88,17 @@ export const COLD_COPY_LAW = Object.freeze({
   server_pull_wipes_cold: false,
   hash_absolute_poison_refuse: true,
   data_outlives_creators: true,
+});
+
+export const REHEAL_LAW = Object.freeze({
+  law: REHEAL,
+  spec: REHEAL_SPEC,
+  author: MESH_LAW_AUTHOR,
+  refuse: true,
+  isolate: true,
+  phoenix: "local-only",
+  neighbor_vote_to_fix: false,
+  allowed: REHEAL_ALLOWED,
 });
 
 export function isTipTickInterval(ms) {
@@ -210,10 +225,42 @@ export function judgeEmitLast() {
 
 export function judgePhoenix(input) {
   const src = input && typeof input === "object" ? input : {};
+  if (src.reheal === true || src.vote_to_fix === true || src.neighbor_vote === true) {
+    return { ok: false, scope: "local-only", isolate: true, hunt: false, code: "REHEAL-REFUSE" };
+  }
   if (src.hunt === true || src.controller === true || src.scope === "remote") {
     return { ok: false, scope: "local-only", hunt: false, code: "STW-PHOENIX-HUNT-REFUSE" };
   }
   return { ok: true, scope: "local-only", hunt: false, code: "STW-PHOENIX-LOCAL" };
+}
+
+export function rehealSurfaceAllows(token) {
+  const raw = String(token || "").toLowerCase();
+  const mapped = raw === "tip_hash" || raw === "tiphash" ? "tip-hash" : raw;
+  return REHEAL_ALLOWED.includes(mapped);
+}
+
+export function judgeRehealSurface(fields) {
+  const list = Array.isArray(fields) ? fields : [];
+  const bad = list.filter((field) => !rehealSurfaceAllows(field));
+  if (bad.length) {
+    return { ok: false, refuse: true, allowed: REHEAL_ALLOWED.slice(), extras: bad, code: "REHEAL-SURFACE-REFUSE" };
+  }
+  return { ok: true, allowed: REHEAL_ALLOWED.slice(), extras: [], code: "REHEAL-SURFACE-OK" };
+}
+
+export function judgeReheal(input) {
+  const src = input && typeof input === "object" ? input : {};
+  const vote = src.neighbor_vote === true || src.vote_to_fix === true || src.neighbors_fix === true;
+  return {
+    ok: false,
+    refuse: true,
+    isolate: true,
+    phoenix: "local-only",
+    neighbor_vote_to_fix: false,
+    allowed: REHEAL_ALLOWED.slice(),
+    code: vote ? "REHEAL-VOTE-REFUSE" : "REHEAL-REFUSE",
+  };
 }
 
 export function judgePartition() {
@@ -280,6 +327,7 @@ export function meshLaw() {
   return Object.freeze({
     split_the_wires: SPLIT_THE_WIRES_LAW,
     cold_copy_survival: COLD_COPY_LAW,
+    reheal: REHEAL_LAW,
     sockets: socketsMustSplit(TIP_SOCKET, GATE_SOCKET),
     doc: STW_DOC,
     author: MESH_LAW_AUTHOR,
@@ -295,6 +343,7 @@ export const LIVE_NODES_COPY =
   "heartbeat loss≠poison≠apply last packet; 1s loop and 777s gate never share a socket. " +
   "COLD-COPY SURVIVAL: multiply cold copies; refuse live body sync; tip expensive to erase; " +
   "server pull cannot wipe cold replicas; hash-absolute poison refuse; data outlives creators. " +
+  "REHEAL refuse: isolate+local phoenix; no neighbor vote-to-fix; allowed live/locked/isolated/tip-hash only. " +
   "QNS-CD-1.0 photon vias run in local qnsd (127.0.0.1). " +
   "AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. " +
   "Presence only — not anonymity. Anon-broadcast is not a publish path. " +
@@ -316,6 +365,7 @@ export function meshClientScript() {
   var LIVE_NODES = ${JSON.stringify(LIVE_NODES_COPY)};
   var SPLIT_THE_WIRES = ${JSON.stringify(SPLIT_THE_WIRES)};
   var COLD_COPY_SURVIVAL = ${JSON.stringify(COLD_COPY_SURVIVAL)};
+  var REHEAL = ${JSON.stringify(REHEAL)};
   var TIP_SOCKET = ${JSON.stringify(TIP_SOCKET)};
   var GATE_SOCKET = ${JSON.stringify(GATE_SOCKET)};
   var GATE_DWELL_S = ${GATE_DWELL_S};
@@ -401,6 +451,11 @@ export function meshClientScript() {
       var extra = await meshJson("/v1/mesh/nodes", { method: "GET" }, TIP_SOCKET);
       if (extra && extra.nodes) view = Object.assign({}, status, extra);
     } catch (e) { /* status is enough */ }
+    if (view && (view.reheal === true || view.vote_to_fix === true || view.neighbor_vote === true)) {
+      lastPacket = null;
+      /* REHEAL refuse: isolate+local phoenix; no neighbor vote-to-fix */
+      return;
+    }
     paintMesh(view);
     if (!view || !view.enabled) return;
     var now = Date.now();
@@ -421,7 +476,7 @@ export function meshClientScript() {
         else if (hb && (hb.nodes || hb.live_nodes != null || hb.rollup)) paintMesh(hb);
       } catch (e) {
         lastPacket = null;
-        /* heartbeat loss≠poison≠apply last packet; no auto-heal; Phoenix local only; partition no auto-splice */
+        /* heartbeat loss≠poison≠apply last packet; REHEAL refuse isolate+local phoenix; no neighbor vote-to-fix; no auto-heal */
       }
     }
   }

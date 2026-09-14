@@ -60,6 +60,8 @@ poison ≠ apply last packet. The 1s loop and the 777s gate never share
 a socket. COLD-COPY SURVIVAL: multiply cold copies; refuse live body
 sync; tip expensive to erase; server pull cannot wipe cold replicas;
 hash-absolute poison refuse; data outlives creators.
+REHEAL refuse: isolate+local phoenix; no neighbor vote-to-fix;
+allowed live/locked/isolated/tip-hash only.
 QNS-CD-1.0 photon vias run in local `qnm-node/` **qnsd** (127.0.0.1).
 Interface holds pair memorial cites only — not a Softwares-tab QNS
 product. AIH-WP-1.3 spiderweb is local `qnm-node/` — not a public
@@ -126,6 +128,7 @@ memorial in any cycle. `pair_cut` is a dissolve — not a remote wipe.
 Do not invent a Softwares-tab QNS product. Do not claim untraceable
 origin. `GET /v1/mesh` never enables. No Node Gate. Keep SPLIT THE
 WIRES (split sockets) and COLD-COPY SURVIVAL (no live body sync).
+REHEAL refuse (isolate+local phoenix; no neighbor vote-to-fix).
 
 `hold` / `witness_list` may record `pair_id` + `photon_id` cites.
 Vault contents are never stored.

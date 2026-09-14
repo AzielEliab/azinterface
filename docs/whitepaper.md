@@ -90,6 +90,8 @@ Mesh fabric law is [SPLIT THE WIRES](SPLIT-THE-WIRES.md): 0.5–1s tip tick
 (presence+tip hash only) and a 777s pull-only gate never share a socket.
 COLD-COPY SURVIVAL multiplies cold copies, refuses live body sync, and
 does not let a server pull wipe replicas. Data outlives creators.
+REHEAL is refused: isolate + local phoenix; no neighbor vote-to-fix;
+allowed live/locked/isolated/tip-hash only.
 
 ## LOCKED suite pipeline
 

@@ -45,7 +45,8 @@ No network. No ML. Not a remote wipe service.
    product, enable mesh from GET, add a Node Gate, or claim untraceable
    origin. Keep SPLIT THE WIRES (1s loop and 777s gate never share a
    socket) and COLD-COPY SURVIVAL (no live body sync; server pull cannot
-   wipe cold replicas).
+   wipe cold replicas). REHEAL refuse: isolate+local phoenix; no
+   neighbor vote-to-fix; allowed live/locked/isolated/tip-hash only.
 7. **UI binds loopback only** (`127.0.0.1:8880`). Do not listen on
    `0.0.0.0`. No telemetry. No CDN.
 8. **Do not mix the download tracker** with any other product's Worker

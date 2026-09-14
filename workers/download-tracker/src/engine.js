@@ -7,7 +7,7 @@
  * LOCKED suite pipeline is a cite — runtime owns fabric hops. No LambGate.
  */
 import { FOURDMAP_FRAME, pipelineArch } from "./pipeline.js";
-import { COLD_COPY_SURVIVAL, SPLIT_THE_WIRES, STW_DOC } from "./mesh.js";
+import { COLD_COPY_SURVIVAL, REHEAL, SPLIT_THE_WIRES, STW_DOC } from "./mesh.js";
 
 export const VERSION = "0.1.0";
 export const SPEC = "AIH-WP-1.0";
@@ -37,7 +37,7 @@ export const AIH_PAIR = "AIH-WP-1.3";
 export const QNSD_BIND = "127.0.0.1";
 export const QNM_NODE = "https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node";
 export const QNS_DOC = "https://github.com/AzielEliab/azinterface/blob/main/docs/QNS-CD-1.0.md";
-export { COLD_COPY_SURVIVAL, SPLIT_THE_WIRES, STW_DOC };
+export { COLD_COPY_SURVIVAL, REHEAL, SPLIT_THE_WIRES, STW_DOC };
 export const QNS_VIAS = Object.freeze(["lan", "plc", "bt", "rf", "light", "qns", "operator", "local"]);
 export const PAIR_STEPS = Object.freeze(["OFFER", "ACCEPT", "SEAL"]);
 
@@ -162,6 +162,9 @@ export function qnsCrossMap() {
     get_enables_mesh: false,
     split_the_wires: SPLIT_THE_WIRES,
     cold_copy_survival: COLD_COPY_SURVIVAL,
+    reheal: REHEAL,
+    reheal_refuse: true,
+    neighbor_vote_to_fix: false,
     stw_doc: STW_DOC,
     live_body_sync: false,
     server_pull_wipes_cold: false,
@@ -236,6 +239,8 @@ poison ≠ apply last packet. The 1s loop and the 777s gate never share
 a socket. COLD-COPY SURVIVAL: multiply cold copies; refuse live body
 sync; tip expensive to erase; server pull cannot wipe cold replicas;
 hash-absolute poison refuse; data outlives creators.
+REHEAL refuse: isolate+local phoenix; no neighbor vote-to-fix;
+allowed live/locked/isolated/tip-hash only.
 QNS-CD-1.0 photon vias run in local \`qnm-node/\` **qnsd** (127.0.0.1).
 Interface holds pair memorial cites only — not a Softwares-tab QNS
 product. AIH-WP-1.3 spiderweb is local \`qnm-node/\` — not a public
@@ -302,6 +307,7 @@ memorial in any cycle. \`pair_cut\` is a dissolve — not a remote wipe.
 Do not invent a Softwares-tab QNS product. Do not claim untraceable
 origin. \`GET /v1/mesh\` never enables. No Node Gate. Keep SPLIT THE
 WIRES (split sockets) and COLD-COPY SURVIVAL (no live body sync).
+REHEAL refuse (isolate+local phoenix; no neighbor vote-to-fix).
 
 \`hold\` / \`witness_list\` may record \`pair_id\` + \`photon_id\` cites.
 Vault contents are never stored.

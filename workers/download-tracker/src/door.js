@@ -14,6 +14,8 @@
  * AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate.
  * SPLIT THE WIRES: 1s tip loop and 777s gate never share a socket.
  * COLD-COPY SURVIVAL: no live body sync; server pull cannot wipe cold replicas.
+ * REHEAL refuse: isolate + local phoenix; no neighbor vote-to-fix;
+ * allowed live/locked/isolated/tip-hash only.
  *
  * Author: Aziel Eliab only.
  */

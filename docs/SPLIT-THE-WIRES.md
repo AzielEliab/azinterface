@@ -53,6 +53,16 @@ Keep SPLIT THE WIRES. Survival is a second law on the same fabric.
 Refuse codes: `CCS-LIVE-BODY-SYNC-REFUSE`, `CCS-COLD-WIPE-REFUSE`,
 `CCS-POISON-REFUSE`.
 
+## REHEAL refuse
+
+Keep SPLIT THE WIRES and COLD-COPY SURVIVAL. Reheal is refused.
+
+- **Isolate + local phoenix** (no controller hunt, no remote phoenix).
+- **No neighbor vote-to-fix.**
+- Allowed surface tokens: **live / locked / isolated / tip-hash only.**
+
+Refuse codes: `REHEAL-REFUSE`, `REHEAL-VOTE-REFUSE`, `REHEAL-SURFACE-REFUSE`.
+
 A GET of `/v1/mesh` never enables radios and never wipes a cold replica.
 Scorched Earth on this Worker stays a local stub/advisory only.
 

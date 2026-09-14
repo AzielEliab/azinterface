@@ -120,7 +120,7 @@ footer a {{ color:var(--gold); }}
   <strong>Live Nodes</strong>
   <span id="nodesState" class="on">Mesh ON</span>
   <span id="nodesRollup"></span>
-  <div id="nodesList">Live Nodes. QNM-BUILD-1.0 rollup live|locked|isolated. SPLIT THE WIRES: 0.5–1s tip tick presence+tip hash only fixed-size; payload pull-only second plane; update=proof not timer (cite prev+lockset fail-closed; 777s dwell after valid cite; clock desync≠yes; ambiguous=isolate); equivocation ends peer; emit last locally; Phoenix local only; partition no auto-splice; heartbeat loss≠poison≠apply last packet; 1s loop and 777s gate never share a socket. COLD-COPY SURVIVAL: multiply cold copies; refuse live body sync; tip expensive to erase; server pull cannot wipe cold replicas; hash-absolute poison refuse; data outlives creators. QNS-CD-1.0 photon vias run in local qnsd (127.0.0.1). AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. Presence only — not anonymity. Anon-broadcast is not a publish path. GET never enables.</div>
+  <div id="nodesList">Live Nodes. QNM-BUILD-1.0 rollup live|locked|isolated. SPLIT THE WIRES: 0.5–1s tip tick presence+tip hash only fixed-size; payload pull-only second plane; update=proof not timer (cite prev+lockset fail-closed; 777s dwell after valid cite; clock desync≠yes; ambiguous=isolate); equivocation ends peer; emit last locally; Phoenix local only; partition no auto-splice; heartbeat loss≠poison≠apply last packet; 1s loop and 777s gate never share a socket. COLD-COPY SURVIVAL: multiply cold copies; refuse live body sync; tip expensive to erase; server pull cannot wipe cold replicas; hash-absolute poison refuse; data outlives creators. REHEAL refuse: isolate+local phoenix; no neighbor vote-to-fix; allowed live/locked/isolated/tip-hash only. QNS-CD-1.0 photon vias run in local qnsd (127.0.0.1). AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. Presence only — not anonymity. Anon-broadcast is not a publish path. GET never enables.</div>
 </div>
 {pipeline_strip_html()}
 {domain_map_html()}
@@ -251,7 +251,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
   — this host is custody UI only, not a product MCP
   (<a href="https://github.com/AzielEliab/fraggate">kernel</a>).
   LOCKED pipeline cite: FragGate is THE SINGLE DOOR. MASTER-33 on aziel-runtime. SUITE-PIPE-1.6.15 is historical. AZInterface is not a second door. No LambGate.
-  QNS-CD-1.0 pair memorial. Vias in local qnsd. QNM-BUILD-1.0 Live Nodes read-only. SPLIT THE WIRES + COLD-COPY SURVIVAL. Not a Node Gate.
+  QNS-CD-1.0 pair memorial. Vias in local qnsd. QNM-BUILD-1.0 Live Nodes read-only. SPLIT THE WIRES + COLD-COPY SURVIVAL. REHEAL refuse. Not a Node Gate.
   Compatible clients: ChatGPT, Grok, Venice, Claude, Cursor, Glama, Perplexity, Copilot, Gemini, Mistral, Meta AI, Apple Intelligence, Amazon Q, DuckAssist, You.com, Cohere, plus other MCP/OpenAPI-capable assistants.
   <a href="https://www.azielcorpuslibrary.net/">library</a> ·
   <a href="https://godlock.uk">godlock.uk</a> ·

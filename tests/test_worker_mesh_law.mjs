@@ -6,6 +6,9 @@ import assert from "node:assert/strict";
 import {
   COLD_COPY_LAW,
   COLD_COPY_SURVIVAL,
+  REHEAL,
+  REHEAL_ALLOWED,
+  REHEAL_LAW,
   GATE_DWELL_S,
   GATE_SOCKET,
   LIVE_NODES_COPY,
@@ -25,7 +28,10 @@ import {
   judgePartition,
   judgePhoenix,
   judgePoison,
+  judgeReheal,
+  judgeRehealSurface,
   judgeUpdate,
+  rehealSurfaceAllows,
   mayPushPayload,
   meshClientScript,
   meshLaw,
@@ -65,6 +71,13 @@ assert.equal(COLD_COPY_LAW.tip_expensive_to_erase, true);
 assert.equal(COLD_COPY_LAW.server_pull_wipes_cold, false);
 assert.equal(COLD_COPY_LAW.hash_absolute_poison_refuse, true);
 assert.equal(COLD_COPY_LAW.data_outlives_creators, true);
+assert.equal(REHEAL, "REHEAL");
+assert.equal(REHEAL_LAW.refuse, true);
+assert.equal(REHEAL_LAW.isolate, true);
+assert.equal(REHEAL_LAW.phoenix, "local-only");
+assert.equal(REHEAL_LAW.neighbor_vote_to_fix, false);
+assert.deepEqual(REHEAL_ALLOWED, ["live", "locked", "isolated", "tip-hash"]);
+assert.deepEqual(REHEAL_LAW.allowed, REHEAL_ALLOWED);
 
 assert.equal(isTipTickInterval(499), false);
 assert.equal(isTipTickInterval(500), true);
@@ -112,7 +125,20 @@ assert.equal(judgeEquivocation([{ height: 1, tip_hash: HASH_A }, { height: 1, ti
 assert.equal(judgeEquivocation([{ height: 1, tip_hash: HASH_A }, { height: 1, tip_hash: HASH_A }]).ok, true);
 assert.equal(judgeEmitLast().scope, "locally");
 assert.equal(judgePhoenix({ hunt: true }).code, "STW-PHOENIX-HUNT-REFUSE");
+assert.equal(judgePhoenix({ reheal: true }).code, "REHEAL-REFUSE");
 assert.equal(judgePhoenix({}).scope, "local-only");
+const reheal = judgeReheal({});
+assert.equal(reheal.ok, false);
+assert.equal(reheal.isolate, true);
+assert.equal(reheal.phoenix, "local-only");
+assert.equal(reheal.neighbor_vote_to_fix, false);
+assert.equal(reheal.code, "REHEAL-REFUSE");
+assert.equal(judgeReheal({ neighbor_vote: true }).code, "REHEAL-VOTE-REFUSE");
+assert.equal(rehealSurfaceAllows("live"), true);
+assert.equal(rehealSurfaceAllows("tip_hash"), true);
+assert.equal(rehealSurfaceAllows("score"), false);
+assert.equal(judgeRehealSurface(["live", "locked", "isolated", "tip-hash"]).ok, true);
+assert.equal(judgeRehealSurface(["live", "vote"]).code, "REHEAL-SURFACE-REFUSE");
 assert.equal(judgePartition().auto_splice, false);
 
 const grown = multiplyColdCopies(["a"]);
@@ -131,6 +157,8 @@ assert.equal(dataOutlivesCreators({}).creator_death_deletes, false);
 const card = meshLaw();
 assert.equal(card.split_the_wires.law, SPLIT_THE_WIRES);
 assert.equal(card.cold_copy_survival.law, COLD_COPY_SURVIVAL);
+assert.equal(card.reheal.law, REHEAL);
+assert.equal(card.reheal.refuse, true);
 assert.equal(card.sockets.ok, true);
 assert.equal(card.author, "Aziel Eliab only");
 
@@ -155,10 +183,15 @@ assert.match(LIVE_NODES_COPY, /tip expensive to erase/);
 assert.match(LIVE_NODES_COPY, /server pull cannot wipe cold replicas/);
 assert.match(LIVE_NODES_COPY, /hash-absolute poison refuse/);
 assert.match(LIVE_NODES_COPY, /data outlives creators/);
+assert.match(LIVE_NODES_COPY, /REHEAL refuse/);
+assert.match(LIVE_NODES_COPY, /isolate\+local phoenix/);
+assert.match(LIVE_NODES_COPY, /no neighbor vote-to-fix/);
+assert.match(LIVE_NODES_COPY, /allowed live\/locked\/isolated\/tip-hash only/);
 
 const html = meshStripHtml();
 assert.match(html, /SPLIT THE WIRES/);
 assert.match(html, /COLD-COPY SURVIVAL/);
+assert.match(html, /REHEAL refuse/);
 
 const script = meshClientScript();
 assert.match(script, /var TIP_SOCKET = "tip-tick-1s"/);
@@ -169,6 +202,9 @@ assert.match(script, /CCS-LIVE-BODY-SYNC-REFUSE/);
 assert.match(script, /heartbeat loss≠poison≠apply last packet/);
 assert.match(script, /Phoenix local only/);
 assert.match(script, /partition no auto-splice/);
+assert.match(script, /REHEAL refuse: isolate\+local phoenix/);
+assert.match(script, /no neighbor vote-to-fix/);
+assert.match(script, /var REHEAL = "REHEAL"/);
 assert.match(script, /no auto-heal/);
 assert.match(script, /product: MESH_PRODUCT/);
 assert.match(script, /azinterface/);
@@ -177,4 +213,4 @@ assert.match(script, /\/v1\/mesh\/nodes/);
 assert.equal(script.includes("apply last packet"), true);
 assert.equal(/live body sync/i.test(LIVE_NODES_COPY), true);
 
-console.log("worker mesh law SPLIT THE WIRES + COLD-COPY SURVIVAL ok");
+console.log("worker mesh law SPLIT THE WIRES + COLD-COPY SURVIVAL + REHEAL refuse ok");

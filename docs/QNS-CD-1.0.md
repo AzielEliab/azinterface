@@ -107,6 +107,8 @@ AZInterface pair_*  ←memorial cites→  qnm-node qnsd (127.0.0.1)
 QNM-BUILD-1.0, SPLIT THE WIRES, and COLD-COPY SURVIVAL. No Node Gate.
 No untraceable-origin claim. Tip tick and 777s gate never share a socket.
 Server pull cannot wipe cold replicas.
+REHEAL refuse: isolate+local phoenix; no neighbor vote-to-fix;
+allowed live/locked/isolated/tip-hash only.
 
 ## Agent path
 

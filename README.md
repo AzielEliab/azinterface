@@ -95,7 +95,9 @@ not a Softwares-tab QNS product. AIH-WP-1.3 spiderweb is local
 `qnm-node/` — not a public Node Gate.
 SPLIT THE WIRES (0.5–1s tip tick vs 777s pull-only gate; never share a
 socket) and COLD-COPY SURVIVAL (multiply cold copies; refuse live body
-sync; server pull cannot wipe cold replicas). See
+sync; server pull cannot wipe cold replicas). REHEAL refuse:
+isolate+local phoenix; no neighbor vote-to-fix; allowed
+live/locked/isolated/tip-hash only. See
 [docs/SPLIT-THE-WIRES.md](docs/SPLIT-THE-WIRES.md).
 No auto-heal. Not anonymity. Anon-broadcast is not a publish path.
 `GET|POST /mcp` and `/openapi.json` document those ops and **point at
