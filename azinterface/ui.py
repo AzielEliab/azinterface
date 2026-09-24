@@ -12,8 +12,11 @@ from .engine import Engine
 from .local_page import operator_html
 from .meta import IDENTITY, LIMITATION, LOOPBACK, NAME, PORT, SPEC, VERSION
 from .receipts import Ledger
+from .suite import SLUG_RE, Suite, bundled_software
+from .suite_page import suite_html
 
 _ENGINE = Engine(Ledger())
+SUITE = Suite()
 
 
 def wants_json(accept: str | None) -> bool:
@@ -53,6 +56,11 @@ def local_html(port: int | None = None) -> str:
     return operator_html(port=PORT if port is None else port)
 
 
+def desk_html(port: int | None = None) -> str:
+    bound = PORT if port is None else port
+    return suite_html(port=bound, vendor=str(SUITE.vendor))
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "AZ-Interface/0.1.0"
 
@@ -82,9 +90,34 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/":
             host, bound_port = self.server.server_address[:2]
             if wants_json(self.headers.get("Accept")):
-                self._json(home_document(_ENGINE, str(host), int(bound_port)))
+                doc = home_document(_ENGINE, str(host), int(bound_port))
+                doc["suite"] = True
+                doc["software_count"] = len(bundled_software())
+                doc["software_source"] = "bundled snapshot"
+                self._json(doc)
                 return
+            self._html(desk_html(port=int(bound_port)))
+            return
+        if path == "/custody":
+            host, bound_port = self.server.server_address[:2]
             self._html(local_html(port=int(bound_port)))
+            return
+        if path == "/suite/software":
+            self._json(SUITE.document())
+            return
+        if path.startswith("/suite/fraggate/"):
+            slug = path.rsplit("/", 1)[-1]
+            if not SLUG_RE.fullmatch(slug):
+                self._json({"ok": False, "error": "Unknown Software."}, 404)
+                return
+            page = SUITE.fraggate_html(slug)
+            if page is None:
+                self._html(
+                    "<!DOCTYPE html><html lang=\"en\"><body><p>This Software is not on FragGate. "
+                    "Open its local page from the suite when it is installed.</p></body></html>"
+                )
+                return
+            self._html(page)
             return
         if path == "/cite.json":
             self._json(cite_document())
@@ -117,6 +150,20 @@ class Handler(BaseHTTPRequestHandler):
             payload = json.loads(raw.decode("utf-8") or "{}")
         except json.JSONDecodeError:
             payload = {}
+        if path == "/suite/start":
+            self._json(SUITE.start())
+            return
+        if path == "/suite/boot":
+            slug = str(payload.get("slug") or "") if isinstance(payload, dict) else ""
+            self._json(SUITE.boot(slug))
+            return
+        if path == "/suite/fraggate":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The session body must be a JSON object."}, 400)
+                return
+            body = payload.get("payload") if isinstance(payload.get("payload"), dict) else {}
+            self._json(SUITE.fraggate_call(str(payload.get("slug") or ""), str(payload.get("op") or ""), body))
+            return
         if not path.startswith("/v1/"):
             self._json({"error": "not found"}, 404)
             return
@@ -150,5 +197,6 @@ def serve(host: str = LOOPBACK, port: int = PORT) -> int:
     except KeyboardInterrupt:
         print("halted. Custody receipts remain local.")
     finally:
+        SUITE.stop()
         httpd.server_close()
     return 0

@@ -52,7 +52,7 @@ AZHub = "https://github.com/AzielEliab/azhub"
 include = ["azinterface*"]
 
 [tool.setuptools.package-data]
-azinterface = ["web/*"]
+azinterface = ["web/*", "data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

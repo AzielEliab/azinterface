@@ -32,5 +32,5 @@ echo
 echo "Installed AZInterface."
 echo "Next: azinterface"
 echo "Then: azinterface ui"
-echo "Open http://127.0.0.1:8880/"
+echo "Open http://127.0.0.1:8880/ and press Start suite."
 echo "Author: Aziel Eliab."

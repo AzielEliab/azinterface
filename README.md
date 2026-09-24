@@ -1,6 +1,6 @@
 # AZInterface
 
-AZInterface is the custodial operating environment for this computer (AIH-WP-1.0). It holds, withdraws, and witnesses through five sealed page cycles.
+AZInterface is the suite shell for this computer (AIH-WP-1.0). It opens the Softwares that can run here, and it keeps custody through five sealed page cycles.
 
 Author: Aziel Eliab · September 2026 · v0.1.0 · [Apache-2.0](LICENSE)
 
@@ -12,7 +12,7 @@ azinterface
 azinterface ui
 ```
 
-Open http://127.0.0.1:8880/ on this computer. The local page leads with Integrity check. Other controls are under Advanced.
+Open http://127.0.0.1:8880/ on this computer and press **Start suite**. Custody (integrity and the page cycle) is under Advanced.
 
 Forks are welcome and always allowed. How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -120,7 +120,7 @@ Agents use aziel-runtime FragGate/MCP — not a second Interface MCP.
 
 1. Download and unpack [azinterface-0.1.0.tar.gz](https://azinterface-download-tracker.vibelock.workers.dev/download?asset=azinterface-0.1.0.tar.gz) (`tar -xzf azinterface-0.1.0.tar.gz`).
 2. `python3 -m venv .venv && source .venv/bin/activate && pip install -e .`
-3. `azinterface ui` and open http://127.0.0.1:8880/
+3. `azinterface ui`, open http://127.0.0.1:8880/, and press Start suite.
 
 After download, run `sha256sum azinterface-0.1.0.tar.gz` (or `shasum -a 256`)
 and compare with a hash you trust.

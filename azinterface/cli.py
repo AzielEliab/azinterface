@@ -20,7 +20,7 @@ from .doctor import run_doctor
 from .receipts import Ledger
 
 ROOT_HELP = f"""\
-AZInterface — custody on this computer (hold, withdraw, witness).
+AZInterface — the Softwares suite on this computer.
 
 Usage:
   azinterface
@@ -28,9 +28,9 @@ Usage:
 
 Start here:
   azinterface                 What this is, and what to run next
-  azinterface ui              Open http://{LOOPBACK}:{PORT}/
+  azinterface ui              Open http://{LOOPBACK}:{PORT}/ and press Start suite
+  azinterface suite           List Softwares and whether each one can open
   azinterface doctor          Check this install
-  azinterface integrity       Record an integrity check
 
 Everyday:
   azinterface genesis <seed>  One-time genesis key (the seed is hashed and discarded)
@@ -54,6 +54,7 @@ Advanced:
   azinterface pair-status
   azinterface call OP [--payload '{{}}']
   azinterface version
+  azinterface integrity       Record an integrity check
 
 Options:
   --json            Print the machine JSON for a command
@@ -67,11 +68,12 @@ Author: {IDENTITY}
 """
 
 WELCOME = f"""\
-AZInterface keeps custody on this computer. Hold, withdraw, and witness stay on a sealed page cycle: OFF, then integrity, then ON, then full shutdown, then memorial.
+AZInterface is the suite shell on this computer. It opens the Softwares that can run here.
 
-Open the local page and run Integrity check.
+Open the suite and press Start suite.
 
   azinterface ui
+  azinterface suite
   azinterface doctor
   azinterface --help
 
@@ -290,6 +292,7 @@ def _parser() -> HumanParser:
     doctor = sub.add_parser("doctor", help="Check this install")
     doctor.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
     ui = sub.add_parser("ui", help=f"Open http://{LOOPBACK}:{PORT}/")
+    sub.add_parser("suite", help="List Softwares and whether each one can open")
     ui.add_argument("--port", type=int, default=PORT)
     sub.add_parser("health", help="Local health record")
     sub.add_parser("ops", help="List live and stub operations")
@@ -342,6 +345,24 @@ def main(argv: list[str] | None = None) -> int:
         from .ui import serve
 
         return serve(port=int(args.port))
+    if args.cmd == "suite":
+        from .suite import Suite
+
+        doc = Suite(refresh=False).document()
+        if as_json:
+            return emit(doc, True)
+        print(f"Softwares — {doc['count']} in the {doc['source']}.")
+        print()
+        for row in doc["software"]:
+            print(f"{row['name']} — {row['label']}")
+            if row.get("reason"):
+                print(f"  {row['reason']}")
+            if row.get("next"):
+                print(f"  Next: {row['next']}")
+        print()
+        print(f"Open the suite: azinterface ui  →  http://{LOOPBACK}:{PORT}/")
+        print(f"Author: {IDENTITY}")
+        return 0
 
     eng = _engine(args)
     if args.cmd == "ops":

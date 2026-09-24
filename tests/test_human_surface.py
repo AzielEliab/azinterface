@@ -35,7 +35,7 @@ def test_bare_command_welcomes(capsys: pytest.CaptureFixture[str]) -> None:
     assert main([]) == 0
     out = capsys.readouterr().out
     assert "azinterface ui" in out
-    assert "Integrity check" in out
+    assert "Start suite" in out
     assert "Author: Aziel Eliab" in out
     assert not out.lstrip().startswith("{")
     assert "arguments are required" not in out
@@ -176,8 +176,11 @@ def test_loopback_accept_header() -> None:
         html = urlopen(
             Request(f"http://{LOOPBACK}:{port}/", headers={"Accept": "text/html"})
         ).read().decode()
-        assert "Integrity check" in html
+        assert 'id="start-suite"' in html
+        assert html.find('id="start-suite"') < html.find('id="advanced"')
         assert "One-click install" not in html
+        custody = urlopen(f"http://{LOOPBACK}:{port}/custody").read().decode()
+        assert 'id="integrity-btn"' in custody
         raw = urlopen(
             Request(f"http://{LOOPBACK}:{port}/", headers={"Accept": "application/json"})
         ).read().decode()
