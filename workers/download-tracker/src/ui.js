@@ -143,62 +143,90 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
 <div class="grid">
   <div class="card">
     <h2>Site state</h2>
-    <p>Sealed cycle: <strong>OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL</strong>. One step only. No skip. Living presence only at ON after integrity. No cloud-asleep availability.</p>
-    <p>State <span class="badge" id="state-badge">OFF</span> · living <span class="badge" id="live-badge">false</span></p>
-    <div class="row">
-      <button class="act" data-state="ON" type="button">ON</button>
-      <button class="ghost" data-state="OFF" type="button">OFF</button>
-      <button class="danger" data-state="FULL_SHUTDOWN" type="button">FULL SHUTDOWN</button>
-      <button class="ghost" data-state="MEMORIAL" type="button">MEMORIAL</button>
+    <div class="app-bar" id="app-bar">
+      <label for="app-view">Tool</label>
+      <select id="app-view">
+        <option value="cycle">Page cycle</option>
+        <option value="integrity" selected>Integrity</option>
+        <option value="genesis">Genesis key</option>
+        <option value="custody">Hold and witness</option>
+        <option value="pair">QNS pair</option>
+        <option value="bunker">AZHome</option>
+        <option value="scorch">Scorched Earth</option>
+        <option value="pipeline">Pipeline cite</option>
+      </select>
+      <p class="app-status">State <span class="badge" id="state-badge">OFF</span> · living <span class="badge" id="live-badge">false</span></p>
+      <p class="app-next" id="app-next" role="status">Next step: check integrity. One step only.</p>
     </div>
-    <div id="cycle-toast" role="status" aria-live="polite"></div>
-    <div class="out-panel" id="state-out"></div>
+    <div class="app-panel" data-app-panel="cycle">
+      <p>Sealed cycle: <strong>OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL</strong>. One step only. Living presence is ON after integrity.</p>
+      <div class="row" id="cycle-primary"></div>
+      <details class="app-more" id="cycle-more">
+        <summary>Other cycle steps</summary>
+        <p class="app-note">These steps stay available. The page returns a plain reason when a step is not next.</p>
+        <div class="row" id="cycle-more-row">
+          <button class="ghost" data-state="ON" type="button">Advance to ON</button>
+          <button class="ghost" data-state="OFF" type="button">OFF</button>
+          <button class="danger" data-state="FULL_SHUTDOWN" type="button">FULL SHUTDOWN</button>
+          <button class="ghost" data-state="MEMORIAL" type="button">MEMORIAL</button>
+        </div>
+      </details>
+      <div id="cycle-toast" role="status" aria-live="polite"></div>
+      <div class="out-panel" id="state-out"></div>
+    </div>
   </div>
   <div class="card">
-    <h2>Integrity loop</h2>
-    <p>Integrity must pass before ON. Apps stay locked through the check.</p>
-    <div class="row"><button class="act" id="integrity-btn" type="button">Integrity status / check</button></div>
+    <h2>Integrity</h2>
+    <p>Record integrity before ON. Apps stay locked through the check. A pass leaves the cycle where it is until you advance.</p>
+    <div class="row"><button class="act" id="integrity-btn" type="button">Check integrity</button></div>
     <div class="out-panel" id="integrity-out"></div>
   </div>
   <div class="card">
-    <h2>Genesis boot</h2>
-    <p>One-time username seed → Genesis Hash Key (hash only). Username is never stored.</p>
+    <h2>Genesis key</h2>
+    <p>One-time seed. The page keeps a hash and drops the seed. The username is never stored.</p>
     <label for="seed">Username seed (discarded)</label>
     <input id="seed" autocomplete="off" placeholder="one-time seed">
-    <div class="row">
-      <button class="act" id="genesis-btn" type="button">Genesis boot</button>
-      <button class="ghost" id="genesis-status-btn" type="button">Genesis status</button>
-    </div>
+    <div class="row"><button class="act" id="genesis-btn" type="button">Create genesis key</button></div>
+    <details class="app-more">
+      <summary>Key status</summary>
+      <div class="row"><button class="ghost" id="genesis-status-btn" type="button">Genesis status</button></div>
+    </details>
     <div class="out-panel" id="genesis-out"></div>
   </div>
   <div class="card">
-    <h2>Witness / withdraw</h2>
-    <p>Witness list is metadata only. Vault contents are never shown.</p>
+    <h2>Hold and witness</h2>
+    <p>Hold stores a hash of the label. The witness list is metadata. Vault contents stay off this page.</p>
     <label for="hold-label">Hold label (hashed, not stored as contents)</label>
     <input id="hold-label" placeholder="label">
-    <div class="row">
-      <button class="act" id="hold-btn" type="button">Hold</button>
-      <button class="ghost" id="withdraw-btn" type="button">Withdraw</button>
-      <button class="ghost" id="witness-btn" type="button">Witness list</button>
-    </div>
+    <div class="row"><button class="act" id="hold-btn" type="button">Hold</button></div>
+    <details class="app-more">
+      <summary>Withdraw or list witnesses</summary>
+      <div class="row">
+        <button class="ghost" id="withdraw-btn" type="button">Withdraw</button>
+        <button class="ghost" id="witness-btn" type="button">Witness list</button>
+      </div>
+    </details>
     <div class="out-panel" id="custody-out"></div>
   </div>
   <div class="card">
-    <h2>QNS pair custody</h2>
-    <p>QNS-CD-1.0 / AIH-WP-1.3: OFFER → ACCEPT → SEAL. Vias run in local qnsd (127.0.0.1). Interface holds pair_id + photon_id cites — never vault contents. Living presence only.</p>
+    <h2>QNS pair</h2>
+    <p>QNS-CD-1.0 / AIH-WP-1.3: offer, then accept, then seal. Vias run in local qnsd (127.0.0.1). This page keeps pair_id and photon_id cites. Living presence only.</p>
     <label for="pair-via">Via (lan/plc/bt/rf/light/qns/operator/local)</label>
     <input id="pair-via" placeholder="local" value="local">
     <label for="pair-id">pair_id (optional cite)</label>
     <input id="pair-id" placeholder="pair-…">
     <label for="photon-id">photon_id (optional cite)</label>
     <input id="photon-id" placeholder="qns1-…">
-    <div class="row">
-      <button class="act" id="pair-offer-btn" type="button">Offer</button>
-      <button class="ghost" id="pair-accept-btn" type="button">Accept</button>
-      <button class="ghost" id="pair-seal-btn" type="button">Seal</button>
-      <button class="danger" id="pair-cut-btn" type="button">Cut</button>
-      <button class="ghost" id="pair-status-btn" type="button">Pair status</button>
-    </div>
+    <div class="row"><button class="act" id="pair-offer-btn" type="button">Offer</button></div>
+    <details class="app-more">
+      <summary>Accept, seal, cut, or status</summary>
+      <div class="row">
+        <button class="ghost" id="pair-accept-btn" type="button">Accept</button>
+        <button class="ghost" id="pair-seal-btn" type="button">Seal</button>
+        <button class="danger" id="pair-cut-btn" type="button">Cut</button>
+        <button class="ghost" id="pair-status-btn" type="button">Pair status</button>
+      </div>
+    </details>
     <div class="out-panel" id="pair-out"></div>
   </div>
 </div>
@@ -212,20 +240,23 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
 <div class="card" style="margin:0 18px 1rem;">
   <h2>Scorched Earth</h2>
   <p>Local stub / advisory only on this hosted Worker. Never a remote wipe of user devices.</p>
-  <div class="row">
-    <button class="ghost" id="scorch-local-btn" type="button">Local advisory</button>
-    <button class="danger" id="scorch-remote-btn" type="button">Remote wipe (stub refuse)</button>
-  </div>
+  <div class="row"><button class="act" id="scorch-local-btn" type="button">Local advisory</button></div>
+  <details class="app-more">
+    <summary>Remote wipe</summary>
+    <p class="app-note">This Worker answers with a refusal. It does not wipe a device.</p>
+    <div class="row"><button class="danger" id="scorch-remote-btn" type="button">Remote wipe (stub refuse)</button></div>
+  </details>
   <div class="out-panel" id="scorch-out"></div>
 </div>
 
 <div class="card" style="margin:0 18px 1rem;">
   <h2>Page cycle status</h2>
   <p>Sealed custody cycle plus the MASTER-33 hop order on aziel-runtime. FragGate is THE SINGLE DOOR. Internal Domain Layer is 33/11 isolation labels with 4DMap inspection frame — not an extra door (domains_are_doors:false). No LambGate.</p>
-  <div class="row">
-    <button class="ghost" id="cycle-btn" type="button">Refresh cycle</button>
-    <button class="ghost" id="pipeline-btn" type="button">Pipeline cite</button>
-  </div>
+  <div class="row"><button class="act" id="cycle-btn" type="button">Refresh cycle</button></div>
+  <details class="app-more">
+    <summary>Pipeline cite</summary>
+    <div class="row"><button class="ghost" id="pipeline-btn" type="button">Pipeline cite</button></div>
+  </details>
   <div class="out-panel" id="cycle-out"></div>
 </div>
 
@@ -312,10 +343,11 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
     var cycle = await call("page_cycle_status", {});
     document.getElementById("state-badge").textContent = cycle.site_state || "?";
     document.getElementById("live-badge").textContent = String(!!cycle.living_presence);
+    syncCyclePrimary(cycle);
     var home = document.getElementById("azhome");
     if (cycle.living_presence) {
       home.className = "lock on";
-      home.textContent = "AZHome bunker living. Hold / withdraw / witness are on this cycle. Not Hub. Not a vault dump.";
+      home.textContent = "AZHome bunker is living. Hold, withdraw, and witness are on this cycle.";
     } else {
       home.className = "lock";
       home.textContent = "PRE-LOCKED — AZHome does not render as living presence. Cycle: " + (cycle.cycle || "OFF") + ". No cloud-asleep availability.";
@@ -392,10 +424,92 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
     show("pair-out", await call("pair_status", {}));
   });
 ${meshClientScript()}
+  function cycleNextName(cycle) {
+    if (!cycle) return "";
+    var page = cycle.page_cycle || {};
+    return page.next || cycle.next || "";
+  }
+  function sameCycle(a, b) {
+    var fold = function (v) {
+      return String(v || "").toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+    };
+    return fold(a) === fold(b);
+  }
+  function syncCyclePrimary(cycle) {
+    var next = cycleNextName(cycle);
+    var primary = document.getElementById("cycle-primary");
+    var more = document.getElementById("cycle-more-row");
+    var note = document.getElementById("app-next");
+    if (primary && more) {
+      document.querySelectorAll("[data-state]").forEach(function (b) {
+        var match = next && sameCycle(b.getAttribute("data-state"), next);
+        (match ? primary : more).appendChild(b);
+        if (match) b.className = "act";
+        else if (b.getAttribute("data-state") === "FULL_SHUTDOWN") b.className = "danger";
+        else b.className = "ghost";
+      });
+    }
+    if (!note) return;
+    var state = (cycle && (cycle.site_state || cycle.current)) || "OFF";
+    if (state === "MEMORIAL") note.textContent = "MEMORIAL is terminal. The cycle stays here.";
+    else if (sameCycle(next, "integrity")) note.textContent = "Next step: check integrity. One step only.";
+    else if (next) note.textContent = "Next step: " + next + ". One step only.";
+    else note.textContent = "One step only.";
+  }
+  var appView = document.getElementById("app-view");
+  function applyAppView(name) {
+    document.body.setAttribute("data-app", name || "integrity");
+  }
+  if (appView) {
+    applyAppView(appView.value);
+    appView.addEventListener("change", function () { applyAppView(appView.value); });
+  }
   refresh();
   meshBoot();
 })();
 </script>
+<style id="app-screen">
+.app-bar label { display:block; font-size:.95rem; color:var(--ivory); margin:0 0 .35rem; }
+.app-bar select { width:100%; max-width:40rem; min-height:44px; font:inherit; background:#1a1a1a; color:var(--ivory); border:1px solid var(--gold); border-radius:8px; padding:.55rem .7rem; }
+.app-status, .app-next, .app-note { color:#e8e0d0; }
+.app-next { margin:.55rem 0 0; }
+.app-note { margin:.35rem 0 .2rem; font-size:.92rem; }
+.app-more { margin-top:.75rem; }
+.app-more summary { cursor:pointer; color:var(--gold); min-height:44px; display:flex; align-items:center; }
+.grid { align-items:start; }
+.grid > .card:first-child > h2, .grid > .card:first-child .app-panel { display:none; }
+.grid > .card:nth-child(n+3), .card:has(#azhome), .card:has(#scorch-out), .card:has(#cycle-out) { display:none; }
+.grid > .card:first-child { background:transparent; border:0; padding:0 0 .75rem; }
+.grid .row .act, .card .row .act { min-height:44px; }
+.app-bar select:focus-visible, .grid button:focus-visible, .grid input:focus-visible, .grid summary:focus-visible, .card:has(#azhome) button:focus-visible, .card:has(#scorch-out) button:focus-visible, .card:has(#scorch-out) summary:focus-visible, .card:has(#cycle-out) button:focus-visible, .card:has(#cycle-out) summary:focus-visible { outline:2px solid #c9a227; outline-offset:3px; }
+body[data-app="cycle"] .grid > .card:first-child { background:var(--card); border:1px solid var(--gold-dim); padding:12px; }
+body[data-app="cycle"] .grid > .card:first-child > h2, body[data-app="cycle"] .grid > .card:first-child .app-panel { display:block; }
+body[data-app="cycle"] .grid > .card:nth-child(2), body[data-app="genesis"] .grid > .card:nth-child(2), body[data-app="custody"] .grid > .card:nth-child(2), body[data-app="pair"] .grid > .card:nth-child(2), body[data-app="bunker"] .grid > .card:nth-child(2), body[data-app="scorch"] .grid > .card:nth-child(2), body[data-app="pipeline"] .grid > .card:nth-child(2) { display:none; }
+body[data-app="genesis"] .grid > .card:nth-child(3), body[data-app="custody"] .grid > .card:nth-child(4), body[data-app="pair"] .grid > .card:nth-child(5) { display:block; }
+body[data-app="bunker"] .card:has(#azhome), body[data-app="scorch"] .card:has(#scorch-out), body[data-app="pipeline"] .card:has(#cycle-out) { display:block; }
+@media (max-width:420px) {
+  .app-bar select, .grid .row button, .card .row button, .grid input, .card input { width:100%; max-width:none; }
+  .row { flex-direction:column; }
+  .grid, .card, .app-bar { max-width:100%; min-width:0; }
+  .app-note, .app-next, .app-status { overflow-wrap:anywhere; }
+}
+@media (prefers-color-scheme: light) {
+  .grid > .card, .card:has(#azhome), .card:has(#scorch-out), .card:has(#cycle-out) { background:#ffffff; color:#1c1812; border-color:#6e5608; }
+  .grid > .card:first-child { background:transparent; border:0; }
+  body[data-app="cycle"] .grid > .card:first-child { background:#ffffff; border:1px solid #6e5608; }
+  .grid h2, .card:has(#azhome) h2, .card:has(#scorch-out) h2, .card:has(#cycle-out) h2, .app-more summary, .app-bar label { color:#5c4a12; }
+  .app-status, .app-next, .app-note, .grid p, .card p { color:#1c1812; }
+  .app-bar select, .grid input, .card input { background:#ffffff; color:#1c1812; border-color:#5c4a12; }
+  .badge { color:#5c4a12; border-color:#6e5608; }
+  button.act { background:#5c4a12; color:#f6f3ec; }
+  button.ghost { color:#5c4a12; border-color:#6e5608; }
+  button.danger { color:#8f1d1d; border-color:#8f1d1d; }
+  .app-bar select:focus-visible, .grid button:focus-visible, .grid input:focus-visible, .grid summary:focus-visible, .card:has(#azhome) button:focus-visible, .card:has(#scorch-out) button:focus-visible, .card:has(#scorch-out) summary:focus-visible, .card:has(#cycle-out) button:focus-visible, .card:has(#cycle-out) summary:focus-visible { outline-color:#5c4a12; }
+  .lock { color:#3d382e; }
+  .out-summary { color:#1c1812; }
+  .out-pre { color:#1c1812; background:#f3efe6; }
+}
+</style>
 </body>
 </html>`;
 }
