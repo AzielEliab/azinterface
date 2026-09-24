@@ -86,7 +86,7 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
   </header>
   <main>
     <h1>Softwares</h1>
-    <p class="lede">AZInterface is the suite on this computer. Start suite opens every Software that can run here.</p>
+    <p class="lede">AZInterface is the suite on this computer. Start suite opens every Software that can run here. AZVPN starts with the suite.</p>
     <div class="actions">
       <button class="primary" id="start-suite" type="button">Start suite</button>
       <button class="ghost" id="refresh" type="button">Refresh</button>
@@ -129,13 +129,14 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
 
   function countsText(data) {
     var counts = data.counts || {};
-    var order = ["ready", "installing", "needs-install", "local-only", "fraggate-only", "failed"];
+    var order = ["ready", "installing", "needs-install", "local-only", "fraggate-only", "repair", "failed"];
     var labels = {
       ready: "Ready",
       installing: "Installing",
       "needs-install": "Needs install",
       "local-only": "Local only",
       "fraggate-only": "FragGate only",
+      repair: "Repair",
       failed: "Could not open"
     };
     var parts = [];
@@ -191,10 +192,11 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
       var button = document.createElement("button");
       button.className = "open";
       button.type = "button";
-      button.textContent = "Open";
+      button.textContent = row.always_on ? "Rotate IP" : "Open";
       button.addEventListener("click", function () {
         picked = row.slug;
-        openOne(row.slug);
+        if (row.always_on) show(row);
+        else openOne(row.slug);
       });
       tile.appendChild(h);
       tile.appendChild(badge);

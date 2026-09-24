@@ -12,7 +12,7 @@ azinterface
 azinterface ui
 ```
 
-Open http://127.0.0.1:8880/ on this computer and press **Start suite**. Custody (integrity and the page cycle) is under Advanced.
+Open http://127.0.0.1:8880/ on this computer and press **Start suite**. AZVPN starts with the suite. Custody (integrity and the page cycle) is under Advanced.
 
 Forks are welcome and always allowed. How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 

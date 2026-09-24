@@ -33,6 +33,8 @@ def test_suite_page_leads_with_start() -> None:
     html = suite_html(port=8880, vendor="/tmp/azinterface-suite")
     assert 'id="start-suite"' in html
     assert "Start suite" in html
+    assert "AZVPN starts with the suite" in html
+    assert "Rotate IP" in html
     assert html.find('id="start-suite"') < html.find('id="advanced"')
     assert "/custody" in html.split('id="advanced"', 1)[1]
     assert "prefers-color-scheme" in html
@@ -61,7 +63,7 @@ def test_idle_status_is_honest() -> None:
                 "name": "VeilLock",
                 "slug": "veillock",
                 "ui_cmd": "veillock ui",
-                "ui_port": 8761,
+                "ui_port": 9,
                 "local_only": True,
                 "download_url": "https://example.invalid/veillock",
                 "door": "none",
@@ -91,10 +93,18 @@ def test_idle_status_is_honest() -> None:
     assert by["azinterface"]["posture"] == "ready"
     assert by["veillock"]["posture"] == "local-only"
     assert by["aziel-corpus"]["posture"] == "fraggate-only"
-    assert by["azvpn"]["posture"] == "fraggate-only"
+    assert by["azvpn"]["always_on"] is True
+    assert by["azvpn"]["posture"] == "repair"
+    assert "opt-out" in by["azvpn"]["next"]
     vpn = suite.boot("azvpn", allow_install=False)
-    assert vpn["outcome"] == "fraggate"
-    assert vpn["url"] == "/suite/fraggate/azvpn"
+    assert vpn["outcome"] in {None, "repair"}
+    assert vpn["url"] == "/suite/azvpn"
+    assert vpn["mode"] == "vpn"
+    page = suite.azvpn_html()
+    assert "Rotate IP" in page
+    assert ">Disable<" not in page
+    assert ">Stop<" not in page
+    assert ">Off<" not in page
     assert suite.boot("aziel-corpus")["mode"] == "fraggate"
     assert suite.boot("aziel-corpus")["url"] == "/suite/fraggate/aziel-corpus"
     opened = suite.boot("azinterface")
@@ -233,3 +243,101 @@ def test_http_suite_does_not_boot_on_get(tmp_path: Path, monkeypatch) -> None:
         httpd.server_close()
         suite.stop()
     assert LIVE_SUITE is not suite
+
+
+def test_azvpn_starts_before_other_softwares(monkeypatch) -> None:
+    suite = Suite(
+        refresh=False,
+        vendor=Path("/tmp/azinterface-suite-missing"),
+        catalog=[
+            {"name": "Map", "slug": "4dmap", "ui_cmd": "4dmap ui", "fraggate_status": "live", "door": "fraggate"},
+            {"name": "AZVPN", "slug": "azvpn", "ui_cmd": "azvpn ui", "ui_port": 8787, "download_url": None, "fraggate_status": "live", "door": "fraggate"},
+        ],
+    )
+    order: list[tuple[str, bool]] = []
+
+    def fake(slug: str, allow_install: bool = True) -> dict[str, str]:
+        order.append((slug, allow_install))
+        return {"ok": True}
+
+    monkeypatch.setattr(suite, "boot", fake)
+    suite._start_all()
+    assert order[0] == ("azvpn", True)
+    assert all(item[0] != "azvpn" or item is order[0] for item in order)
+
+
+def test_azvpn_node_install_then_rotate(tmp_path: Path) -> None:
+    script = """const http = require("http");
+const server = http.createServer((req, res) => {
+  if (req.method === "POST" && req.url === "/v1/open") {
+    const body = JSON.stringify({ ok: true, op: "open", mode: "onion" });
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(body);
+    return;
+  }
+  const page = "<!doctype html><title>AZVPN</title><p>AZVPN lab</p>";
+  res.writeHead(200, { "content-type": "text/html" });
+  res.end(page);
+});
+server.listen(0, "127.0.0.1", () => {
+  console.log("AZVPN listening http://127.0.0.1:" + server.address().port + "/");
+});
+"""
+    archive = tmp_path / "azvpn.tar.gz"
+    payload = script.encode()
+    pkg = b'{"name":"azvpn","bin":{"azvpn":"./cli.js"}}\n'
+    with tarfile.open(archive, "w:gz") as tar:
+        info = tarfile.TarInfo("pkg/cli.js")
+        info.size = len(payload)
+        info.mode = 0o755
+        tar.addfile(info, __import__("io").BytesIO(payload))
+        meta = tarfile.TarInfo("pkg/package.json")
+        meta.size = len(pkg)
+        tar.addfile(meta, __import__("io").BytesIO(pkg))
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # noqa: N802
+            data = archive.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/gzip")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def log_message(self, fmt: str, *args: object) -> None:
+            return
+
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    port = int(httpd.server_address[1])
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    suite = Suite(
+        refresh=False,
+        vendor=tmp_path / "vendor",
+        catalog=[
+            {
+                "name": "AZVPN",
+                "slug": "azvpn",
+                "ui_cmd": "azvpn ui",
+                "ui_port": 1,
+                "download_url": f"http://127.0.0.1:{port}/download",
+                "fraggate_status": "live",
+                "door": "fraggate",
+            }
+        ],
+    )
+    try:
+        opened = suite.boot("azvpn")
+        assert opened["outcome"] == "install-then-boot", opened
+        assert opened["url"] == "/suite/azvpn"
+        page = suite.azvpn_html()
+        assert "Status: ON" in page
+        assert "Rotate IP" in page
+        rotated = suite.rotate_azvpn()
+        assert rotated["ok"] is True
+        assert rotated["public_address"] == "unchanged"
+        assert "SLOT" in rotated["note"]
+    finally:
+        suite.stop()
+        httpd.shutdown()
+        httpd.server_close()

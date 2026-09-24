@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import shutil
 import signal
 import socket
@@ -30,6 +31,8 @@ from .meta import FRAGGATE_CALL, IDENTITY, LOOPBACK
 
 SNAPSHOT = Path(__file__).resolve().parent / "data" / "softwares.json"
 CATALOG_URL = "https://aziel-runtime.vibelock.workers.dev/v1/software"
+# The live catalog leaves AZVPN download_url empty. This is the standalone project archive.
+AZVPN_SOURCE = "https://github.com/AzielEliab/azvpn/archive/refs/heads/main.tar.gz"
 MAX_DOWNLOAD = 80_000_000
 SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,48}$")
 OP_RE = re.compile(r"^[a-z0-9_]{1,64}$")
@@ -42,6 +45,7 @@ LABELS = {
     "local-only": "Local only",
     "fraggate-only": "FragGate only",
     "failed": "Could not open",
+    "repair": "Repair",
 }
 
 
@@ -124,6 +128,7 @@ class Suite:
         self._lock = threading.Lock()
         self._job = False
         self._ports_before: set[int] | None = None
+        self._vpn_listen: str | None = None
 
     def cards(self) -> list[dict[str, Any]]:
         with self._lock:
@@ -159,6 +164,7 @@ class Suite:
 
     def document(self) -> dict[str, Any]:
         rows = [self._public_row(card) for card in self.cards()]
+        rows.sort(key=lambda row: 0 if row["slug"] == "azvpn" else 1)
         counts: dict[str, int] = {}
         outcomes: dict[str, int] = {}
         for row in rows:
@@ -190,8 +196,15 @@ class Suite:
             outcome = saved.get("outcome")
         else:
             posture, reason, nxt = self._idle(card)
-            url = "/custody" if slug == "azinterface" else None
-            mode = "suite" if slug == "azinterface" else None
+            if slug == "azvpn":
+                url = "/suite/azvpn"
+                mode = "vpn"
+            elif slug == "azinterface":
+                url = "/custody"
+                mode = "suite"
+            else:
+                url = None
+                mode = None
             outcome = None
         return {
             "name": card["name"],
@@ -209,6 +222,7 @@ class Suite:
             "github": card.get("github"),
             "local_only": bool(card.get("local_only")),
             "fraggate": _fraggate_live(card),
+            "always_on": slug == "azvpn",
         }
 
     def _idle(self, card: dict[str, Any]) -> tuple[str, str, str]:
@@ -218,6 +232,25 @@ class Suite:
                 "ready",
                 "AZInterface is this suite, already running on this computer.",
                 "Press Start suite. Custody opens in the pane.",
+            )
+        if slug == "azvpn":
+            if self._azvpn_up(card):
+                return (
+                    "ready",
+                    "AZVPN is on. It starts with the suite and is not optional.",
+                    "Rotate IP and settings are in the pane.",
+                )
+            exe = self._find_exe(card)
+            if exe:
+                return (
+                    "ready",
+                    "AZVPN is installed. It starts with the suite and is not optional.",
+                    "Press Start suite. Rotate IP and settings are in the pane.",
+                )
+            return (
+                "repair",
+                "AZVPN is required and is not installed on this computer.",
+                "Press Start suite. The suite installs the project archive and starts AZVPN. There is no opt-out.",
             )
         if self._port_is_ours(card):
             return (
@@ -297,6 +330,9 @@ class Suite:
         candidate = self.vendor / card["slug"] / ".venv" / "bin" / name
         if candidate.is_file() and os.access(candidate, os.X_OK):
             return str(candidate)
+        wrapper = self.vendor / card["slug"] / "bin" / name
+        if wrapper.is_file() and os.access(wrapper, os.X_OK):
+            return str(wrapper)
         bundled = self.vendor / card["slug"] / "src"
         if bundled.is_dir():
             for path in bundled.rglob(name):
@@ -322,7 +358,15 @@ class Suite:
                 if isinstance(port, int) and port != self.suite_port and _port_open(port):
                     before.add(port)
             self._ports_before = before
+            vpn = next((card for card in cards if card["slug"] == "azvpn"), None)
+            if vpn is not None:
+                try:
+                    self.boot("azvpn", allow_install=True)
+                except Exception as exc:  # noqa: BLE001
+                    self._azvpn_repair(vpn, f"Could not start AZVPN. {exc}")
             for card in cards:
+                if card["slug"] == "azvpn":
+                    continue
                 try:
                     self.boot(card["slug"], allow_install=False)
                 except Exception as exc:  # noqa: BLE001 — one Software must not stop the rest
@@ -331,6 +375,8 @@ class Suite:
                                nxt="Press Start suite again. The other Softwares still open.")
             queue = []
             for card in cards:
+                if card["slug"] == "azvpn":
+                    continue
                 row = self._public_row(card)
                 if row["posture"] in {"needs-install", "local-only"} and card.get("download_url") and card.get("ui_cmd"):
                     queue.append(card)
@@ -367,6 +413,8 @@ class Suite:
             return self._save(card, posture="ready", mode="suite", url="/custody", outcome="booted",
                               reason="AZInterface is this suite. Custody is open in the pane.",
                               nxt="Use Integrity and the page cycle inside the pane.")
+        if slug == "azvpn":
+            return self._boot_azvpn(card, allow_install=allow_install)
         if self._our_proc_alive(slug):
             saved = self._public_row(card)
             saved["ok"] = True
@@ -476,6 +524,17 @@ class Suite:
         if installed_now:
             with self._lock:
                 self._installed.add(card["slug"])
+        if card["slug"] == "azvpn":
+            self._remember_vpn(url)
+            return self._save(
+                card,
+                posture="ready",
+                mode="vpn",
+                url="/suite/azvpn",
+                outcome=outcome,
+                reason=f"AZVPN is on at {url}. It started with the suite.",
+                nxt="Use Rotate IP. That opens a new in-process path. It does not change this computer's public address, and there is no opt-out.",
+            )
         return self._save(card, posture="ready", mode="local", url=url, outcome=outcome,
                           reason=f"Open at {url}.",
                           nxt="Use it in the pane. If the frame is empty, open that address. The product refused embedding, or it is still painting.")
@@ -544,6 +603,10 @@ class Suite:
                 path.chmod(path.stat().st_mode | 0o755)
         project = _find_project(src)
         if project is None:
+            node_root = _find_node_project(src)
+            if node_root is not None:
+                _install_node(node_root, root, card["slug"])
+                return
             if self._find_exe(card):
                 return
             raise RuntimeError("The package unpacked, but it has no project this suite can install.")
@@ -576,6 +639,232 @@ class Suite:
             tail = (proc.stderr or proc.stdout or "").strip().splitlines()
             detail = tail[-1] if tail else f"pip exited {proc.returncode}"
             raise RuntimeError(detail)
+
+    def _boot_azvpn(self, card: dict[str, Any], *, allow_install: bool) -> dict[str, Any]:
+        if self._our_proc_alive("azvpn") or self._azvpn_up(card):
+            port = self._vpn_port(card)
+            self._remember_vpn(self._vpn_listen or f"http://{LOOPBACK}:{port}/")
+            return self._save(
+                card,
+                posture="ready",
+                mode="vpn",
+                url="/suite/azvpn",
+                outcome="booted",
+                reason="AZVPN is on. It started with the suite and is not optional.",
+                nxt="Use Rotate IP and settings. There is no opt-out.",
+            )
+        exe = self._find_exe(card)
+        if not exe:
+            if not allow_install:
+                return self._azvpn_repair(card, "AZVPN is required and is not installed yet.", outcome=None)
+            install_card = dict(card)
+            note = ""
+            if not install_card.get("download_url"):
+                install_card["download_url"] = AZVPN_SOURCE
+                note = " The catalog has no download, so this suite uses the AZVPN project archive."
+            self._save(
+                card,
+                posture="installing",
+                mode="vpn",
+                url="/suite/azvpn",
+                outcome=None,
+                reason="Installing AZVPN." + note,
+                nxt="Wait. AZVPN starts when the install finishes. There is no opt-out.",
+            )
+            try:
+                self._install(install_card)
+            except Exception as exc:  # noqa: BLE001 — show the failure, do not pretend it opened
+                return self._azvpn_repair(card, f"Install failed. {exc}")
+            exe = self._find_exe(card)
+            if not exe:
+                return self._azvpn_repair(card, "The AZVPN archive unpacked, but azvpn ui was not found afterward.")
+            return self._spawn(self._azvpn_command(card), exe, installed_now=True)
+        return self._spawn(self._azvpn_command(card), exe, installed_now=False)
+
+    def _azvpn_command(self, card: dict[str, Any]) -> dict[str, Any]:
+        """Use the catalog port unless another program is already bound there."""
+        port = card.get("ui_port") if isinstance(card.get("ui_port"), int) else 8787
+        if not _port_open(port) or self._azvpn_up(card):
+            return card
+        for candidate in range(port + 1, port + 30):
+            if candidate != self.suite_port and not _port_open(candidate):
+                shifted = dict(card)
+                shifted["ui_cmd"] = f"{card.get('ui_cmd') or 'azvpn ui'} --port {candidate}"
+                shifted["ui_port"] = candidate
+                return shifted
+        return card
+
+    def _azvpn_repair(self, card: dict[str, Any], reason: str, outcome: str | None = "repair") -> dict[str, Any]:
+        return self._save(
+            card,
+            posture="repair",
+            mode="vpn",
+            url="/suite/azvpn",
+            outcome=outcome,
+            reason=reason,
+            nxt="Press Start suite again. AZVPN stays required. There is no opt-out.",
+        )
+
+    def _remember_vpn(self, url: str) -> None:
+        self._vpn_listen = url
+        path = self.vendor / "azvpn" / "listen.url"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(url + "\n", encoding="utf-8")
+
+    def _vpn_port(self, card: dict[str, Any]) -> int:
+        if self._vpn_listen:
+            match = URL_RE.search(self._vpn_listen)
+            if match:
+                return int(match.group(1))
+        saved = self.vendor / "azvpn" / "listen.url"
+        if saved.is_file():
+            match = URL_RE.search(saved.read_text(encoding="utf-8"))
+            if match:
+                return int(match.group(1))
+        port = card.get("ui_port")
+        return port if isinstance(port, int) else 8787
+
+    def _azvpn_up(self, card: dict[str, Any]) -> bool:
+        ports = [self._vpn_port(card)]
+        catalog = card.get("ui_port")
+        if isinstance(catalog, int) and catalog not in ports:
+            ports.append(catalog)
+        for port in ports:
+            if port == self.suite_port or not _port_open(port):
+                continue
+            req = urllib.request.Request(
+                f"http://{LOOPBACK}:{port}/",
+                headers={"User-Agent": "Mozilla/5.0", "Accept": "text/html"},
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=1.5) as resp:
+                    body = resp.read(4000).decode("utf-8", "replace")
+            except (urllib.error.URLError, TimeoutError, OSError):
+                continue
+            if "AZVPN" in body:
+                self._vpn_listen = f"http://{LOOPBACK}:{port}/"
+                return True
+        return False
+
+    def azvpn_html(self) -> str:
+        card = self._card("azvpn")
+        port = 8787
+        reason = "AZVPN is required. Press Start suite."
+        if card is not None:
+            if isinstance(card.get("ui_port"), int):
+                port = card["ui_port"]
+            reason = self._public_row(card)["reason"]
+        up = card is not None and (self._our_proc_alive("azvpn") or self._azvpn_up(card))
+        status = "ON" if up else "Repair"
+        listen = escape(self._vpn_listen or f"http://{LOOPBACK}:{port}/")
+        safe_reason = escape(reason)
+        return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AZVPN</title>
+<style>
+:root {{ color-scheme: light dark; --bg:#f4f0e6; --ink:#1a1713; --muted:#5c564a; --line:#ddd4c2; }}
+@media (prefers-color-scheme: dark) {{
+  :root {{ --bg:#100f0c; --ink:#f4efe4; --muted:#c8bfae; --line:#3d382e; }}
+}}
+body {{ margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--ink); }}
+main {{ padding:1rem 1.1rem 2rem; max-width:40rem; }}
+button {{ font:inherit; min-height:44px; border-radius:10px; background:#c9a227; color:#1a1404; border:0; font-weight:650; padding:0.55rem 0.9rem; }}
+:focus-visible {{ outline:2px solid #c9a227; outline-offset:3px; }}
+pre {{ white-space:pre-wrap; overflow-wrap:anywhere; }}
+p, summary {{ color:var(--muted); }}
+</style>
+</head>
+<body>
+<main>
+  <h1>AZVPN</h1>
+  <p id="status">Status: {status}. AZVPN starts with the suite. It is not optional.</p>
+  <p>{safe_reason}</p>
+  <p><button id="rotate" type="button">Rotate IP</button></p>
+  <pre id="out">Rotate IP opens a new in-process path. It does not change this computer's public address.</pre>
+  <details>
+    <summary>Settings</summary>
+    <p>Listening address the suite uses: {listen}. The Softwares catalog has no AZVPN download, so a missing install uses the project archive.</p>
+    <p>Public address rotation is SLOT. WireGuard, public Tor, and origin-hiding are SLOT. Rotate IP opens a new in-process onion path only.</p>
+  </details>
+</main>
+<script>
+document.getElementById("rotate").addEventListener("click", async function () {{
+  var out = document.getElementById("out");
+  out.textContent = "Rotating…";
+  try {{
+    var res = await fetch("/suite/azvpn/rotate", {{ method: "POST", headers: {{ "content-type": "application/json" }}, body: "{{}}" }});
+    var data = await res.json();
+    out.textContent = data.note || data.error || JSON.stringify(data, null, 2);
+    if (data.next) out.textContent += " Next: " + data.next;
+  }} catch (e) {{
+    out.textContent = "Rotate IP could not reach AZVPN. Press Start suite again. There is no opt-out.";
+  }}
+}});
+</script>
+</body>
+</html>
+"""
+
+    def rotate_azvpn(self) -> dict[str, Any]:
+        card = self._card("azvpn")
+        if card is None:
+            return {
+                "ok": False,
+                "status": "Repair",
+                "error": "AZVPN is not in the catalog.",
+                "next": "Refresh the suite.",
+            }
+        port = self._vpn_port(card)
+        if not (self._our_proc_alive("azvpn") or self._azvpn_up(card)):
+            return {
+                "ok": False,
+                "status": "Repair",
+                "error": "AZVPN is not listening.",
+                "next": "Press Start suite. AZVPN starts with the suite. There is no opt-out.",
+            }
+        body = json.dumps({"peer": "suite", "mode": "onion"}).encode("utf-8")
+        req = urllib.request.Request(
+            f"http://{LOOPBACK}:{port}/v1/open",
+            data=body,
+            headers={"User-Agent": "Mozilla/5.0", "Content-Type": "application/json", "Accept": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                parsed = json.loads(resp.read(200_000).decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            detail = exc.read(400).decode("utf-8", "replace")
+            return {
+                "ok": False,
+                "status": "Repair",
+                "error": f"AZVPN answered {exc.code}.",
+                "detail": detail[:400],
+                "next": "Press Start suite again. There is no opt-out.",
+            }
+        except urllib.error.URLError as exc:
+            return {
+                "ok": False,
+                "status": "Repair",
+                "error": f"Rotate IP could not reach AZVPN. {exc.reason}",
+                "next": "Press Start suite again. There is no opt-out.",
+            }
+        except json.JSONDecodeError:
+            return {
+                "ok": False,
+                "status": "Repair",
+                "error": "AZVPN did not return JSON.",
+                "next": "Press Rotate IP again.",
+            }
+        return {
+            "ok": True,
+            "status": "ON",
+            "public_address": "unchanged",
+            "note": "Opened a new in-process onion path. This computer's public address did not change. WireGuard, public Tor, and origin-hiding are SLOT.",
+            "result": parsed if isinstance(parsed, dict) else {"result": parsed},
+        }
 
     def fraggate_html(self, slug: str) -> str | None:
         card = self._card(slug)
@@ -746,6 +1035,61 @@ def _find_project(src: Path) -> Path | None:
         return None
     found.sort(key=lambda path: len(path.parts))
     return found[0].parent
+
+
+def _find_node_project(src: Path) -> Path | None:
+    found = [path for path in src.rglob("package.json") if "node_modules" not in path.parts]
+    if not found:
+        return None
+    found.sort(key=lambda path: len(path.parts))
+    return found[0].parent
+
+
+def _install_node(project: Path, root: Path, slug: str) -> None:
+    node = shutil.which("node")
+    npm = shutil.which("npm")
+    if not node or not npm:
+        raise RuntimeError("Node.js 20 or newer is required. Install Node.js, then press Start suite again.")
+    env = {**os.environ, "npm_config_fund": "false", "npm_config_audit": "false"}
+    proc = subprocess.run(
+        [npm, "install"],
+        cwd=project,
+        capture_output=True,
+        text=True,
+        timeout=180,
+        env=env,
+    )
+    if proc.returncode != 0:
+        tail = (proc.stderr or proc.stdout or "").strip().splitlines()
+        raise RuntimeError(tail[-1] if tail else f"npm install exited {proc.returncode}")
+    pkg = json.loads((project / "package.json").read_text(encoding="utf-8"))
+    scripts = pkg.get("scripts") if isinstance(pkg.get("scripts"), dict) else {}
+    if "build" in scripts and not (project / "dist" / "cli.js").is_file():
+        built = subprocess.run(
+            [npm, "run", "build"],
+            cwd=project,
+            capture_output=True,
+            text=True,
+            timeout=180,
+            env=env,
+        )
+        if built.returncode != 0:
+            tail = (built.stderr or built.stdout or "").strip().splitlines()
+            raise RuntimeError(tail[-1] if tail else f"npm run build exited {built.returncode}")
+    bins = pkg.get("bin") or {}
+    if isinstance(bins, str):
+        bins = {slug: bins}
+    if not isinstance(bins, dict) or not bins:
+        raise RuntimeError("The package has no program this suite can start.")
+    bindir = root / "bin"
+    bindir.mkdir(exist_ok=True)
+    for bin_name, rel in bins.items():
+        target = (project / str(rel)).resolve()
+        if not target.is_file():
+            raise RuntimeError(f"{bin_name} was not built ({target.name} is missing).")
+        wrapper = bindir / str(bin_name)
+        wrapper.write_text(f"#!/bin/sh\nexec {shlex.quote(node)} {shlex.quote(str(target))} \"$@\"\n")
+        wrapper.chmod(0o755)
 
 
 def _split_cmd(ui_cmd: str) -> tuple[str, list[str]]:
