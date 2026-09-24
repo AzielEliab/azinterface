@@ -245,13 +245,6 @@ button.primary { background:#c9a227; color:#1a1404; border:0; font-weight:650; }
       var h = document.createElement("h2");
       h.textContent = title;
       col.appendChild(h);
-      if (!mine.length) {
-        var empty = document.createElement("p");
-        empty.className = "muted";
-        empty.textContent = "No " + title.toLowerCase() + " Software in this catalog.";
-        col.appendChild(empty);
-      }
-      mine.forEach(function (row) { col.appendChild(chip(row)); });
       if (linked.length) {
         var cap = document.createElement("p");
         cap.className = "muted";
@@ -259,6 +252,13 @@ button.primary { background:#c9a227; color:#1a1404; border:0; font-weight:650; }
         col.appendChild(cap);
         linked.forEach(function (row) { col.appendChild(linkRow(row)); });
       }
+      if (!mine.length) {
+        var empty = document.createElement("p");
+        empty.className = "muted";
+        empty.textContent = "No " + title.toLowerCase() + " Software in this catalog.";
+        col.appendChild(empty);
+      }
+      mine.forEach(function (row) { col.appendChild(chip(row)); });
       col.addEventListener("dragover", function (ev) { ev.preventDefault(); });
       col.addEventListener("drop", function (ev) {
         ev.preventDefault();
@@ -276,6 +276,7 @@ button.primary { background:#c9a227; color:#1a1404; border:0; font-weight:650; }
       columns.appendChild(col);
     });
     if (!links.length) status.textContent = "Nothing is linked yet.";
+    else status.textContent = links.length + (links.length === 1 ? " link saved." : " links saved.");
   }
 
   paint().catch(function () {
