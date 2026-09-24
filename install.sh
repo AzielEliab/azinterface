@@ -30,6 +30,7 @@ python -m pip install -e .
 
 echo
 echo "Installed AZInterface."
-echo "Run: azinterface ui"
-echo "Then open http://127.0.0.1:8880 (loopback only)"
-echo "Interface is CUSTODY — never Hub. Author: Aziel Eliab."
+echo "Next: azinterface"
+echo "Then: azinterface ui"
+echo "Open http://127.0.0.1:8880/"
+echo "Author: Aziel Eliab."

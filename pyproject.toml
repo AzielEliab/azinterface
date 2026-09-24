@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "azinterface"
 version = "0.1.0"
-description = "AZInterface (AIH-WP-1.0): custodial operating environment. Hold / withdraw / witness. Not AZHub. Author Aziel Eliab."
+description = "AZInterface (AIH-WP-1.0): custodial operating environment. Hold, withdraw, and witness. Author Aziel Eliab."
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [{name = "Aziel Eliab"}]

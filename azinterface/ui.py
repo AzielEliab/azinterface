@@ -9,16 +9,48 @@ from urllib.parse import urlparse
 
 from .cite import cite_document
 from .engine import Engine
-from .meta import HOST, IDENTITY, LIMITATION, LOOPBACK, PORT, SIGIL, SPEC, VERSION
+from .local_page import operator_html
+from .meta import IDENTITY, LIMITATION, LOOPBACK, NAME, PORT, SPEC, VERSION
 from .receipts import Ledger
 
 _ENGINE = Engine(Ledger())
 
 
-def local_html() -> str:
-    from .web_page import home_html
+def wants_json(accept: str | None) -> bool:
+    """True when the client asked for JSON ahead of HTML."""
+    if not accept:
+        return False
+    for part in accept.split(","):
+        media = part.split(";", 1)[0].strip().lower()
+        if media == "application/json":
+            return True
+        if media in {"text/html", "application/xhtml+xml"}:
+            return False
+    return False
 
-    return home_html(views=0, downloads=0, github={}, local=True)
+
+def home_document(engine: Engine, host: str, port: int) -> dict[str, Any]:
+    """Short status for Accept: application/json on GET /. Does not append a receipt."""
+    snap = engine.page_cycle_snapshot()
+    view = snap.get("page_cycle") if isinstance(snap.get("page_cycle"), dict) else {}
+    return {
+        "ok": True,
+        "product": NAME,
+        "version": VERSION,
+        "spec": SPEC,
+        "author": IDENTITY,
+        "site_state": snap.get("site_state"),
+        "living_presence": snap.get("living_presence"),
+        "integrity_ok": snap.get("integrity_ok"),
+        "genesis_keyed": snap.get("genesis_keyed"),
+        "next": view.get("next"),
+        "loopback": host,
+        "port": port,
+    }
+
+
+def local_html(port: int | None = None) -> str:
+    return operator_html(port=PORT if port is None else port)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -48,7 +80,11 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         path = urlparse(self.path).path.rstrip("/") or "/"
         if path == "/":
-            self._html(local_html())
+            host, bound_port = self.server.server_address[:2]
+            if wants_json(self.headers.get("Accept")):
+                self._json(home_document(_ENGINE, str(host), int(bound_port)))
+                return
+            self._html(local_html(port=int(bound_port)))
             return
         if path == "/cite.json":
             self._json(cite_document())
@@ -101,16 +137,14 @@ def make_server(host: str, port: int) -> ThreadingHTTPServer:
     return ThreadingHTTPServer((host, port), Handler)
 
 
+def open_line(host: str, port: int) -> str:
+    return f"Open http://{host}:{port}/"
+
+
 def serve(host: str = LOOPBACK, port: int = PORT) -> int:
     httpd = make_server(host, port)
     bound = httpd.server_address
-    print(
-        f"AZInterface {VERSION} ({SPEC}) http://{bound[0]}:{bound[1]}  "
-        f"loopback only. Author: {IDENTITY}."
-    )
-    print(LIMITATION)
-    print("Counted Worker:", HOST)
-    print("Sigil:", SIGIL)
+    print(open_line(str(bound[0]), int(bound[1])))
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
