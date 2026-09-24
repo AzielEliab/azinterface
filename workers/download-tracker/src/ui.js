@@ -23,109 +23,191 @@ export function homeHtml({ views, downloads, github }) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="AZInterface is a custodial operating environment by Aziel Eliab. Download the package or use the hosted custody page.">
+<meta name="author" content="Aziel Eliab">
 <title>AZInterface — Aziel Eliab</title>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"AZInterface","author":{"@type":"Person","name":"Aziel Eliab"},"codeRepository":"https://github.com/AzielEliab/azinterface","downloadUrl":"${HOST}/download","license":"https://www.apache.org/licenses/LICENSE-2.0","url":"${HOST}/","description":"AZInterface (AIH-WP-1.0) custodial operating environment by Aziel Eliab. Not AZHub."}
 </script>
 <style>
-:root { color-scheme: dark; --bg:#0b0b0b; --card:#141414; --gold:#c9a227; --gold-dim:#8a7219; --ivory:#e8e0d0; --muted:#9a927e; --line:#2a2414; --ok:#7dcf9a; --alert:#ffb4b4; }
+:root {
+  color-scheme: dark;
+  --bg:#0b0b0b;
+  --card:#141414;
+  --gold:#c9a227;
+  --gold-dim:#8a7219;
+  --ivory:#e8e0d0;
+  --muted:#9a927e;
+  --line:#2a2414;
+  --ok:#7dcf9a;
+  --alert:#ffb4b4;
+  --ink:#14110a;
+  --focus:#f3e6b8;
+  --btn:#c9a227;
+  --btn-ink:#14110a;
+  --banner-bg:#241c0d;
+  --banner-fg:#f0d78c;
+  --banner-line:#5c4a1a;
+  --input:#1a1a1a;
+  --pre-bg:#0f0f0f;
+  --pre-fg:#cfc6ad;
+  --code:#c9d4ff;
+  --door-bg:#241c0d;
+  --danger-line:#b54a4a;
+  --toast-bg:#2a1212;
+  --link:#e6d19a;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg:#f6f3ec;
+    --card:#ffffff;
+    --gold:#5c4a12;
+    --gold-dim:#6e5608;
+    --ivory:#1c1812;
+    --muted:#4e4638;
+    --line:#6e6252;
+    --ok:#0f6b3a;
+    --alert:#8f1d1d;
+    --ink:#f6f3ec;
+    --focus:#5c4a12;
+    --btn:#5c4a12;
+    --btn-ink:#f6f3ec;
+    --banner-bg:#fff6dc;
+    --banner-fg:#3d3208;
+    --banner-line:#8a7219;
+    --input:#ffffff;
+    --pre-bg:#f3efe6;
+    --pre-fg:#1c1812;
+    --code:#1e3a8a;
+    --door-bg:#fff6dc;
+    --danger-line:#8f1d1d;
+    --toast-bg:#fde8e8;
+    --link:#5c4a12;
+  }
+}
 * { box-sizing: border-box; }
-body { margin:0; font:15px/1.45 system-ui,sans-serif; background:var(--bg); color:var(--ivory); }
-header { display:flex; align-items:center; gap:12px; padding:14px 18px; border-bottom:1px solid var(--gold); }
-header img { width:40px; height:40px; }
-h1 { margin:0; font-size:1.4rem; color:var(--gold); }
-.motto { color:var(--muted); font-size:.9rem; }
-.banner { margin:12px 18px 0; border:1px solid #5c4a1a; background:#241c0d; color:#f0d78c; padding:.75rem 1rem; border-radius:8px; font-size:.88rem; }
-.nums { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin:12px 18px; }
-.count { background:var(--card); border:1px solid var(--gold-dim); border-radius:12px; padding:12px; font-size:2rem; font-weight:700; }
-.count span { display:block; font-size:.9rem; font-weight:500; color:var(--muted); }
-.btns { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin:0 18px 1rem; }
-@media (max-width:720px){ .btns,.nums,.grid{grid-template-columns:1fr;} }
-a.btn, button.btn { display:block; text-align:center; font:inherit; font-weight:750; padding:1rem; border-radius:10px; border:0; cursor:pointer; text-decoration:none; }
-a.btn.primary { background:var(--ivory); color:#0b0b0b; }
-button.btn.install { background:transparent; color:var(--gold); border:1px solid var(--gold-dim); }
-.iso { margin:0 18px 1rem; color:#7d8696; font-size:.85rem; }
-.iso a { color:#c9d4ff; }
-.install-steps { margin:0 18px 1rem; padding-left:1.25rem; color:#7d8696; font-size:.85rem; }
-.install-steps code { color:#c9d4ff; }
-.advanced { margin:0 18px 1rem; color:#7d8696; font-size:.82rem; }
-.advanced summary { cursor:pointer; color:var(--gold); }
+html { overflow-x: clip; }
+body { margin:0; overflow-x:clip; font:16px/1.5 system-ui,"Segoe UI",sans-serif; background:var(--bg); color:var(--ivory); }
+img { max-width:100%; height:auto; }
+a { color:var(--link); }
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible, a.skip:focus { outline:2px solid var(--focus); outline-offset:2px; }
+a.skip { position:absolute; left:-999px; top:0; }
+a.skip:focus { left:1rem; top:1rem; z-index:5; background:var(--btn); color:var(--btn-ink); padding:.45rem .75rem; text-decoration:none; border-radius:8px; }
+.page { max-width:58rem; margin:0 auto; padding:0 1rem 2.5rem; }
+.hero { padding:1.25rem 0 .2rem; }
+.brandrow { display:flex; align-items:center; gap:12px; margin:0 0 12px; }
+.brandmark { width:40px; height:40px; border-radius:10px; object-fit:cover; display:block; box-shadow:0 0 0 1px var(--line); }
+h1 { margin:0 0 .2rem; font-size:2rem; font-weight:650; letter-spacing:.02em; line-height:1.15; color:var(--ivory); }
+.motto { color:var(--gold); font-style:italic; margin:0 0 .7rem; font-size:1.08rem; }
+.lede { color:var(--muted); margin:0 0 1rem; max-width:46rem; }
+.kicker { display:block; margin:1.15rem 0 .75rem; font:.68rem/1.2 ui-monospace,Menlo,Consolas,monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
+a.btn, button.btn { display:block; text-align:center; font:inherit; font-weight:700; padding:1rem; border-radius:10px; border:0; cursor:pointer; text-decoration:none; }
+a.btn.block.primary { width:100%; max-width:40rem; margin:0 0 .75rem; padding:1.05rem 1.2rem; border:1px solid transparent; border-radius:9px; background:var(--btn); color:var(--btn-ink); font:700 1.25rem/1.1 ui-monospace,Menlo,Consolas,monospace; letter-spacing:.03em; }
+a.btn.block.primary:hover { filter:brightness(1.06); }
+button.btn.install { width:100%; max-width:40rem; margin:.25rem 0 1rem; background:transparent; color:var(--gold); border:1px solid var(--line); font:700 .95rem/1.1 ui-monospace,Menlo,Consolas,monospace; }
+.asset-note { color:var(--muted); font-size:.95rem; margin:0 0 .85rem; max-width:46rem; }
+.features { display:grid; grid-template-columns:1fr; gap:.65rem 1.2rem; margin:0 0 1.1rem; padding:0; list-style:none; max-width:46rem; }
+.features li { margin:0; }
+.nums { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin:0 0 1rem; max-width:40rem; }
+.count { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:.7rem .9rem; margin:0; font-size:1.35rem; font-weight:700; font-variant-numeric:tabular-nums; }
+.count span { display:block; font-size:.85rem; font-weight:500; color:var(--muted); }
+.iso { margin:0 0 1rem; color:var(--muted); font-size:.9rem; }
+.iso a { color:var(--link); }
+.install-steps { margin:0 0 .6rem; padding-left:1.25rem; color:var(--muted); font-size:.95rem; max-width:46rem; }
+.install-steps code, .features code, .iso code, .checksum-note code { color:var(--code); }
+.advanced { margin:0 0 1rem; color:var(--muted); font-size:.9rem; max-width:46rem; }
+.advanced summary, .notes summary { cursor:pointer; color:var(--gold); }
 .advanced pre { max-height:8rem; overflow:auto; }
 .checksum-note { margin:.4rem 0 0; }
+.banner { margin:0 0 1rem; border:1px solid var(--banner-line); background:var(--banner-bg); color:var(--banner-fg); padding:.75rem 1rem; border-radius:8px; font-size:.92rem; }
 .out-panel { margin-top:.5rem; }
 .out-summary { margin:0; color:var(--ivory); font-size:.85rem; }
 .out-json { margin-top:.35rem; color:var(--muted); font-size:.78rem; }
 .out-json summary { cursor:pointer; color:var(--gold); }
-.out-pre { max-height:12rem; overflow:auto; margin:.4rem 0 0; white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:#cfc6ad; background:#0f0f0f; border:1px solid var(--line); border-radius:8px; padding:.6rem; }
-.grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0 18px 1rem; }
-.card { background:var(--card); border:1px solid var(--gold-dim); border-radius:12px; padding:12px; }
+.out-pre { max-height:12rem; overflow:auto; margin:.4rem 0 0; white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:var(--pre-fg); background:var(--pre-bg); border:1px solid var(--line); border-radius:8px; padding:.6rem; }
+.grid { display:grid; grid-template-columns:1fr; gap:12px; margin:0 0 1rem; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; min-width:0; }
+.card.stack { margin:0 0 1rem; }
 h2 { margin:0 0 .5rem; font-size:1.05rem; color:var(--gold); }
 .row { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-button.act { background:var(--gold); color:#14110a; border:0; border-radius:8px; padding:.5rem .85rem; font-weight:700; cursor:pointer; }
-button.ghost { background:transparent; color:var(--gold); border:1px solid var(--gold-dim); border-radius:8px; padding:.5rem .85rem; cursor:pointer; }
-button.danger { background:transparent; color:var(--alert); border:1px solid #b54a4a; border-radius:8px; padding:.5rem .85rem; cursor:pointer; }
-label { display:block; font-size:.8rem; color:var(--muted); margin:.4rem 0 .2rem; }
-input { width:100%; background:#1a1a1a; color:var(--ivory); border:1px solid var(--line); border-radius:8px; padding:.5rem .6rem; font:inherit; }
-pre { white-space:pre-wrap; word-break:break-word; font-size:.78rem; color:#cfc6ad; max-height:12rem; overflow:auto; }
+button.act { background:var(--btn); color:var(--btn-ink); border:0; border-radius:8px; padding:.55rem .85rem; font-weight:700; cursor:pointer; }
+button.ghost { background:transparent; color:var(--gold); border:1px solid var(--gold-dim); border-radius:8px; padding:.55rem .85rem; cursor:pointer; }
+button.danger { background:transparent; color:var(--alert); border:1px solid var(--danger-line); border-radius:8px; padding:.55rem .85rem; cursor:pointer; }
+label { display:block; font-size:.85rem; color:var(--muted); margin:.4rem 0 .2rem; }
+input { width:100%; max-width:100%; background:var(--input); color:var(--ivory); border:1px solid var(--line); border-radius:8px; padding:.5rem .6rem; font:inherit; }
+pre { white-space:pre-wrap; word-break:break-word; overflow-wrap:anywhere; font-size:.78rem; color:var(--pre-fg); max-height:12rem; overflow:auto; max-width:100%; }
 .lock { border:1px dashed var(--gold-dim); color:var(--muted); padding:1rem; border-radius:10px; text-align:center; }
 .lock.on { border-style:solid; color:var(--ivory); }
 .badge { display:inline-block; font-size:.75rem; font-weight:700; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--gold-dim); color:var(--gold); }
-#nodes { display:flex; align-items:center; gap:10px; padding:6px 18px; border-bottom:1px solid var(--gold); background:#0f0f0f; flex-wrap:wrap; color:var(--muted); font-size:12px; }
+.reference { margin-top:.4rem; }
+#nodes, #pipeline, #domains { padding:12px 14px; margin:0 0 12px; border:1px solid var(--line); border-radius:12px; background:var(--card); max-width:100%; }
+#nodes { display:flex; flex-direction:column; align-items:flex-start; gap:6px; color:var(--muted); font-size:.82rem; }
 #nodes strong { color:var(--gold); font-weight:700; }
 #nodes .off, #nodes .on { color:var(--gold); }
-#nodesList { flex:1; min-width:12rem; }
-#pipeline { padding:8px 18px 10px; border-bottom:1px solid var(--gold); background:#100e08; }
+#nodesList { width:100%; min-width:0; overflow-wrap:anywhere; }
 #pipeline strong { color:var(--gold); font-size:.82rem; letter-spacing:.02em; }
-#pipeline .pipe-path { margin:.35rem 0 .45rem; color:var(--ivory); font-size:.78rem; }
+#pipeline .pipe-path { margin:.35rem 0 .45rem; color:var(--ivory); font-size:.82rem; overflow-wrap:anywhere; }
 #pipeline .hops { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
-#pipeline .hop { display:flex; flex-direction:column; gap:1px; padding:.28rem .55rem; border:1px solid var(--line); border-radius:8px; font-size:.72rem; color:var(--muted); background:#141414; }
-#pipeline .hop.door { border-color:var(--gold); color:var(--gold); background:#241c0d; box-shadow:0 0 0 1px #5c4a1a inset; }
+#pipeline .hop { display:flex; flex-direction:column; gap:1px; max-width:100%; padding:.28rem .55rem; border:1px solid var(--line); border-radius:8px; font-size:.72rem; color:var(--muted); background:var(--bg); }
+#pipeline .hop.door { border-color:var(--gold); color:var(--gold); background:var(--door-bg); box-shadow:0 0 0 1px var(--banner-line) inset; }
 #pipeline .hop.single { font-weight:700; }
 #pipeline .hop.optional { opacity:.85; border-style:dashed; }
-#pipeline .hop .inspect { font-style:normal; font-size:.65rem; color:#f0d78c; }
-#pipeline .pipe-note, #domains .pipe-note { margin:.45rem 0 0; color:var(--muted); font-size:.72rem; }
-#domains { padding:8px 18px 12px; border-bottom:1px solid var(--gold); background:#0c0c0c; }
+#pipeline .hop .inspect { font-style:normal; font-size:.65rem; color:var(--gold); }
+#pipeline .pipe-note, #domains .pipe-note { margin:.45rem 0 0; color:var(--muted); font-size:.75rem; overflow-wrap:anywhere; }
 #domains strong { color:var(--gold); font-size:.82rem; }
-#domains .domain-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); gap:8px; margin-top:8px; }
-#domains .domain { background:#141414; border:1px solid var(--line); border-radius:10px; padding:8px 10px; }
+#domains .domain-grid { display:grid; grid-template-columns:1fr; gap:8px; margin-top:8px; }
+#domains .domain { background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:8px 10px; min-width:0; }
 #domains .domain h3 { margin:0 0 .4rem; font-size:.78rem; color:var(--gold); }
 #domains .domain ul { list-style:none; margin:0; padding:0; }
-#domains .sw { display:flex; gap:6px; flex-wrap:wrap; align-items:baseline; font-size:.72rem; color:var(--ivory); padding:.12rem 0; }
+#domains .sw { display:flex; gap:6px; flex-wrap:wrap; align-items:baseline; font-size:.75rem; color:var(--ivory); padding:.12rem 0; }
 #domains .sw code { color:var(--gold); }
 #domains .sw .st { color:var(--muted); }
 #domains .sw.stub { color:var(--muted); }
-footer { padding:12px 18px 28px; color:var(--muted); font-size:.82rem; }
-footer a { color:var(--gold); }
-#cycle-toast { display:none; margin:.6rem 0 0; border:1px solid #b54a4a; background:#2a1212; color:var(--alert); padding:.65rem .75rem; border-radius:8px; font-size:.82rem; font-weight:650; }
+footer.quiet { padding:1.15rem 0 2.8rem; color:var(--muted); font-size:.9rem; }
+footer.quiet p { margin:.35rem 0; }
+footer.quiet a { color:var(--ivory); text-decoration:underline; text-underline-offset:.15em; }
+.notes { margin-top:.8rem; }
+.iso, footer, .banner, .motto, .lede, .asset-note { overflow-wrap:anywhere; }
+#cycle-toast { display:none; margin:.6rem 0 0; border:1px solid var(--danger-line); background:var(--toast-bg); color:var(--alert); padding:.65rem .75rem; border-radius:8px; font-size:.82rem; font-weight:650; }
 #cycle-toast.show { display:block; }
+@media (min-width:721px) {
+  .page { padding:0 1.2rem 2.8rem; }
+  .features { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .grid { grid-template-columns:1fr 1fr; }
+  #domains .domain-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr)); }
+}
 </style>
 </head>
 <body>
-<header>
-  <img src="${SIGIL}" alt="Aziel Eliab sigil">
-  <div>
-    <h1>AZInterface</h1>
-    <div class="motto">AIH-WP-1.0 custodial operating environment. Interface is CUSTODY — never Hub. Author: Aziel Eliab only.</div>
+<a class="skip" href="#custody">Skip to custody tools</a>
+<div class="page">
+<header class="hero">
+  <div class="brandrow">
+    <img class="brandmark" src="${SIGIL}" alt="" width="40" height="40">
   </div>
+  <h1>AZInterface</h1>
+  <p class="motto">Custodial page cycles, one step at a time.</p>
+  <p class="lede">AIH-WP-1.0 software by Aziel Eliab. Download the package, or hold, witness, and withdraw on this page.</p>
+  <a class="btn block primary" id="downloadBtn" href="/download?asset=${ASSET}" aria-describedby="downloadNote">Download</a>
+  <p class="asset-note" id="downloadNote">${n} downloads · ${v} views · ${ASSET} · counted on this Worker for every branch and fork</p>
+  <div class="nums" aria-label="Counts">
+    <p class="count">${n}<span>Downloads</span></p>
+    <p class="count">${v}<span>Views</span></p>
+  </div>
+  <ul class="features">
+    <li>Five sealed steps: OFF, integrity, ON, FULL SHUTDOWN, MEMORIAL</li>
+    <li>Hold, witness, and withdraw stay on this page</li>
+    <li>After install, <code>azinterface ui</code> opens on this computer only</li>
+  </ul>
 </header>
-${meshStripHtml()}
-${pipelineStripHtml()}
-${domainMapHtml()}
-<p class="banner">${LIMITATION}</p>
-<div class="nums">
-  <div class="count">${v}<span>Views</span></div>
-  <div class="count">${n}<span>Downloads</span></div>
-</div>
-<div class="btns">
-  <a class="btn primary" href="/download?asset=${ASSET}">Download ${ASSET}</a>
-  <button class="btn install" id="install-btn" type="button">One-click install</button>
-</div>
 <ol class="install-steps" id="install-steps">
   <li>Download the counted tarball (button above).</li>
   <li><code>tar -xzf ${ASSET}</code></li>
   <li><code>python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip install -e .</code></li>
   <li>Run <code>azinterface ui</code> → http://127.0.0.1:8880 (this computer only).</li>
 </ol>
+<button class="btn install" id="install-btn" type="button">Copy install steps</button>
 <details class="advanced" id="install-advanced">
   <summary>Advanced / optional: scripted installer (review first)</summary>
   <p>Prefer the tarball steps. This host is custody UI only. Agents use aziel-runtime FragGate/MCP — not a second Interface MCP.</p>
@@ -133,13 +215,8 @@ ${domainMapHtml()}
 # review install-azinterface.sh, then: bash install-azinterface.sh</pre>
   <p class="checksum-note">Checksum note: after download, run <code>sha256sum ${ASSET}</code> (or <code>shasum -a 256</code>) and compare with a hash you trust. Pipe-to-bash (<code>curl … | bash</code>) is optional and not the recommended path.</p>
 </details>
-<p class="iso">Isolated counter: Worker <code>azinterface-download-tracker</code>, KV AZINTERFACE_DOWNLOADS. /v1 does not increment.
-<strong>Human UI is this page (custody UI only).</strong> Agents use aziel-runtime FragGate/MCP:
-<code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code> body <code>{"slug":"azinterface","op":"…","payload":{}}</code>.
-This host <code>/mcp</code> is a pointer, not a product MCP.
-GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watchers || 0}.
-<a href="/count">/count</a> · <a href="/stats">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="/cite.json">cite.json</a> · <a href="/ai">AI / FragGate</a> · <a href="/v1/mesh">/v1/mesh</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/az-clce">AZ-CLCE</a> · <a href="https://github.com/AzielEliab/AZCoherence">AZCoherence</a> · <a href="https://azcoherence-download-tracker.vibelock.workers.dev/">AZCoherence Worker</a> · <a href="https://github.com/AzielEliab/azhub">AZHub</a></p>
-
+<main id="custody">
+  <p class="kicker">Custody tools</p>
 <div class="grid">
   <div class="card">
     <h2>Site state</h2>
@@ -203,13 +280,13 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   </div>
 </div>
 
-<div class="card" style="margin:0 18px 1rem;">
+<div class="card stack">
   <h2>AZHome bunker</h2>
   <p>Bunker browser surface. Entered only through the locked page cycle. Not a living serve until ON after integrity.</p>
   <div id="azhome" class="lock">PRE-LOCKED — AZHome does not render as living presence.</div>
 </div>
 
-<div class="card" style="margin:0 18px 1rem;">
+<div class="card stack">
   <h2>Scorched Earth</h2>
   <p>Local stub / advisory only on this hosted Worker. Never a remote wipe of user devices.</p>
   <div class="row">
@@ -219,7 +296,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   <div class="out-panel" id="scorch-out"></div>
 </div>
 
-<div class="card" style="margin:0 18px 1rem;">
+<div class="card stack">
   <h2>Page cycle status</h2>
   <p>Sealed custody cycle plus the MASTER-33 hop order on aziel-runtime. FragGate is THE SINGLE DOOR. Internal Domain Layer is 33/11 isolation labels with 4DMap inspection frame — not an extra door (domains_are_doors:false). No LambGate.</p>
   <div class="row">
@@ -228,9 +305,25 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   </div>
   <div class="out-panel" id="cycle-out"></div>
 </div>
-
-<footer>
-  Interface is CUSTODY. AZHub is separate software (Blank Key) under the one FragGate door — do not collapse them.
+</main>
+<section class="reference" aria-label="Live nodes and pipeline">
+${meshStripHtml()}
+${pipelineStripHtml()}
+${domainMapHtml()}
+</section>
+<footer class="quiet">
+  <p>Apache-2.0 · Aziel Eliab · AZInterface 0.1.0</p>
+  <p><a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="/cite.json">cite.json</a> · <a href="/v1/skill">Skill</a> · <a href="/ai">AI / FragGate</a> · <a href="/count">/count</a> · <a href="/stats">/stats</a> · <a href="/v1/mesh">/v1/mesh</a></p>
+  <details class="notes">
+    <summary>Custody notes</summary>
+    <p class="banner">${LIMITATION}</p>
+    <p class="iso">Isolated counter: Worker <code>azinterface-download-tracker</code>, KV AZINTERFACE_DOWNLOADS. /v1 does not increment.
+<strong>Human UI is this page (custody UI only).</strong> Agents use aziel-runtime FragGate/MCP:
+<code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code> body <code>{"slug":"azinterface","op":"…","payload":{}}</code>.
+This host <code>/mcp</code> is a pointer, not a product MCP.
+GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watchers || 0}.
+<a href="/count">/count</a> · <a href="/stats">/stats</a> · <a href="/v1/skill">Skill</a> · <a href="/cite.json">cite.json</a> · <a href="/ai">AI / FragGate</a> · <a href="/v1/mesh">/v1/mesh</a> · <a href="https://github.com/AzielEliab/azinterface">GitHub</a> · <a href="https://github.com/AzielEliab/az-clce">AZ-CLCE</a> · <a href="https://github.com/AzielEliab/AZCoherence">AZCoherence</a> · <a href="https://azcoherence-download-tracker.vibelock.workers.dev/">AZCoherence Worker</a> · <a href="https://github.com/AzielEliab/azhub">AZHub</a></p>
+    Interface is CUSTODY. AZHub is separate software (Blank Key) under the one FragGate door — do not collapse them.
   AZCoherence (AZC-WP-0.1) is separate Softwares on that same door — second-pass triad coherence (PASS/FLAG/NEUTRALIZE/REFUSE), peer of AZ-CLCE, not AKM-TRIAD. Agents: <code>fraggate_describe</code> then <code>fraggate_call</code> <code>slug=azcoherence</code>. Humans: <a href="https://azcoherence-download-tracker.vibelock.workers.dev/">AZCoherence Worker</a> + <a href="https://azcoherence-download-tracker.vibelock.workers.dev/download">/download</a>. Softwares tabs pull from runtime <code>GET /v1/software</code> (plain A–Z); Interface does not host that catalog.
   Agents use aziel-runtime FragGate/MCP:
   <code>POST https://aziel-runtime.vibelock.workers.dev/v1/fraggate/call</code>
@@ -245,7 +338,9 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   <a href="https://www.azieleliab.com">azieleliab.com</a>.
   Apache-2.0. Forks always allowed.
   Cite: Eliab, Aziel. (2026). AZInterface 0.1.0 [Software].
+  </details>
 </footer>
+</div>
 <script>
 (function () {
   var cmd = ${JSON.stringify(INSTALL_STEPS)};

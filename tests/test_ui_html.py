@@ -73,6 +73,13 @@ def test_home_html_wires_buttons() -> None:
     assert "/v1/mesh/status" in html
     assert "/v1/mesh/nodes" in html
     local = home_html(local=True)
+    assert 'id="downloadBtn"' in html
+    assert 'class="btn block primary"' in html
+    assert 'href="/download?asset=azinterface-0.1.0.tar.gz"' in html
+    assert ">Download<" in html
+    assert "prefers-color-scheme: light" in html
+    assert "focus-visible" in html
+    assert 'class="quiet"' in html
     assert "azinterface-download-tracker.vibelock.workers.dev/download" in local
     assert "azinterface-download-tracker.vibelock.workers.dev/count" in local
     assert "slug\":\"azinterface\"" in html or "slug=azinterface" in html or '"azinterface"' in html
