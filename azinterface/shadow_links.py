@@ -121,7 +121,7 @@ button.primary { background:#c9a227; color:#1a1404; border:0; font-weight:650; }
 <body>
 <main>
   <h1>ShadowLock</h1>
-  <p>Link any Software into ShadowLock. Drop a chip on its kind, or press Link. A file drop stores the file name only.</p>
+  <p>Link any Software into ShadowLock. Drop a chip on its kind, or press Link. Saved links stay at the top of that kind. A file drop stores the file name only.</p>
   <div class="fields">
     <label for="biz">Business label</label>
     <input id="biz" autocomplete="off" placeholder="Desk or matter">

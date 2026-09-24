@@ -308,7 +308,7 @@ class Suite:
             return (
                 "link",
                 "ShadowLock opens a link desk. Drop a Software, or press Link, to record it and an input under a business label.",
-                "Press Link. Plain, gate, and lock each have a column. Nothing is linked until you drop or press Link.",
+                "Press Link. Plain, gate, and lock each have a column. Saved links are listed at the top of each column.",
             )
         if slug == "4dmap":
             return (
