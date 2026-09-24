@@ -72,6 +72,7 @@ AZInterface is the suite shell on this computer. It opens the Softwares that can
 
 Open the suite and press Start suite.
 AZVPN starts with the suite. AZCoherence stays in the background. TrajectoryLock opens a review of satellite imagery.
+ShadowLock links any Software. 4DMap shows those links.
 
   azinterface ui
   azinterface suite

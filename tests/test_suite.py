@@ -27,6 +27,9 @@ def test_snapshot_lists_every_software() -> None:
     assert veillock["local_only"] is True
     corpus = next(row for row in rows if row["slug"] == "aziel-corpus")
     assert corpus["ui_cmd"] is None
+    assert next(row for row in rows if row["slug"] == "4dmap")["bucket"] == "plain"
+    assert next(row for row in rows if row["slug"] == "decisiongate")["bucket"] == "gate"
+    assert next(row for row in rows if row["slug"] == "shadowlock")["bucket"] == "lock"
 
 
 def test_suite_page_leads_with_start() -> None:
@@ -37,7 +40,11 @@ def test_suite_page_leads_with_start() -> None:
     assert "AZCoherence stays in the background" in html
     assert "satellite imagery" in html
     assert "row.background" in html
-    assert 'row.review ? "Review"' in html
+    assert 'action = "Review"' in html
+    assert 'action = "Link"' in html
+    assert 'action = "Map"' in html
+    assert "ShadowLock links any Software" in html
+    assert "4DMap shows those links" in html
     assert "Rotate IP" in html
     assert html.find('id="start-suite"') < html.find('id="advanced"')
     assert "/custody" in html.split('id="advanced"', 1)[1]
@@ -458,3 +465,62 @@ def test_trajectory_review_pane_and_real_jpeg(tmp_path: Path) -> None:
     assert missing["ok"] is False
     assert any("no JPEG" in gap for gap in missing["gaps"])
     assert "Imagery evidence: none" in missing["trace"]
+
+
+def test_shadowlock_links_and_map_read_the_same_record(tmp_path: Path) -> None:
+    catalog = [
+        {"name": "4DMap", "slug": "4dmap", "bucket": "plain", "ui_cmd": "4dmap ui", "fraggate_status": "live", "door": "fraggate"},
+        {"name": "DecisionGATE", "slug": "decisiongate", "bucket": "gate", "ui_cmd": "decisiongate ui", "fraggate_status": "live", "door": "fraggate"},
+        {"name": "ShadowLock", "slug": "shadowlock", "bucket": "lock", "ui_cmd": "shadowlock ui", "download_url": None, "fraggate_status": "live", "door": "fraggate"},
+        {"name": "Odd", "slug": "oddware", "ui_cmd": "oddware ui", "fraggate_status": "live", "door": "fraggate"},
+    ]
+    suite = Suite(refresh=False, vendor=tmp_path / "vendor", catalog=catalog)
+    idle = {row["slug"]: row for row in suite.document()["software"]}
+    assert idle["shadowlock"]["link"] is True
+    assert idle["shadowlock"]["posture"] == "link"
+    assert idle["shadowlock"]["url"] == "/suite/shadowlock"
+    assert idle["4dmap"]["map"] is True
+    assert idle["4dmap"]["url"] == "/suite/4dmap"
+    assert idle["4dmap"]["bucket"] == "plain"
+    assert idle["oddware"]["bucket"] is None
+    empty = suite.shadow_links()
+    assert empty["empty"] is True
+    assert empty["links"] == []
+    opened = suite.boot("shadowlock", allow_install=False)
+    assert opened["url"] == "/suite/shadowlock"
+    assert opened["mode"] == "link"
+    assert opened["outcome"] != "booted"
+    mapped = suite.boot("4dmap", allow_install=False)
+    assert mapped["url"] == "/suite/4dmap"
+    assert mapped["mode"] == "map"
+    desk = suite.shadow_html()
+    assert "Nothing is linked yet" in desk
+    assert "draggable = true" in desk
+    assert 'textContent = "Link"' in desk
+    page = suite.map_html()
+    assert "Softwares · Shadow" in page
+    assert "does not invent marks" in page
+    refused = suite.shadow_link({"slug": "missing", "label": "North", "input": "in/a"})
+    assert refused["ok"] is False
+    assert suite.shadow_links()["count"] == 0
+    saved = suite.shadow_link({"slug": "shadowlock", "label": "North desk", "input": "intake/batch", "bucket": "plain"})
+    assert saved["ok"] is True
+    link = saved["link"]
+    assert link["bucket"] == "lock"
+    assert link["label"] == "North desk"
+    assert link["input"] == "intake/batch"
+    assert link["input_note"] is None
+    named = suite.shadow_link({"slug": "decisiongate", "input": "memo.pdf", "input_from": "file-name"})
+    assert named["link"]["bucket"] == "gate"
+    assert named["link"]["input_note"] == "File name only. Contents were not read."
+    assert named["link"]["label"] is None
+    both = suite.shadow_links()
+    assert both["count"] == 2
+    assert both["empty"] is False
+    assert [row["slug"] for row in both["links"]] == ["shadowlock", "decisiongate"]
+    gone = suite.shadow_unlink({"id": link["id"]})
+    assert gone["ok"] is True
+    assert gone["count"] == 1
+    missing = suite.shadow_unlink({"id": "sl-nope"})
+    assert missing["ok"] is False
+    assert missing["count"] == 1

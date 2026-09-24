@@ -12,7 +12,7 @@ azinterface
 azinterface ui
 ```
 
-Open http://127.0.0.1:8880/ on this computer and press **Start suite**. AZVPN starts with the suite. AZCoherence stays in the background (Running or Quiet). TrajectoryLock opens a review that pulls satellite imagery for an event place and time. Custody (integrity and the page cycle) is under Advanced.
+Open http://127.0.0.1:8880/ on this computer and press **Start suite**. AZVPN starts with the suite. AZCoherence stays in the background (Running or Quiet). TrajectoryLock opens a review that pulls satellite imagery for an event place and time. ShadowLock links any Software. 4DMap shows those links. Custody (integrity and the page cycle) is under Advanced.
 
 Forks are welcome and always allowed. How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 

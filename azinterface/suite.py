@@ -28,6 +28,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .meta import FRAGGATE_CALL, IDENTITY, LOOPBACK
+from .shadow_links import add_link, links_path, list_links, remove_link, shadow_desk_html, shadow_map_html
 from .trajectory_review import accept_product_imagery, review_event, review_html
 
 SNAPSHOT = Path(__file__).resolve().parent / "data" / "softwares.json"
@@ -50,6 +51,8 @@ LABELS = {
     "running": "Running",
     "quiet": "Quiet",
     "review": "Review",
+    "link": "Link",
+    "map": "Map",
 }
 
 
@@ -80,6 +83,9 @@ def normalize_card(raw: dict[str, Any], hint: dict[str, Any] | None = None) -> d
     download = raw.get("download_url")
     if download is None and "download_url" not in raw:
         download = hint.get("download_url")
+    bucket = raw.get("bucket", hint.get("bucket"))
+    if bucket not in {"plain", "gate", "lock"}:
+        bucket = None
     return {
         "name": str(raw.get("name") or hint.get("name") or slug),
         "slug": slug,
@@ -92,6 +98,7 @@ def normalize_card(raw: dict[str, Any], hint: dict[str, Any] | None = None) -> d
         "local_only": local_only,
         "ui_port": port,
         "ui_cmd": ui_cmd,
+        "bucket": bucket,
     }
 
 
@@ -213,6 +220,12 @@ class Suite:
             elif slug == "trajectorylock":
                 url = "/suite/trajectorylock"
                 mode = "review"
+            elif slug == "shadowlock":
+                url = "/suite/shadowlock"
+                mode = "link"
+            elif slug == "4dmap":
+                url = "/suite/4dmap"
+                mode = "map"
             else:
                 url = None
                 mode = None
@@ -236,6 +249,9 @@ class Suite:
             "always_on": slug == "azvpn",
             "background": slug == "azcoherence",
             "review": slug == "trajectorylock",
+            "link": slug == "shadowlock",
+            "map": slug == "4dmap",
+            "bucket": card.get("bucket"),
         }
 
     def _idle(self, card: dict[str, Any]) -> tuple[str, str, str]:
@@ -287,6 +303,18 @@ class Suite:
                 "TrajectoryLock opens a review workbench. It pulls satellite imagery for an event place and time, then traces what it knows."
                 + extra,
                 "Press Review. Enter a place and a time. The pane shows a real frame or names the gap.",
+            )
+        if slug == "shadowlock":
+            return (
+                "link",
+                "ShadowLock opens a link desk. Drop a Software, or press Link, to record it and an input under a business label.",
+                "Press Link. Plain, gate, and lock each have a column. Nothing is linked until you drop or press Link.",
+            )
+        if slug == "4dmap":
+            return (
+                "map",
+                "4DMap shows ShadowLock links on a Softwares · Shadow layer.",
+                "Press Map. If nothing is linked, the layer says so.",
             )
         if self._port_is_ours(card):
             return (
@@ -439,6 +467,26 @@ class Suite:
             return self._as_background(row)
         if slug == "trajectorylock":
             return self._as_review(row)
+        if slug == "shadowlock":
+            return self._as_desk(
+                row,
+                slug="shadowlock",
+                posture="link",
+                mode="link",
+                url="/suite/shadowlock",
+                desk_reason="The link desk records a Software and an optional input. It does not read file contents.",
+                nxt="Press Link. Drop a Software onto its kind, or press Link on that Software.",
+            )
+        if slug == "4dmap":
+            return self._as_desk(
+                row,
+                slug="4dmap",
+                posture="map",
+                mode="map",
+                url="/suite/4dmap",
+                desk_reason="The map pane shows the ShadowLock link record on the Softwares · Shadow layer.",
+                nxt="Press Map. The layer lists only links that were saved.",
+            )
         return row
 
     def _boot_impl(self, slug: str, *, allow_install: bool = True) -> dict[str, Any]:
@@ -605,8 +653,51 @@ class Suite:
         lowered = body.lower()
         return "trajectorylock" in lowered
 
+    def _as_desk(
+        self,
+        row: dict[str, Any],
+        *,
+        slug: str,
+        posture: str,
+        mode: str,
+        url: str,
+        desk_reason: str,
+        nxt: str,
+    ) -> dict[str, Any]:
+        card = self._card(slug)
+        if card is None:
+            return row
+        outcome = row.get("outcome")
+        if outcome == "fraggate":
+            outcome = None
+        product_url = row.get("url") if isinstance(row.get("url"), str) else None
+        if not (isinstance(product_url, str) and product_url.startswith("http")):
+            product_url = None
+        running = bool(product_url) and outcome in {"booted", "install-then-boot"}
+        prior = str(row.get("reason") or "").strip()
+        if running and product_url:
+            reason = f"{card.get('ui_cmd') or slug} is open at {product_url}. {desk_reason}"
+        else:
+            reason = f"{prior} {desk_reason}".strip()
+        return self._save(card, posture=posture, mode=mode, url=url, outcome=outcome, reason=reason, nxt=nxt)
+
     def trajectory_html(self) -> str:
         return review_html()
+
+    def shadow_html(self) -> str:
+        return shadow_desk_html()
+
+    def map_html(self) -> str:
+        return shadow_map_html()
+
+    def shadow_links(self) -> dict[str, Any]:
+        return list_links(links_path(self.vendor))
+
+    def shadow_link(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return add_link(links_path(self.vendor), payload, self.cards())
+
+    def shadow_unlink(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return remove_link(links_path(self.vendor), str(payload.get("id") or ""))
 
     def review_trajectory(self, payload: dict[str, Any]) -> dict[str, Any]:
         place = str(payload.get("place") or "").strip()
@@ -756,7 +847,7 @@ class Suite:
         row = self._public_row(card)
         if posture == "running" and outcome in {"booted", "install-then-boot"}:
             row["ok"] = True
-        elif posture == "review":
+        elif posture in {"review", "link", "map"}:
             row["ok"] = True
         else:
             row["ok"] = posture in {"ready", "fraggate-only"} and outcome in {"booted", "install-then-boot", "fraggate"}

@@ -86,7 +86,7 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
   </header>
   <main>
     <h1>Softwares</h1>
-    <p class="lede">AZInterface is the suite on this computer. Start suite opens every Software that can run here. AZVPN starts with the suite. AZCoherence stays in the background. TrajectoryLock opens a review of satellite imagery for an event place and time.</p>
+    <p class="lede">AZInterface is the suite on this computer. Start suite opens every Software that can run here. AZVPN starts with the suite. AZCoherence stays in the background. TrajectoryLock opens a review of satellite imagery for an event place and time. ShadowLock links any Software. 4DMap shows those links.</p>
     <div class="actions">
       <button class="primary" id="start-suite" type="button">Start suite</button>
       <button class="ghost" id="refresh" type="button">Refresh</button>
@@ -129,12 +129,14 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
 
   function countsText(data) {
     var counts = data.counts || {};
-    var order = ["ready", "running", "quiet", "review", "installing", "needs-install", "local-only", "fraggate-only", "repair", "failed"];
+    var order = ["ready", "running", "quiet", "review", "link", "map", "installing", "needs-install", "local-only", "fraggate-only", "repair", "failed"];
     var labels = {
       ready: "Ready",
       running: "Running",
       quiet: "Quiet",
       review: "Review",
+      link: "Link",
+      map: "Map",
       installing: "Installing",
       "needs-install": "Needs install",
       "local-only": "Local only",
@@ -199,10 +201,15 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
         var button = document.createElement("button");
         button.className = "open";
         button.type = "button";
-        button.textContent = row.always_on ? "Rotate IP" : (row.review ? "Review" : "Open");
+        var action = "Open";
+        if (row.always_on) action = "Rotate IP";
+        else if (row.review) action = "Review";
+        else if (row.link) action = "Link";
+        else if (row.map) action = "Map";
+        button.textContent = action;
         button.addEventListener("click", function () {
           picked = row.slug;
-          if (row.always_on || row.review) show(row);
+          if (row.always_on || row.review || row.link || row.map) show(row);
           else openOne(row.slug);
         });
         tile.appendChild(button);

@@ -111,6 +111,15 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/suite/trajectorylock":
             self._html(SUITE.trajectory_html())
             return
+        if path == "/suite/shadowlock":
+            self._html(SUITE.shadow_html())
+            return
+        if path == "/suite/4dmap":
+            self._html(SUITE.map_html())
+            return
+        if path == "/suite/shadowlock/links":
+            self._json(SUITE.shadow_links())
+            return
         if path.startswith("/suite/fraggate/"):
             slug = path.rsplit("/", 1)[-1]
             if not SLUG_RE.fullmatch(slug):
@@ -167,6 +176,18 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"ok": False, "error": "The review body must be a JSON object."}, 400)
                 return
             self._json(SUITE.review_trajectory(payload))
+            return
+        if path == "/suite/shadowlock/link":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The link body must be a JSON object."}, 400)
+                return
+            self._json(SUITE.shadow_link(payload))
+            return
+        if path == "/suite/shadowlock/unlink":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The link body must be a JSON object."}, 400)
+                return
+            self._json(SUITE.shadow_unlink(payload))
             return
         if path == "/suite/boot":
             slug = str(payload.get("slug") or "") if isinstance(payload, dict) else ""
