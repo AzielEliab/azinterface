@@ -34,6 +34,10 @@ def test_suite_page_leads_with_start() -> None:
     assert 'id="start-suite"' in html
     assert "Start suite" in html
     assert "AZVPN starts with the suite" in html
+    assert "AZCoherence stays in the background" in html
+    assert "satellite imagery" in html
+    assert "row.background" in html
+    assert 'row.review ? "Review"' in html
     assert "Rotate IP" in html
     assert html.find('id="start-suite"') < html.find('id="advanced"')
     assert "/custody" in html.split('id="advanced"', 1)[1]
@@ -341,3 +345,116 @@ server.listen(0, "127.0.0.1", () => {
         suite.stop()
         httpd.shutdown()
         httpd.server_close()
+
+
+def test_coherence_tile_is_status_only(monkeypatch) -> None:
+    suite = Suite(
+        refresh=False,
+        vendor=Path("/tmp/azinterface-suite-missing"),
+        catalog=[
+            {
+                "name": "AZCoherence",
+                "slug": "azcoherence",
+                "ui_cmd": "azcoherence ui",
+                "ui_port": 9,
+                "download_url": "https://example.invalid/azcoherence",
+                "fraggate_status": "live",
+                "door": "fraggate",
+            }
+        ],
+    )
+    quiet = suite.boot("azcoherence", allow_install=False)
+    assert quiet["background"] is True
+    assert quiet["posture"] == "quiet"
+    assert quiet["label"] == "Quiet"
+    assert quiet["url"] is None
+    assert quiet["mode"] == "background"
+    assert "review page" in quiet["next"]
+    monkeypatch.setattr(suite, "_coherence_health", lambda card: True)
+
+    def fake_boot(slug: str, allow_install: bool = True) -> dict[str, object]:
+        card = suite._card(slug)
+        assert card is not None
+        return suite._save(
+            card,
+            posture="ready",
+            mode="local",
+            url="http://127.0.0.1:8871/",
+            outcome="booted",
+            reason="Open at http://127.0.0.1:8871/.",
+            nxt="Use the page.",
+        )
+
+    monkeypatch.setattr(suite, "_boot_impl", fake_boot)
+    running = suite.boot("azcoherence")
+    assert running["posture"] == "running"
+    assert running["label"] == "Running"
+    assert running["url"] is None
+    assert running["mode"] == "background"
+    assert "background" in running["reason"]
+
+
+def test_trajectory_review_pane_and_real_jpeg(tmp_path: Path) -> None:
+    from azinterface.trajectory_review import review_event, review_html
+
+    suite = Suite(
+        refresh=False,
+        vendor=tmp_path / "vendor",
+        catalog=[
+            {
+                "name": "TrajectoryLock",
+                "slug": "trajectorylock",
+                "ui_cmd": "trajectorylock ui",
+                "ui_port": 9,
+                "download_url": None,
+                "fraggate_status": "live",
+                "door": "fraggate",
+            }
+        ],
+    )
+    opened = suite.boot("trajectorylock", allow_install=False)
+    assert opened["review"] is True
+    assert opened["posture"] == "review"
+    assert opened["url"] == "/suite/trajectorylock"
+    assert opened["mode"] == "review"
+    assert opened["outcome"] != "booted"
+    assert "NASA GIBS" in opened["reason"]
+    assert "invent" in opened["reason"]
+    page = suite.trajectory_html()
+    assert page == review_html()
+    assert 'id="run-check"' in page
+    assert "Run check" in page
+    assert "data:image/" not in page.split("<script>", 1)[0]
+
+    jpeg = b"\xff\xd8\xff" + b"frame-bytes"
+    calls: list[str] = []
+
+    def fetch(url: str) -> tuple[int, bytes]:
+        calls.append(url)
+        if "nominatim" in url:
+            body = b'[{"lat":"34.05","lon":"-118.25","display_name":"Los Angeles"}]'
+            return 200, body
+        if "2020-06-17" in url:
+            return 200, jpeg
+        return 404, b"no"
+
+    found = review_event(place="Los Angeles", when="2020-06-15T18:00:00Z", fetch=fetch)
+    assert found["ok"] is True
+    assert found["image_jpeg_b64"]
+    assert found["source"] == "NASA GIBS"
+    assert found["frame_time"] == "2020-06-17"
+    assert found["time_delta_days"] == 2
+    assert found["source_url"]
+    assert "Gaps:" in found["trace"]
+    assert any("2020-06-17" in gap for gap in found["gaps"])
+    assert any("nominatim" in url for url in calls)
+
+    def html_fetch(url: str) -> tuple[int, bytes]:
+        return 200, b"<html>not a picture</html>"
+
+    missing = review_event(lat=34.05, lon=-118.25, when="2020-06-15", fetch=html_fetch)
+    assert missing["image_jpeg_b64"] is None
+    assert missing["source_url"] is None
+    assert missing["ok"] is False
+    assert any("no JPEG" in gap for gap in missing["gaps"])
+    assert "Imagery evidence: none" in missing["trace"]

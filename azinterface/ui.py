@@ -108,6 +108,9 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/suite/azvpn":
             self._html(SUITE.azvpn_html())
             return
+        if path == "/suite/trajectorylock":
+            self._html(SUITE.trajectory_html())
+            return
         if path.startswith("/suite/fraggate/"):
             slug = path.rsplit("/", 1)[-1]
             if not SLUG_RE.fullmatch(slug):
@@ -158,6 +161,12 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/suite/azvpn/rotate":
             self._json(SUITE.rotate_azvpn())
+            return
+        if path == "/suite/trajectorylock/review":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The review body must be a JSON object."}, 400)
+                return
+            self._json(SUITE.review_trajectory(payload))
             return
         if path == "/suite/boot":
             slug = str(payload.get("slug") or "") if isinstance(payload, dict) else ""

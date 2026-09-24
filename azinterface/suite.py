@@ -28,6 +28,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .meta import FRAGGATE_CALL, IDENTITY, LOOPBACK
+from .trajectory_review import accept_product_imagery, review_event, review_html
 
 SNAPSHOT = Path(__file__).resolve().parent / "data" / "softwares.json"
 CATALOG_URL = "https://aziel-runtime.vibelock.workers.dev/v1/software"
@@ -46,6 +47,9 @@ LABELS = {
     "fraggate-only": "FragGate only",
     "failed": "Could not open",
     "repair": "Repair",
+    "running": "Running",
+    "quiet": "Quiet",
+    "review": "Review",
 }
 
 
@@ -129,6 +133,7 @@ class Suite:
         self._job = False
         self._ports_before: set[int] | None = None
         self._vpn_listen: str | None = None
+        self._traj_listen: str | None = None
 
     def cards(self) -> list[dict[str, Any]]:
         with self._lock:
@@ -202,6 +207,12 @@ class Suite:
             elif slug == "azinterface":
                 url = "/custody"
                 mode = "suite"
+            elif slug == "azcoherence":
+                url = None
+                mode = "background"
+            elif slug == "trajectorylock":
+                url = "/suite/trajectorylock"
+                mode = "review"
             else:
                 url = None
                 mode = None
@@ -223,6 +234,8 @@ class Suite:
             "local_only": bool(card.get("local_only")),
             "fraggate": _fraggate_live(card),
             "always_on": slug == "azvpn",
+            "background": slug == "azcoherence",
+            "review": slug == "trajectorylock",
         }
 
     def _idle(self, card: dict[str, Any]) -> tuple[str, str, str]:
@@ -251,6 +264,29 @@ class Suite:
                 "repair",
                 "AZVPN is required and is not installed on this computer.",
                 "Press Start suite. The suite installs the project archive and starts AZVPN. There is no opt-out.",
+            )
+        if slug == "azcoherence":
+            if self._coherence_health(card):
+                return (
+                    "running",
+                    "AZCoherence is running in the background.",
+                    "This tile is status only. It does not open a review page.",
+                )
+            return (
+                "quiet",
+                "AZCoherence is quiet. It is a background service, not a page to open.",
+                "Press Start suite. It starts in the background. This tile stays status only.",
+            )
+        if slug == "trajectorylock":
+            extra = ""
+            if not self._find_exe(card):
+                cmd = card.get("ui_cmd") or "trajectorylock ui"
+                extra = f" {cmd} is not installed yet. Start suite will try to install it. The review workbench on this desk still pulls imagery."
+            return (
+                "review",
+                "TrajectoryLock opens a review workbench. It pulls satellite imagery for an event place and time, then traces what it knows."
+                + extra,
+                "Press Review. Enter a place and a time. The pane shows a real frame or names the gap.",
             )
         if self._port_is_ours(card):
             return (
@@ -398,6 +434,14 @@ class Suite:
                 self._job = False
 
     def boot(self, slug: str, *, allow_install: bool = True) -> dict[str, Any]:
+        row = self._boot_impl(slug, allow_install=allow_install)
+        if slug == "azcoherence":
+            return self._as_background(row)
+        if slug == "trajectorylock":
+            return self._as_review(row)
+        return row
+
+    def _boot_impl(self, slug: str, *, allow_install: bool = True) -> dict[str, Any]:
         card = self._card(slug)
         if card is None:
             return {
@@ -464,6 +508,156 @@ class Suite:
                                   reason="The download unpacked, but the ui command was not found afterward.",
                                   nxt=f"Look in {self.vendor / card['slug']} and run {card['ui_cmd']} yourself.")
         return self._spawn(card, exe, installed_now=installed_now)
+
+    def _as_background(self, row: dict[str, Any]) -> dict[str, Any]:
+        card = self._card("azcoherence")
+        if card is None:
+            return row
+        ours = self._our_proc_alive("azcoherence")
+        health = self._coherence_health(card)
+        if ours or health:
+            outcome = row.get("outcome") if row.get("outcome") in {"booted", "install-then-boot"} else "booted"
+            return self._save(
+                card,
+                posture="running",
+                mode="background",
+                url=None,
+                outcome=outcome,
+                reason="AZCoherence is running in the background.",
+                nxt="This tile is status only. It does not open a review page.",
+            )
+        reason = str(row.get("reason") or "AZCoherence is quiet.").strip()
+        if "quiet" not in reason.lower() and "background" not in reason.lower():
+            reason = f"AZCoherence is quiet. {reason}"
+        return self._save(
+            card,
+            posture="quiet",
+            mode="background",
+            url=None,
+            outcome=row.get("outcome"),
+            reason=reason,
+            nxt="Press Start suite. AZCoherence starts in the background. This tile is status only. It does not open a review page.",
+        )
+
+    def _coherence_health(self, card: dict[str, Any]) -> bool:
+        port = card.get("ui_port")
+        if not isinstance(port, int) or port == self.suite_port:
+            return False
+        if not _port_open(port):
+            return False
+        url = f"http://{LOOPBACK}:{port}/v1/health"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=0.6) as resp:
+                body = resp.read(4000).decode("utf-8", "replace").lower()
+        except (urllib.error.URLError, TimeoutError, OSError):
+            return False
+        return "azcoherence" in body
+
+    def _as_review(self, row: dict[str, Any]) -> dict[str, Any]:
+        card = self._card("trajectorylock")
+        if card is None:
+            return row
+        product_url = row.get("url") if isinstance(row.get("url"), str) else None
+        ours = self._our_proc_alive("trajectorylock")
+        if product_url and product_url.startswith("http") and (ours or self._trajectory_page(product_url)):
+            self._traj_listen = product_url
+        else:
+            if product_url and product_url.startswith("http"):
+                prior = str(row.get("reason") or "")
+                row = dict(row)
+                row["reason"] = (
+                    f"Port {card.get('ui_port')} answered, but the page is not TrajectoryLock. {prior}"
+                ).strip()
+                if row.get("outcome") in {"booted", "install-then-boot"}:
+                    row["outcome"] = "failed"
+            product_url = None
+        outcome = row.get("outcome")
+        if outcome == "fraggate":
+            outcome = None
+        running = bool(product_url) and outcome in {"booted", "install-then-boot"}
+        workbench = (
+            "The review workbench pulls NASA GIBS imagery for the event place and time and traces what it measured. "
+            "It does not invent pixels."
+        )
+        prior = str(row.get("reason") or "").strip()
+        if running and product_url:
+            reason = f"trajectorylock ui is open at {product_url}. {workbench}"
+        else:
+            reason = f"{prior} {workbench}".strip()
+        return self._save(
+            card,
+            posture="review",
+            mode="review",
+            url="/suite/trajectorylock",
+            outcome=outcome,
+            reason=reason,
+            nxt="Press Review. Enter the event place and time. The pane shows a real frame or names the gap.",
+        )
+
+    def _trajectory_page(self, url: str) -> bool:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        try:
+            with urllib.request.urlopen(req, timeout=1.2) as resp:
+                body = resp.read(5000).decode("utf-8", "replace")
+        except (urllib.error.URLError, TimeoutError, OSError):
+            return False
+        lowered = body.lower()
+        return "trajectorylock" in lowered
+
+    def trajectory_html(self) -> str:
+        return review_html()
+
+    def review_trajectory(self, payload: dict[str, Any]) -> dict[str, Any]:
+        place = str(payload.get("place") or "").strip()
+        when = str(payload.get("time") or payload.get("when") or "").strip()
+        proxied = self._proxy_imagery(payload)
+        if proxied is not None and proxied.get("image_jpeg_b64"):
+            note = "Imagery came from the running trajectorylock ui."
+            proxied["note"] = note
+            trace = str(proxied.get("trace") or "").strip()
+            proxied["trace"] = f"{note}\n{trace}".strip()
+            return proxied
+        result = review_event(place=place, lat=payload.get("lat"), lon=payload.get("lon"), when=when)
+        note = "This pane fetched NASA GIBS. It shows a JPEG only when the source returned one."
+        if proxied is not None and proxied.get("gaps"):
+            note = "The running trajectorylock ui did not return a JPEG. " + note
+        elif self._traj_listen:
+            note = "The installed trajectorylock ui did not return imagery. " + note
+        result["imagery_via"] = "NASA GIBS"
+        result["note"] = note
+        result["trace"] = f"{note}\n{result.get('trace') or ''}".strip()
+        return result
+
+    def _proxy_imagery(self, payload: dict[str, Any]) -> dict[str, Any] | None:
+        base = self._traj_listen
+        if not base:
+            return None
+        body = json.dumps(
+            {
+                "place": payload.get("place"),
+                "lat": payload.get("lat"),
+                "lon": payload.get("lon"),
+                "time": payload.get("time") or payload.get("when"),
+            }
+        ).encode("utf-8")
+        req = urllib.request.Request(
+            base.rstrip("/") + "/api/imagery",
+            data=body,
+            headers={"User-Agent": "Mozilla/5.0", "Content-Type": "application/json", "Accept": "application/json"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                raw = resp.read(3_000_000)
+        except (urllib.error.URLError, TimeoutError, OSError):
+            return None
+        try:
+            data = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            return None
+        if not isinstance(data, dict):
+            return None
+        return accept_product_imagery(data)
 
     def _fraggate(self, card: dict[str, Any], reason: str) -> dict[str, Any]:
         return self._save(
@@ -560,7 +754,12 @@ class Suite:
         with self._lock:
             self._state[card["slug"]] = saved
         row = self._public_row(card)
-        row["ok"] = posture in {"ready", "fraggate-only"} and outcome in {"booted", "install-then-boot", "fraggate"}
+        if posture == "running" and outcome in {"booted", "install-then-boot"}:
+            row["ok"] = True
+        elif posture == "review":
+            row["ok"] = True
+        else:
+            row["ok"] = posture in {"ready", "fraggate-only"} and outcome in {"booted", "install-then-boot", "fraggate"}
         return row
 
     def _our_proc_alive(self, slug: str) -> bool:

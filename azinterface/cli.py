@@ -71,6 +71,7 @@ WELCOME = f"""\
 AZInterface is the suite shell on this computer. It opens the Softwares that can run here.
 
 Open the suite and press Start suite.
+AZVPN starts with the suite. AZCoherence stays in the background. TrajectoryLock opens a review of satellite imagery.
 
   azinterface ui
   azinterface suite
