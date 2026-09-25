@@ -288,6 +288,7 @@ def run_doctor(*, as_json: bool = False) -> int:
     if as_json:
         print(json.dumps(payload, indent=2))
     else:
-        print("limitation:", LIMITATION)
         print("doctor", "passed" if failed == 0 else "failed")
+        if failed:
+            print("Next: read the FAIL lines above, then run azinterface doctor again.")
     return 0 if failed == 0 else 1

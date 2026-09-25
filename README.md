@@ -1,41 +1,36 @@
 # AZInterface
 
-Open-source **custodial operating environment** — AIH-WP-1.0.
-Hold / withdraw / witness. Pre-locked page cycles. Not AZHub.
+AZInterface is the suite shell for this computer (AIH-WP-1.0). It opens the Softwares that can run here, and it keeps custody through five sealed page cycles.
 
-**Author:** Aziel Eliab only
-**Date:** September 2026 · v0.1.0
-**License:** [Apache-2.0](LICENSE)
-**Spec:** Aziel Hub & Interface Combined Final — Interface sections 5–6
+Author: Aziel Eliab · September 2026 · v0.1.0 · [Apache-2.0](LICENSE)
 
-> Interface is CUSTODY. Never collapse into Hub.
+## Start
 
-How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
+```bash
+python -m venv .venv && source .venv/bin/activate && pip install -e .
+azinterface
+azinterface ui
+```
 
-**Forks are welcome and always allowed.**
+Open http://127.0.0.1:8880/ on this computer and press **Start suite**. AZVPN starts with the suite. AZCoherence stays in the background (Running or Quiet). TrajectoryLock opens a review that pulls satellite imagery for an event place and time. ShadowLock links any Software. 4DMap shows those links. Custody (integrity and the page cycle) is under Advanced.
 
-AZHub is **separate software** (Blank Key / spatial container) under the
-one FragGate door. Do not rebuild it here: https://github.com/AzielEliab/azhub
+Forks are welcome and always allowed. How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Honest scope (read this)
+## Notes
 
-v0.1 is a **custodial shell**. Apps load in **five pre-locked page
-cycles**. Order is sealed. One step only. No skip. No invented cycle:
+v0.1.0 is a custodial shell. The page cycle is sealed. One step only:
 
 `OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL`
 
-Pre-locked means content does not serve or render as living presence
-until the operator explicitly enables ON after integrity. Integrity
-does **not** auto-unlock ON. MEMORIAL is terminal. This Worker does
-**not** invent cloud-asleep availability.
+Content does not serve as living presence until the page is ON after integrity. Integrity does not move the page to ON by itself. MEMORIAL stays in place.
 
-Scorched Earth on the hosted Worker is a **local stub/advisory only**.
-It never remotely wipes user devices.
+Scorched Earth in this package is a local advisory. It does not wipe other devices.
 
-Genesis boot takes a one-time username seed and displays a **Genesis
-Hash Key** (hash only). The username is never stored.
+Genesis takes a one-time username seed and shows a Genesis Hash Key. The username is not stored.
 
-Witness list is metadata only. Vault contents are never served.
+The witness list is metadata. Vault contents are not served.
+
+AZHub is separate software (Blank Key) under the same FragGate door: https://github.com/AzielEliab/azhub
 
 ## LOCKED suite pipeline (cite)
 
@@ -116,23 +111,16 @@ MCP/OpenAPI-capable assistants.
 
 ## Quick start
 
-```bash
-python -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
-azinterface doctor
-azinterface ui
-```
-
-Open http://127.0.0.1:8880 (loopback only).
+See [Start](#start). For the test tools as well: `pip install -e ".[dev]"`, then `azinterface doctor`, then `azinterface ui`.
 
 ## Install (counted tarball)
 
 Prefer the counted tarball, then local steps. This host is custody UI only.
 Agents use aziel-runtime FragGate/MCP — not a second Interface MCP.
 
-1. Download [azinterface-0.1.0.tar.gz](https://azinterface-download-tracker.vibelock.workers.dev/download?asset=azinterface-0.1.0.tar.gz)
-2. `tar -xzf azinterface-0.1.0.tar.gz`
-3. `python3 -m venv .venv && source .venv/bin/activate && pip install -e .`
-4. `azinterface ui` → http://127.0.0.1:8880 (this computer only)
+1. Download and unpack [azinterface-0.1.0.tar.gz](https://azinterface-download-tracker.vibelock.workers.dev/download?asset=azinterface-0.1.0.tar.gz) (`tar -xzf azinterface-0.1.0.tar.gz`).
+2. `python3 -m venv .venv && source .venv/bin/activate && pip install -e .`
+3. `azinterface ui`, open http://127.0.0.1:8880/, and press Start suite.
 
 After download, run `sha256sum azinterface-0.1.0.tar.gz` (or `shasum -a 256`)
 and compare with a hash you trust.
@@ -225,6 +213,8 @@ azinterface call pair_status
 ```
 
 ## CLI
+
+`azinterface` with no command prints a short welcome. `azinterface --help` lists commands. Add `--json` when you want the machine JSON. The same engine objects are what agents already read.
 
 ```bash
 azinterface version
