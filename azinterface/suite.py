@@ -141,6 +141,8 @@ class Suite:
         self._ports_before: set[int] | None = None
         self._vpn_listen: str | None = None
         self._traj_listen: str | None = None
+        self._claimed: set[int] = set()
+        self._help_cache: dict[tuple[str, ...], str] = {}
 
     def cards(self) -> list[dict[str, Any]]:
         with self._lock:
@@ -316,10 +318,10 @@ class Suite:
                 "4DMap shows ShadowLock links on a Softwares · Shadow layer.",
                 "Press Map. If nothing is linked, the layer says so.",
             )
-        if self._port_is_ours(card):
+        if isinstance(card.get("ui_port"), int) and self._page_is_product(card["ui_port"], card):
             return (
                 "ready",
-                f"Something is already listening on {LOOPBACK}:{card['ui_port']}.",
+                f"{card['name']} is already listening on {LOOPBACK}:{card['ui_port']}.",
                 "Press Start suite to show that page. This check does not start a second copy.",
             )
         exe = self._find_exe(card)
@@ -403,6 +405,166 @@ class Suite:
                 if path.is_file() and os.access(path, os.X_OK) and "bin" in path.parts:
                     return str(path)
         return None
+
+    def _find_ui_script(self, card: dict[str, Any]) -> tuple[str, str] | None:
+        """A console script in this product's venv whose help lists a ui command."""
+        bindir = self.vendor / card["slug"] / ".venv" / "bin"
+        if not bindir.is_dir():
+            return None
+        skip = {"python", "python3", "pip", "pip3", "activate", "activate.csh", "activate.fish", "activate.ps1"}
+        for path in sorted(bindir.iterdir()):
+            if not path.is_file() or path.name in skip or path.name.startswith("python") or path.suffix:
+                continue
+            if not os.access(path, os.X_OK):
+                continue
+            text = self._cli_text([str(path), "--help"])
+            if "ui" in _brace_commands(text):
+                return str(path), f"{path.name} ui"
+        return None
+
+    def _static_root(self, card: dict[str, Any]) -> Path | None:
+        src = self.vendor / card["slug"] / "src"
+        if not src.is_dir() or _find_project(src) is not None or _find_node_project(src) is not None:
+            return None
+        pages = [path for path in src.rglob("index.html") if path.is_file()]
+        if not pages:
+            return None
+        pages.sort(key=lambda path: (len(path.parts), str(path)))
+        return pages[0].parent
+
+    def _spawn_static(self, card: dict[str, Any], root: Path, *, installed_now: bool) -> dict[str, Any]:
+        port = self._free_port(4173)
+        if port is None:
+            return self._save(
+                card,
+                posture="failed",
+                mode=None,
+                url=None,
+                outcome="failed",
+                reason=f"{card['name']} unpacked as a static page, and no free loopback port was found.",
+                nxt="Free a loopback port and press Start suite again.",
+            )
+        shifted = dict(card)
+        shifted["ui_port"] = port
+        shifted["_shifted"] = True
+        shifted["_listen_note"] = (
+            f"{card['name']} has no ui command in this download. "
+            f"This suite is serving the unpacked static page on {LOOPBACK}:{port}."
+        )
+        argv = [sys.executable, "-m", "http.server", str(port), "--bind", LOOPBACK]
+        return self._spawn(shifted, sys.executable, installed_now=installed_now, argv=argv, cwd=root)
+
+    def _page_is_product(self, port: int, card: dict[str, Any]) -> bool:
+        if port == self.suite_port or not _port_open(port):
+            return False
+        return _title_matches(_page_title(port), card)
+
+    def _free_port(self, start: int) -> int | None:
+        for port in range(max(start, 1024), max(start, 1024) + 40):
+            if port == self.suite_port or port in self._claimed or _port_open(port):
+                continue
+            return port
+        return None
+
+    def _cli_text(self, argv: list[str]) -> str:
+        key = tuple(argv)
+        with self._lock:
+            cached = self._help_cache.get(key)
+        if cached is not None:
+            return cached
+        try:
+            proc = subprocess.run(argv, capture_output=True, text=True, timeout=8)
+            text = (proc.stdout or "") + "\n" + (proc.stderr or "")
+        except (OSError, subprocess.TimeoutExpired):
+            text = ""
+        with self._lock:
+            self._help_cache[key] = text
+        return text
+
+    def _move_off_foreign_port(self, card: dict[str, Any], exe: str) -> dict[str, Any]:
+        """If the catalog port is another program, use --port or the product's own serve()."""
+        shifted = dict(card)
+        shifted["_shifted"] = True
+        port = shifted.get("ui_port")
+        ui_cmd = str(shifted.get("ui_cmd") or "")
+        parts = ui_cmd.split()
+        sub = parts[1] if len(parts) > 1 else ""
+        help_argv = [exe, sub, "--help"] if sub else [exe, "--help"]
+        help_text = self._cli_text(help_argv)
+        if not isinstance(port, int):
+            discovered = _default_port(help_text)
+            if isinstance(discovered, int):
+                port = discovered
+                shifted["ui_port"] = port
+        if shifted.get("_force_shift") and "--port" in help_text:
+            free = self._free_port((port + 1) if isinstance(port, int) else 8900)
+            if free is not None:
+                shifted["ui_cmd"] = _with_port(ui_cmd, free)
+                shifted["ui_port"] = free
+                note = str(shifted.get("_listen_note") or "").strip()
+                extra = f"The first bind failed, so this suite used {free}."
+                shifted["_listen_note"] = f"{note} {extra}".strip()
+            return shifted
+        if not isinstance(port, int) or port == self.suite_port or not _port_open(port):
+            return shifted
+        if self._page_is_product(port, shifted):
+            shifted["_attached_url"] = f"http://{LOOPBACK}:{port}/"
+            return shifted
+        if "--port" in help_text:
+            free = self._free_port(port + 1)
+            if free is not None:
+                shifted["ui_cmd"] = _with_port(ui_cmd, free)
+                shifted["ui_port"] = free
+                note = str(shifted.get("_listen_note") or "").strip()
+                extra = f"Port {port} was already in use by another page, so this suite used {free}."
+                shifted["_listen_note"] = f"{note} {extra}".strip()
+            return shifted
+        if card.get("slug") == "azhub":
+            free = self._free_port(port + 1)
+            python = self.vendor / "azhub" / ".venv" / "bin" / "python"
+            if free is not None and python.is_file():
+                shifted["ui_port"] = free
+                shifted["_argv"] = [
+                    str(python),
+                    "-c",
+                    f"from azhub.ui import serve; raise SystemExit(serve({LOOPBACK!r}, {free}))",
+                ]
+                shifted["_cwd"] = python.parent.parent.parent / "src"
+                project = _find_project(self.vendor / "azhub" / "src")
+                if project is not None:
+                    shifted["_cwd"] = project
+                note = str(shifted.get("_listen_note") or "").strip()
+                extra = (
+                    f"azhub ui has no --port and {port} is not AZHub. "
+                    f"This suite called azhub.ui.serve on {free}."
+                )
+                shifted["_listen_note"] = f"{note} {extra}".strip()
+        return shifted
+
+    def _retarget_command(self, card: dict[str, Any], exe: str) -> dict[str, Any]:
+        text = self._cli_text([exe, "--help"])
+        subs = _brace_commands(text)
+        requested = str(card.get("ui_cmd") or "").split()[1:] or ["ui"]
+        wanted = requested[0]
+        alt = _local_page_command(text)
+        shifted = dict(card)
+        name = str(card.get("ui_cmd") or exe).split()[0]
+        if alt and alt != wanted:
+            shifted["ui_cmd"] = f"{name} {alt}"
+            note = str(shifted.get("_listen_note") or "").strip()
+            extra = f"The installed CLI has no {wanted} command. This suite started {name} {alt}, the local page in that package."
+            shifted["_listen_note"] = f"{note} {extra}".strip()
+            return shifted
+        listed = ", ".join(subs) if subs else "none listed"
+        reason = (
+            f"{card.get('ui_cmd')} is not a command in the installed package ({listed}). "
+            "This suite did not invent a local page."
+        )
+        if _fraggate_live(card) and not card.get("local_only"):
+            shifted["_fraggate_reason"] = reason + " The FragGate session is open instead."
+        else:
+            shifted["_listen_note"] = reason
+        return shifted
 
     def start(self) -> dict[str, Any]:
         with self._lock:
@@ -517,13 +679,26 @@ class Suite:
             return self._save(card, posture="failed", mode=None, url=None, outcome="failed",
                               reason="No local ui command is listed, and FragGate is not the door for this Software.",
                               nxt="This suite cannot open it.")
-        if self._port_is_ours(card):
+        if isinstance(card.get("ui_port"), int) and self._page_is_product(card["ui_port"], card):
             url = f"http://{LOOPBACK}:{card['ui_port']}/"
+            self._claimed.add(card["ui_port"])
             return self._save(card, posture="ready", mode="local", url=url, outcome="booted",
-                              reason=f"Already listening at {url}. The suite did not start a second copy.",
+                              reason=f"Already listening at {url}. The page names {card['name']}. The suite did not start a second copy.",
                               nxt="Use the page in the pane. If the frame is empty, open the address itself.")
         exe = self._find_exe(card)
         installed_now = False
+        if not exe:
+            alt = self._find_ui_script(card)
+            if alt is not None:
+                exe, alt_cmd = alt
+                card = dict(card)
+                original = card.get("ui_cmd")
+                card["ui_cmd"] = alt_cmd
+                card["_listen_note"] = f"The installed program is {alt_cmd.split()[0]}, not {str(original).split()[0]}."
+        if not exe:
+            static = self._static_root(card)
+            if static is not None:
+                return self._spawn_static(card, static, installed_now=False)
         if not exe:
             if not allow_install:
                 posture, reason, nxt = self._idle(card)
@@ -552,6 +727,20 @@ class Suite:
                                   nxt="Try Start suite again, or install from the project's page, then open it here.")
             exe = self._find_exe(card)
             if not exe:
+                alt = self._find_ui_script(card)
+                if alt is not None:
+                    exe, alt_cmd = alt
+                    card = dict(card)
+                    original = card.get("ui_cmd")
+                    card["ui_cmd"] = alt_cmd
+                    card["_listen_note"] = f"The installed program is {alt_cmd.split()[0]}, not {str(original).split()[0]}."
+            if not exe:
+                static = self._static_root(card)
+                if static is not None:
+                    return self._spawn_static(card, static, installed_now=True)
+            if not exe:
+                if _fraggate_live(card) and not card.get("local_only"):
+                    return self._fraggate(card, "The download unpacked, but it has no local page command. This suite opened the FragGate session.")
                 return self._save(card, posture="failed", mode=None, url=None, outcome="failed",
                                   reason="The download unpacked, but the ui command was not found afterward.",
                                   nxt=f"Look in {self.vendor / card['slug']} and run {card['ui_cmd']} yourself.")
@@ -618,12 +807,13 @@ class Suite:
                     f"Port {card.get('ui_port')} answered, but the page is not TrajectoryLock. {prior}"
                 ).strip()
                 if row.get("outcome") in {"booted", "install-then-boot"}:
-                    row["outcome"] = "failed"
+                    row["outcome"] = None
             product_url = None
         outcome = row.get("outcome")
-        if outcome == "fraggate":
+        if outcome in {"fraggate", "failed"}:
+            # The workbench is the tile. A lost port is not "Could not open".
             outcome = None
-        running = bool(product_url) and outcome in {"booted", "install-then-boot"}
+        running = bool(product_url) and row.get("outcome") in {"booted", "install-then-boot"}
         workbench = (
             "The review workbench pulls NASA GIBS imagery for the event place and time and traces what it measured. "
             "It does not invent pixels."
@@ -761,18 +951,47 @@ class Suite:
             nxt="Use the FragGate session in the pane. It calls the real door for this slug.",
         )
 
-    def _spawn(self, card: dict[str, Any], exe: str, *, installed_now: bool) -> dict[str, Any]:
+    def _spawn(
+        self,
+        card: dict[str, Any],
+        exe: str,
+        *,
+        installed_now: bool,
+        argv: list[str] | None = None,
+        cwd: Path | None = None,
+    ) -> dict[str, Any]:
+        if not card.get("_shifted"):
+            moved = self._move_off_foreign_port(card, exe)
+            if moved.get("_fraggate_reason"):
+                return self._fraggate(card, str(moved["_fraggate_reason"]))
+            if moved.get("_attached_url"):
+                url = str(moved["_attached_url"])
+                match = URL_RE.search(url)
+                if match:
+                    self._claimed.add(int(match.group(1)))
+                outcome = "install-then-boot" if installed_now else "booted"
+                return self._save(
+                    card,
+                    posture="ready",
+                    mode="local",
+                    url=url,
+                    outcome=outcome,
+                    reason=f"Already listening at {url}. The page names {card['name']}. The suite did not start a second copy.",
+                    nxt="Use the page in the pane. If the frame is empty, open the address itself.",
+                )
+            return self._spawn(moved, exe, installed_now=installed_now, argv=moved.get("_argv"), cwd=moved.get("_cwd"))
         name, args = _split_cmd(str(card.get("ui_cmd") or ""))
-        argv = [exe, *args]
+        if argv is None:
+            argv = [exe, *args]
+        if cwd is None:
+            cwd = Path(exe).parent
+            if cwd.name == "bin" and cwd.parent.name == ".venv":
+                project = _find_project(self.vendor / card["slug"] / "src")
+                if project is not None:
+                    cwd = project
         env = os.environ.copy()
-        bin_dir = str(Path(exe).parent)
-        env["PATH"] = bin_dir + os.pathsep + env.get("PATH", "")
+        env["PATH"] = str(Path(exe).parent) + os.pathsep + env.get("PATH", "")
         env["PYTHONUNBUFFERED"] = "1"
-        cwd = Path(exe).parent
-        if cwd.name == "bin" and cwd.parent.name == ".venv":
-            project = _find_project(self.vendor / card["slug"] / "src")
-            if project is not None:
-                cwd = project
         try:
             proc = subprocess.Popen(
                 argv,
@@ -794,34 +1013,68 @@ class Suite:
         reader.start()
         url = _wait_url(proc, lines, card.get("ui_port"), skip_port=self.suite_port)
         if not url:
-            tail = " ".join(line.strip() for line in lines[-4:] if line.strip())
-            if proc.poll() is not None:
+            reader.join(timeout=2)
+            full = "\n".join(lines)
+            tail = _error_line(lines)
+            exited = proc.poll() is not None
+            self._stop_proc(card["slug"])
+            if not card.get("_retried") and _bind_conflict(full):
+                retry = dict(card)
+                retry["_retried"] = True
+                retry["_shifted"] = False
+                heard = _port_from_bind_error(full)
+                if isinstance(heard, int):
+                    retry["ui_port"] = heard
+                else:
+                    retry["_force_shift"] = True
+                return self._spawn(retry, exe, installed_now=installed_now)
+            if not card.get("_retargeted") and _invalid_command(full):
+                retargeted = self._retarget_command(card, exe)
+                if retargeted.get("_fraggate_reason"):
+                    return self._fraggate(card, str(retargeted["_fraggate_reason"]))
+                if retargeted.get("ui_cmd") != card.get("ui_cmd"):
+                    retargeted["_retargeted"] = True
+                    retargeted["_retried"] = False
+                    retargeted["_shifted"] = False
+                    return self._spawn(retargeted, exe, installed_now=installed_now)
+                if _fraggate_live(card) and not card.get("local_only"):
+                    return self._fraggate(card, str(retargeted.get("_fraggate_reason") or tail))
+            if exited:
                 reason = f"{card['ui_cmd']} exited before it opened a page."
             else:
                 reason = f"{card['ui_cmd']} is running, but it did not announce a loopback page."
             if tail:
                 reason = f"{reason} {tail}"
-            self._stop_proc(card["slug"])
             return self._save(card, posture="failed", mode=None, url=None, outcome="failed",
                               reason=reason,
                               nxt=f"Run {card['ui_cmd']} in a terminal. This suite will not show a blank page as if it opened.")
+        match = URL_RE.search(url)
+        if match:
+            self._claimed.add(int(match.group(1)))
         outcome = "install-then-boot" if installed_now else "booted"
         if installed_now:
             with self._lock:
                 self._installed.add(card["slug"])
+        note = str(card.get("_listen_note") or "").strip()
         if card["slug"] == "azvpn":
             self._remember_vpn(url)
+            reason = f"AZVPN is on at {url}. It started with the suite."
+            if note:
+                reason = f"{reason} {note}"
             return self._save(
                 card,
                 posture="ready",
                 mode="vpn",
                 url="/suite/azvpn",
                 outcome=outcome,
-                reason=f"AZVPN is on at {url}. It started with the suite.",
+                reason=reason,
                 nxt="Use Rotate IP. That opens a new in-process path. It does not change this computer's public address, and there is no opt-out.",
             )
+        reason = f"Open at {url}."
+        if note:
+            reason = f"{reason} {note}"
         return self._save(card, posture="ready", mode="local", url=url, outcome=outcome,
-                          reason=f"Open at {url}.",
+                          reason=reason,
                           nxt="Use it in the pane. If the frame is empty, open that address. The product refused embedding, or it is still painting.")
 
     def _card(self, slug: str) -> dict[str, Any] | None:
@@ -897,7 +1150,7 @@ class Suite:
             if node_root is not None:
                 _install_node(node_root, root, card["slug"])
                 return
-            if self._find_exe(card):
+            if self._find_exe(card) or self._find_ui_script(card) or self._static_root(card):
                 return
             raise RuntimeError("The package unpacked, but it has no project this suite can install.")
         venv = root / ".venv"
@@ -1380,6 +1633,119 @@ def _install_node(project: Path, root: Path, slug: str) -> None:
         wrapper = bindir / str(bin_name)
         wrapper.write_text(f"#!/bin/sh\nexec {shlex.quote(node)} {shlex.quote(str(target))} \"$@\"\n")
         wrapper.chmod(0o755)
+
+
+TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.I | re.S)
+BIND_PORT_RE = re.compile(r"127\.0\.0\.1['\"],?\s*(\d{2,5})")
+
+
+def _page_title(port: int) -> str:
+    req = urllib.request.Request(
+        f"http://{LOOPBACK}:{port}/",
+        headers={"User-Agent": "Mozilla/5.0", "Accept": "text/html"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=0.8) as resp:
+            raw = resp.read(6000).decode("utf-8", "replace")
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return ""
+    match = TITLE_RE.search(raw)
+    if not match:
+        return ""
+    return re.sub(r"\s+", " ", match.group(1)).strip()
+
+
+def _title_matches(title: str, card: dict[str, Any]) -> bool:
+    compact = re.sub(r"[^a-z0-9]", "", title.lower())
+    if not compact:
+        return False
+    name = re.sub(r"[^a-z0-9]", "", str(card.get("name") or "").lower())
+    slug = re.sub(r"[^a-z0-9]", "", str(card.get("slug") or "").lower())
+    if len(name) >= 3 and name in compact:
+        return True
+    return len(slug) >= 3 and slug in compact
+
+
+def _brace_commands(text: str) -> list[str]:
+    match = re.search(r"\{([^{}]+)\}", text)
+    if not match:
+        return []
+    return [part.strip() for part in match.group(1).split(",") if part.strip()]
+
+
+def _local_page_command(text: str) -> str | None:
+    subs = set(_brace_commands(text))
+    for line in text.splitlines():
+        match = re.match(r"^\s+([A-Za-z][A-Za-z0-9_-]*)\s{2,}(.+)$", line)
+        if not match:
+            continue
+        name = match.group(1).lower()
+        if subs and name not in subs:
+            continue
+        desc = match.group(2).lower()
+        if any(word in desc for word in ("localhost", "loopback", "local ui", "local page", "serve the")):
+            return name
+    return None
+
+
+def _with_port(ui_cmd: str, port: int) -> str:
+    parts = ui_cmd.split()
+    kept: list[str] = []
+    skip = False
+    for part in parts:
+        if skip:
+            skip = False
+            continue
+        if part == "--port":
+            skip = True
+            continue
+        kept.append(part)
+    return " ".join([*kept, "--port", str(port)])
+
+
+def _bind_conflict(tail: str) -> bool:
+    lowered = tail.lower()
+    return "address already in use" in lowered or "errno 98" in lowered or "eaddrinuse" in lowered
+
+
+def _invalid_command(tail: str) -> bool:
+    lowered = tail.lower()
+    return "invalid choice" in lowered or "unrecognized arguments" in lowered
+
+
+def _port_from_bind_error(tail: str) -> int | None:
+    match = BIND_PORT_RE.search(tail)
+    if match:
+        return int(match.group(1))
+    match = URL_RE.search(tail)
+    if match:
+        return int(match.group(1))
+    return None
+
+
+def _default_port(text: str) -> int | None:
+    for line in text.splitlines():
+        if "--port" not in line:
+            continue
+        match = re.search(r"default[:\s]+(\d{2,5})", line, re.I)
+        if match:
+            return int(match.group(1))
+    match = re.search(r"127\.0\.0\.1:(\d{2,5})", text)
+    if match:
+        return int(match.group(1))
+    return None
+
+
+def _error_line(lines: list[str]) -> str:
+    for line in reversed(lines):
+        text = line.strip()
+        if not text or text.startswith("File ") or set(text) <= {"^"}:
+            continue
+        lowered = text.lower()
+        if "error" in lowered or "invalid choice" in lowered or "address already" in lowered:
+            return text
+    kept = [line.strip() for line in lines[-4:] if line.strip()]
+    return " ".join(kept)
 
 
 def _split_cmd(ui_cmd: str) -> tuple[str, list[str]]:

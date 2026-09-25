@@ -524,3 +524,336 @@ def test_shadowlock_links_and_map_read_the_same_record(tmp_path: Path) -> None:
     missing = suite.shadow_unlink({"id": "sl-nope"})
     assert missing["ok"] is False
     assert missing["count"] == 1
+
+
+def _hold_page(title: str) -> ThreadingHTTPServer:
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # noqa: N802
+            body = f"<title>{title}</title><p>held</p>".encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, fmt: str, *args: object) -> None:
+            return
+
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd
+
+
+def _write_exe(path: Path, source: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(source, encoding="utf-8")
+    path.chmod(0o755)
+
+
+def test_busy_port_moves_and_foreign_page_is_not_attached(tmp_path: Path) -> None:
+    held = _hold_page("Other App")
+    busy = int(held.server_address[1])
+    try:
+        vendor = tmp_path / "suite"
+        _write_exe(
+            vendor / "demoui" / "bin" / "demoui",
+            f"""#!/usr/bin/env python3
+import sys
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+argv = sys.argv[1:]
+if argv[:1] == ["--help"] or "--help" in argv:
+    print("usage: demoui {{ui}}")
+    print("  ui                  Serve the local UI on 127.0.0.1.")
+    print("  --host HOST         Loopback host (default 127.0.0.1).")
+    print("  --port PORT         Port (default {busy}).")
+    raise SystemExit(0)
+port = {busy}
+if "--port" in argv:
+    port = int(argv[argv.index("--port") + 1])
+class H(BaseHTTPRequestHandler):
+    def do_GET(self):
+        body = b"<title>Demoui</title><p>open</p>"
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    def log_message(self, fmt, *args):
+        return
+print("http://127.0.0.1:%s/" % port, flush=True)
+ThreadingHTTPServer(("127.0.0.1", port), H).serve_forever()
+""",
+        )
+        suite = Suite(
+            refresh=False,
+            vendor=vendor,
+            catalog=[
+                {
+                    "name": "Demoui",
+                    "slug": "demoui",
+                    "ui_cmd": "demoui ui",
+                    "ui_port": busy,
+                    "download_url": None,
+                    "fraggate_status": "live",
+                    "door": "fraggate",
+                }
+            ],
+        )
+        opened = suite.boot("demoui", allow_install=False)
+        assert opened["outcome"] == "booted"
+        assert opened["posture"] == "ready"
+        assert opened["url"] != f"http://127.0.0.1:{busy}/"
+        assert "already in use" in opened["reason"]
+        with urlopen(opened["url"], timeout=2) as resp:
+            page = resp.read().decode()
+        assert "<title>Demoui</title>" in page
+        suite.stop()
+    finally:
+        held.shutdown()
+        held.server_close()
+
+
+def test_attach_only_when_the_page_names_the_product(tmp_path: Path) -> None:
+    held = _hold_page("Demoui desk")
+    busy = int(held.server_address[1])
+    try:
+        suite = Suite(
+            refresh=False,
+            vendor=tmp_path / "suite",
+            catalog=[
+                {
+                    "name": "Demoui",
+                    "slug": "demoui",
+                    "ui_cmd": "demoui ui",
+                    "ui_port": busy,
+                    "download_url": None,
+                    "fraggate_status": "live",
+                    "door": "fraggate",
+                }
+            ],
+        )
+        opened = suite.boot("demoui", allow_install=False)
+        assert opened["outcome"] == "booted"
+        assert opened["url"] == f"http://127.0.0.1:{busy}/"
+        assert "names Demoui" in opened["reason"]
+    finally:
+        held.shutdown()
+        held.server_close()
+
+
+def test_missing_ui_command_opens_fraggate(tmp_path: Path) -> None:
+    vendor = tmp_path / "suite"
+    _write_exe(
+        vendor / "codelock" / "bin" / "codelock",
+        """#!/usr/bin/env python3
+import sys
+argv = sys.argv[1:]
+if argv[:1] == ["--help"] or "--help" in argv:
+    print("usage: codelock {gate-status,render,version}")
+    print("  gate-status         Print gate")
+    print("  render              Write HTML")
+    print("  version             Print the version")
+    raise SystemExit(0)
+print("invalid choice: 'ui'", file=sys.stderr)
+raise SystemExit(2)
+""",
+    )
+    suite = Suite(
+        refresh=False,
+        vendor=vendor,
+        catalog=[
+            {
+                "name": "CodeLock",
+                "slug": "codelock",
+                "ui_cmd": "codelock ui",
+                "ui_port": None,
+                "download_url": None,
+                "fraggate_status": "live",
+                "door": "fraggate",
+            }
+        ],
+    )
+    opened = suite.boot("codelock", allow_install=False)
+    assert opened["mode"] == "fraggate"
+    assert opened["outcome"] == "fraggate"
+    assert opened["posture"] == "fraggate-only"
+    assert opened["label"] != "Could not open"
+    assert "did not invent a local page" in opened["reason"]
+
+
+def test_localhost_subcommand_is_used_when_ui_is_absent(tmp_path: Path) -> None:
+    vendor = tmp_path / "suite"
+    _write_exe(
+        vendor / "mialock" / "bin" / "mialock",
+        """#!/usr/bin/env python3
+import sys
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+argv = sys.argv[1:]
+if argv[:1] == ["--help"] or (argv and argv[0] != "map" and "--help" in argv):
+    print("usage: mialock {map,people}")
+    print("  map                 Open localhost map UI")
+    print("  people              List subjects")
+    raise SystemExit(0)
+if argv[:1] == ["map"] and "--help" in argv:
+    print("usage: mialock map [--port PORT]")
+    raise SystemExit(0)
+if argv[:1] != ["map"]:
+    print("invalid choice: 'ui'", file=sys.stderr)
+    raise SystemExit(2)
+port = 0
+if "--port" in argv:
+    port = int(argv[argv.index("--port") + 1])
+class H(BaseHTTPRequestHandler):
+    def do_GET(self):
+        body = b"<title>M.I.A.Lock</title><p>map</p>"
+        self.send_response(200)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    def log_message(self, fmt, *args):
+        return
+httpd = ThreadingHTTPServer(("127.0.0.1", port), H)
+print("http://127.0.0.1:%s/" % httpd.server_address[1], flush=True)
+httpd.serve_forever()
+""",
+    )
+    suite = Suite(
+        refresh=False,
+        vendor=vendor,
+        catalog=[
+            {
+                "name": "M.I.A.Lock",
+                "slug": "mialock",
+                "ui_cmd": "mialock ui",
+                "ui_port": None,
+                "download_url": None,
+                "fraggate_status": "live",
+                "door": "fraggate",
+            }
+        ],
+    )
+    opened = suite.boot("mialock", allow_install=False)
+    try:
+        assert opened["outcome"] == "booted"
+        assert opened["posture"] == "ready"
+        assert "mialock map" in opened["reason"]
+        with urlopen(opened["url"], timeout=2) as resp:
+            assert b"M.I.A.Lock" in resp.read()
+    finally:
+        suite.stop()
+
+
+def test_static_download_is_served_without_a_fake_ui(tmp_path: Path) -> None:
+    vendor = tmp_path / "suite"
+    page = vendor / "whitestone" / "src" / "whitestone" / "index.html"
+    page.parent.mkdir(parents=True)
+    page.write_text("<title>Whitestone — advisor</title><p>session</p>", encoding="utf-8")
+    suite = Suite(
+        refresh=False,
+        vendor=vendor,
+        catalog=[
+            {
+                "name": "Whitestone",
+                "slug": "whitestone",
+                "ui_cmd": "whitestone ui",
+                "ui_port": None,
+                "download_url": "https://whitestone.example/download",
+                "fraggate_status": "none",
+                "door": "none",
+            }
+        ],
+    )
+    opened = suite.boot("whitestone", allow_install=False)
+    try:
+        assert opened["outcome"] == "booted"
+        assert opened["posture"] == "ready"
+        assert "static page" in opened["reason"]
+        with urlopen(opened["url"], timeout=2) as resp:
+            assert b"Whitestone" in resp.read()
+    finally:
+        suite.stop()
+
+
+def test_console_script_name_is_used_when_catalog_name_is_absent(tmp_path: Path) -> None:
+    vendor = tmp_path / "suite"
+    _write_exe(
+        vendor / "zsolver" / ".venv" / "bin" / "zion-solver",
+        """#!/usr/bin/env python3
+import sys
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+argv = sys.argv[1:]
+if "--help" in argv or argv[:1] == ["--help"]:
+    print("usage: zion-solver {ui,version}")
+    print("  ui                  Localhost UI")
+    raise SystemExit(0)
+class H(BaseHTTPRequestHandler):
+    def do_GET(self):
+        body = b"<title>ZionPattern Solver</title>"
+        self.send_response(200)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    def log_message(self, fmt, *args):
+        return
+httpd = ThreadingHTTPServer(("127.0.0.1", 0), H)
+print("http://127.0.0.1:%s/" % httpd.server_address[1], flush=True)
+httpd.serve_forever()
+""",
+    )
+    suite = Suite(
+        refresh=False,
+        vendor=vendor,
+        catalog=[
+            {
+                "name": "ZionPattern Solver",
+                "slug": "zsolver",
+                "ui_cmd": "zsolver ui",
+                "ui_port": None,
+                "download_url": None,
+                "fraggate_status": "live",
+                "door": "fraggate",
+            }
+        ],
+    )
+    opened = suite.boot("zsolver", allow_install=False)
+    try:
+        assert opened["outcome"] == "booted"
+        assert "zion-solver" in opened["reason"]
+        with urlopen(opened["url"], timeout=2) as resp:
+            assert b"ZionPattern Solver" in resp.read()
+    finally:
+        suite.stop()
+
+
+def test_trajectory_ui_failure_stays_on_the_review_tile(tmp_path: Path) -> None:
+    vendor = tmp_path / "suite"
+    _write_exe(
+        vendor / "trajectorylock" / "bin" / "trajectorylock",
+        """#!/usr/bin/env python3
+import sys
+print("OSError: [Errno 98] Address already in use ('127.0.0.1', 8874)", file=sys.stderr)
+raise SystemExit(1)
+""",
+    )
+    suite = Suite(
+        refresh=False,
+        vendor=vendor,
+        catalog=[
+            {
+                "name": "TrajectoryLock",
+                "slug": "trajectorylock",
+                "ui_cmd": "trajectorylock ui",
+                "ui_port": 8874,
+                "download_url": None,
+                "fraggate_status": "live",
+                "door": "fraggate",
+            }
+        ],
+    )
+    opened = suite.boot("trajectorylock", allow_install=False)
+    assert opened["posture"] == "review"
+    assert opened["label"] == "Review"
+    assert opened["outcome"] is None
+    assert opened["url"] == "/suite/trajectorylock"
+    assert "Could not open" not in opened["label"]
+    assert "does not invent pixels" in opened["reason"]
