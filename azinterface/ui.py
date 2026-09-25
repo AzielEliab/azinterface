@@ -12,7 +12,7 @@ from .engine import Engine
 from .local_page import operator_html
 from .meta import IDENTITY, LIMITATION, LOOPBACK, NAME, PORT, SPEC, VERSION
 from .receipts import Ledger
-from .suite import SLUG_RE, Suite, bundled_software
+from .suite import SLUG_RE, Suite
 from .suite_page import suite_html
 
 _ENGINE = Engine(Ledger())
@@ -91,9 +91,10 @@ class Handler(BaseHTTPRequestHandler):
             host, bound_port = self.server.server_address[:2]
             if wants_json(self.headers.get("Accept")):
                 doc = home_document(_ENGINE, str(host), int(bound_port))
+                cards = SUITE.cards()
                 doc["suite"] = True
-                doc["software_count"] = len(bundled_software())
-                doc["software_source"] = "bundled snapshot"
+                doc["software_count"] = len(cards)
+                doc["software_source"] = SUITE.source
                 self._json(doc)
                 return
             self._html(desk_html(port=int(bound_port)))

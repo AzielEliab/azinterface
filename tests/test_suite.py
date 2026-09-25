@@ -256,6 +256,63 @@ def test_http_suite_does_not_boot_on_get(tmp_path: Path, monkeypatch) -> None:
     assert LIVE_SUITE is not suite
 
 
+def test_json_home_names_live_catalog_when_fetch_wins(tmp_path: Path, monkeypatch) -> None:
+    live = [
+        {
+            "name": "Live Only",
+            "slug": "liveonly",
+            "fraggate_status": "live",
+            "door": "fraggate",
+        }
+    ]
+    monkeypatch.setattr("azinterface.suite._fetch_live", lambda: live)
+    suite = Suite(refresh=True, vendor=tmp_path / "vendor")
+    monkeypatch.setattr("azinterface.ui.SUITE", suite)
+    httpd = make_server("127.0.0.1", 0)
+    port = int(httpd.server_address[1])
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        raw = urlopen(
+            Request(f"http://127.0.0.1:{port}/", headers={"Accept": "application/json"})
+        ).read().decode()
+        data = json.loads(raw)
+        listed = json.loads(urlopen(f"http://127.0.0.1:{port}/suite/software").read().decode())
+        assert data["ok"] is True
+        assert data["software_source"] == "GET /v1/software"
+        assert data["software_source"] != "bundled snapshot"
+        assert data["software_source"] == listed["source"]
+        assert data["software_count"] == listed["count"] == 1
+        assert listed["software"][0]["slug"] == "liveonly"
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+        suite.stop()
+
+
+def test_json_home_keeps_bundled_snapshot_when_live_fetch_fails(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("azinterface.suite._fetch_live", lambda: None)
+    suite = Suite(refresh=True, vendor=tmp_path / "vendor")
+    monkeypatch.setattr("azinterface.ui.SUITE", suite)
+    httpd = make_server("127.0.0.1", 0)
+    port = int(httpd.server_address[1])
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        raw = urlopen(
+            Request(f"http://127.0.0.1:{port}/", headers={"Accept": "application/json"})
+        ).read().decode()
+        data = json.loads(raw)
+        listed = json.loads(urlopen(f"http://127.0.0.1:{port}/suite/software").read().decode())
+        assert data["software_source"] == "bundled snapshot"
+        assert data["software_source"] == listed["source"]
+        assert data["software_count"] == listed["count"] == len(bundled_software())
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+        suite.stop()
+
+
 def test_azvpn_starts_before_other_softwares(monkeypatch) -> None:
     suite = Suite(
         refresh=False,
