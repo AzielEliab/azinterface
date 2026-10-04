@@ -1,5 +1,6 @@
 /** Hosted AZInterface homepage: counted download + pre-locked custody UI. */
 import { LIMITATION } from "./engine.js";
+import { HUMAN_LINES_SOURCE } from "./human.js";
 import { meshClientScript, meshStripHtml } from "./mesh.js";
 import { domainMapHtml, pipelineStripHtml } from "./pipeline.js";
 
@@ -112,13 +113,14 @@ ${meshStripHtml()}
 ${pipelineStripHtml()}
 ${domainMapHtml()}
 <p class="banner">${LIMITATION}</p>
+<p class="banner">This page stands on its own. Calls to aziel-runtime still use the existing FragGate door. Internet is not live. Mail send is not live. The kernel is not live. Boot is not live. AZNews is not live. 4DMap on this page is not a live map.</p>
 <div class="nums">
   <div class="count">${v}<span>Views</span></div>
   <div class="count">${n}<span>Downloads</span></div>
 </div>
 <div class="btns">
   <a class="btn primary" href="/download?asset=${ASSET}">Download ${ASSET}</a>
-  <button class="btn install" id="install-btn" type="button">One-click install</button>
+  <button class="btn install" id="install-btn" type="button">Copy install steps</button>
 </div>
 <ol class="install-steps" id="install-steps">
   <li>Download the counted tarball (button above).</li>
@@ -144,7 +146,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   <div class="card">
     <h2>Site state</h2>
     <p>Sealed cycle: <strong>OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL</strong>. One step only. No skip. Living presence only at ON after integrity. No cloud-asleep availability.</p>
-    <p>State <span class="badge" id="state-badge">OFF</span> · living <span class="badge" id="live-badge">false</span></p>
+    <p>State <span class="badge" id="state-badge">OFF</span> · living presence <span class="badge" id="live-badge">off</span></p>
     <div class="row">
       <button class="act" data-state="ON" type="button">ON</button>
       <button class="ghost" data-state="OFF" type="button">OFF</button>
@@ -247,6 +249,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   Cite: Eliab, Aziel. (2026). AZInterface 0.1.0 [Software].
 </footer>
 <script>
+${HUMAN_LINES_SOURCE}
 (function () {
   var cmd = ${JSON.stringify(INSTALL_STEPS)};
   var btn = document.getElementById("install-btn");
@@ -258,28 +261,11 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   function show(id, obj) {
     var host = document.getElementById(id);
     if (!host) return;
-    var raw = JSON.stringify(obj, null, 2);
-    var title = obj && obj.display && obj.display.title;
-    var summary = obj && obj.display && obj.display.summary;
-    var line = title && summary
-      ? String(title).replace(/\\.$/, "") + ". " + summary
-      : (summary || title || (obj && (obj.error || obj.code || obj.note)) || "Response");
-    var code = obj && obj.code ? " [" + obj.code + "]" : "";
     host.replaceChildren();
     var compact = document.createElement("p");
     compact.className = "out-summary";
-    compact.textContent = String(line) + code;
-    var det = document.createElement("details");
-    det.className = "out-json";
-    var sum = document.createElement("summary");
-    sum.textContent = "Full JSON (" + raw.length.toLocaleString() + " chars) — collapsed by default";
-    var pre = document.createElement("pre");
-    pre.className = "out-pre";
-    pre.textContent = raw;
-    det.appendChild(sum);
-    det.appendChild(pre);
+    compact.textContent = humanLines(obj).join(" ");
     host.appendChild(compact);
-    host.appendChild(det);
   }
   function toastMemorial(out) {
     var el = document.getElementById("cycle-toast");
@@ -311,7 +297,7 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
   async function refresh() {
     var cycle = await call("page_cycle_status", {});
     document.getElementById("state-badge").textContent = cycle.site_state || "?";
-    document.getElementById("live-badge").textContent = String(!!cycle.living_presence);
+    document.getElementById("live-badge").textContent = cycle.living_presence ? "on" : "off";
     var home = document.getElementById("azhome");
     if (cycle.living_presence) {
       home.className = "lock on";

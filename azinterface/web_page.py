@@ -21,12 +21,14 @@ def home_html(*, views: int = 0, downloads: int = 0, github: dict | None = None,
     gh = github or {}
     v = f"{int(views or 0):,}"
     n = f"{int(downloads or 0):,}"
+    from .plain import HUMAN_JS
+
     local_note = "Local loopback UI (127.0.0.1). " if local else ""
     counted = HOST if local else ""
     download_href = f"{counted}/download?asset={ASSET}" if local else f"/download?asset={ASSET}"
     count_href = f"{counted}/count" if local else "/count"
     stats_href = f"{counted}/stats" if local else "/stats"
-    return f"""<!DOCTYPE html>
+    page = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -44,6 +46,7 @@ header img {{ width:40px; height:40px; }}
 h1 {{ margin:0; font-size:1.4rem; color:var(--gold); }}
 .motto {{ color:var(--muted); font-size:.9rem; }}
 .banner {{ margin:12px 18px 0; border:1px solid #5c4a1a; background:#241c0d; color:#f0d78c; padding:.75rem 1rem; border-radius:8px; font-size:.88rem; }}
+.banner + .banner {{ margin-top:8px; }}
 .nums {{ display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin:12px 18px; }}
 .count {{ background:var(--card); border:1px solid var(--gold-dim); border-radius:12px; padding:12px; font-size:2rem; font-weight:700; }}
 .count span {{ display:block; font-size:.9rem; font-weight:500; color:var(--muted); }}
@@ -125,13 +128,14 @@ footer a {{ color:var(--gold); }}
 {pipeline_strip_html()}
 {domain_map_html()}
 <p class="banner">{LIMITATION}</p>
+<p class="banner">This page stands on its own. Calls to aziel-runtime still use the existing FragGate door. Internet is not live. Mail send is not live. The kernel is not live. Boot is not live. AZNews is not live. 4DMap on this page is not a live map.</p>
 <div class="nums">
   <div class="count">{v}<span>Views</span></div>
   <div class="count">{n}<span>Downloads</span></div>
 </div>
 <div class="btns">
   <a class="btn primary" href="{download_href}">Download {ASSET}</a>
-  <button class="btn install" id="install-btn" type="button">One-click install</button>
+  <button class="btn install" id="install-btn" type="button">Copy install steps</button>
 </div>
 <ol class="install-steps" id="install-steps">
   <li>Download the counted tarball (button above).</li>
@@ -157,7 +161,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
   <div class="card">
     <h2>Site state</h2>
     <p>Sealed cycle: <strong>OFF → integrity → ON → FULL SHUTDOWN → MEMORIAL</strong>. One step only. No skip. Living presence only at ON after integrity. No cloud-asleep availability.</p>
-    <p>State <span class="badge" id="state-badge">OFF</span> · living <span class="badge" id="live-badge">false</span></p>
+    <p>State <span class="badge" id="state-badge">OFF</span> · living presence <span class="badge" id="live-badge">off</span></p>
     <div class="row">
       <button class="act" data-state="ON" type="button">ON</button>
       <button class="ghost" data-state="OFF" type="button">OFF</button>
@@ -260,6 +264,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
   Cite: Eliab, Aziel. (2026). AZInterface 0.1.0 [Software].
 </footer>
 <script>
+___HUMAN_LINES___
 (function () {{
   var cmd = {INSTALL_STEPS!r};
   var btn = document.getElementById("install-btn");
@@ -271,28 +276,11 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
   function show(id, obj) {{
     var host = document.getElementById(id);
     if (!host) return;
-    var raw = JSON.stringify(obj, null, 2);
-    var title = obj && obj.display && obj.display.title;
-    var summary = obj && obj.display && obj.display.summary;
-    var line = title && summary
-      ? String(title).replace(/\\.$/, "") + ". " + summary
-      : (summary || title || (obj && (obj.error || obj.code || obj.note)) || "Response");
-    var code = obj && obj.code ? " [" + obj.code + "]" : "";
     host.replaceChildren();
     var compact = document.createElement("p");
     compact.className = "out-summary";
-    compact.textContent = String(line) + code;
-    var det = document.createElement("details");
-    det.className = "out-json";
-    var sum = document.createElement("summary");
-    sum.textContent = "Full JSON (" + raw.length.toLocaleString() + " chars) — collapsed by default";
-    var pre = document.createElement("pre");
-    pre.className = "out-pre";
-    pre.textContent = raw;
-    det.appendChild(sum);
-    det.appendChild(pre);
+    compact.textContent = humanLines(obj).join(" ");
     host.appendChild(compact);
-    host.appendChild(det);
   }}
   function toastMemorial(out) {{
     var el = document.getElementById("cycle-toast");
@@ -324,7 +312,7 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
   async function refresh() {{
     var cycle = await call("page_cycle_status", {{}});
     document.getElementById("state-badge").textContent = cycle.site_state || "?";
-    document.getElementById("live-badge").textContent = String(!!cycle.living_presence);
+    document.getElementById("live-badge").textContent = cycle.living_presence ? "on" : "off";
     var home = document.getElementById("azhome");
     if (cycle.living_presence) {{
       home.className = "lock on";
@@ -461,3 +449,4 @@ GitHub stars {gh.get("stars") or 0} · forks {gh.get("forks") or 0} · watchers 
 </body>
 </html>
 """
+    return page.replace("___HUMAN_LINES___", HUMAN_JS)

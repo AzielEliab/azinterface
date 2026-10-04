@@ -317,6 +317,7 @@ button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; 
 <main>
   <h1>4DMap</h1>
   <h2>Softwares · Shadow</h2>
+  <p>This is the shadow-link layer. 4DMap is not a live map.</p>
   <p id="empty">No ShadowLock links yet. Open the ShadowLock tile and link a Software. This layer does not invent marks.</p>
   <ol id="layer"></ol>
   <p><button id="refresh" type="button">Refresh</button></p>

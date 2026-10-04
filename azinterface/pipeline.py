@@ -451,16 +451,38 @@ def pipeline_strip_html() -> str:
     )
 
 
+def human_status_phrase(row: dict[str, Any]) -> str:
+    """What a person should read. The machine status field stays on the JSON cite."""
+    slug = str(row.get("slug") or "")
+    status = str(row.get("status") or "")
+    if slug == "4dmap":
+        return "not live — shadow layer on this desk only"
+    if slug == "azmail":
+        return "listed — mail send is not live"
+    if slug == "aznet":
+        return "listed — internet is not live"
+    if slug == "azos":
+        return "listed — kernel is not live and boot is not live"
+    if slug == "aznews":
+        return "not live"
+    if "stub" in status:
+        return status
+    if status == "live":
+        return "listed on aziel-runtime"
+    return status
+
+
 def domain_map_html() -> str:
     cards = []
     for domain in DOMAIN_MAP:
         items = []
         for row in domain["softwares"]:
-            stub = " stub" if "stub" in row["status"] else ""
+            phrase = human_status_phrase(row)
+            stub = " stub" if "stub" in phrase else ""
             items.append(
                 f'<li class="sw{stub}" data-slug="{row["slug"]}">'
                 f'<code>{row["slug"]}</code> {row["name"]}'
-                f'<span class="st">{row["status"]}</span></li>'
+                f'<span class="st">{phrase}</span></li>'
             )
         cards.append(
             f'<section class="domain" data-domain="{domain["slug"]}">'

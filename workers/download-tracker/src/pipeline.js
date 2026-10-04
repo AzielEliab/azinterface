@@ -288,11 +288,25 @@ export function pipelineStripHtml() {
 </div>`;
 }
 
+export function humanStatusPhrase(row) {
+  const slug = String((row && row.slug) || "");
+  const status = String((row && row.status) || "");
+  if (slug === "4dmap") return "not live — shadow layer on this desk only";
+  if (slug === "azmail") return "listed — mail send is not live";
+  if (slug === "aznet") return "listed — internet is not live";
+  if (slug === "azos") return "listed — kernel is not live and boot is not live";
+  if (slug === "aznews") return "not live";
+  if (status.includes("stub")) return status;
+  if (status === "live") return "listed on aziel-runtime";
+  return status;
+}
+
 export function domainMapHtml() {
   const cards = DOMAIN_MAP.map((domain) => {
     const items = domain.softwares.map((row) => {
-      const stub = String(row.status).includes("stub") ? " stub" : "";
-      return `<li class="sw${stub}" data-slug="${row.slug}"><code>${row.slug}</code> ${row.name}<span class="st">${row.status}</span></li>`;
+      const phrase = humanStatusPhrase(row);
+      const stub = phrase.includes("stub") ? " stub" : "";
+      return `<li class="sw${stub}" data-slug="${row.slug}"><code>${row.slug}</code> ${row.name}<span class="st">${phrase}</span></li>`;
     }).join("");
     return `<section class="domain" data-domain="${domain.slug}"><h3>${domain.id} ${domain.name}</h3><ul>${items}</ul></section>`;
   }).join("");
