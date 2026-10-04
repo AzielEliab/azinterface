@@ -133,6 +133,12 @@ def test_strip_and_domain_map_html() -> None:
     assert 'data-domain="vault-custody"' in html
     assert 'data-domain="core-time"' in html
     assert 'data-slug="4dmap"' in html
+    assert "not live — shadow layer on this desk only" in html
+    assert "mail send is not live" in html
+    assert "internet is not live" in html
+    assert "kernel is not live and boot is not live" in html
+    four = next(s for d in DOMAIN_MAP for s in d["softwares"] if s["slug"] == "4dmap")
+    assert four["status"] == "live"
     assert "aziel-runtime" in html
     assert "AZCoherence" in html
     assert "scoring-review" in html

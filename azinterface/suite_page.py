@@ -87,6 +87,7 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
   <main>
     <h1>Softwares</h1>
     <p class="lede">AZInterface is the suite on this computer. Start suite opens every Software that can run here. AZVPN starts with the suite. AZCoherence stays in the background. TrajectoryLock opens a review of satellite imagery for an event place and time. ShadowLock links any Software. 4DMap shows those links.</p>
+    <p id="stand">This page stands on its own. It can call aziel-runtime through the existing FragGate door. It can open AZOS when that software is installed on this computer. Opening AZOS does not boot a kernel. A catalog listing is not a join. Internet is not live. Mail send is not live. The kernel is not live. Boot is not live. AZNews is not live. 4DMap on this desk is the shadow-link layer, not a live map.</p>
     <div class="actions">
       <button class="primary" id="start-suite" type="button">Start suite</button>
       <button class="ghost" id="refresh" type="button">Refresh</button>
@@ -131,27 +132,29 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
     var counts = data.counts || {};
     var order = ["ready", "running", "quiet", "review", "link", "map", "installing", "needs-install", "local-only", "fraggate-only", "repair", "failed"];
     var labels = {
-      ready: "Ready",
-      running: "Running",
-      quiet: "Quiet",
-      review: "Review",
-      link: "Link",
-      map: "Map",
-      installing: "Installing",
-      "needs-install": "Needs install",
-      "local-only": "Local only",
-      "fraggate-only": "FragGate only",
-      repair: "Repair",
-      failed: "Could not open"
+      ready: "ready",
+      running: "running",
+      quiet: "quiet",
+      review: "in review",
+      link: "on the link desk",
+      map: "on the shadow layer",
+      installing: "installing",
+      "needs-install": "not installed yet",
+      "local-only": "local only",
+      "fraggate-only": "available only through FragGate",
+      repair: "in need of repair",
+      failed: "unable to open"
     };
     var parts = [];
     order.forEach(function (key) {
-      if (counts[key]) parts.push(labels[key] + " " + counts[key]);
+      if (counts[key]) parts.push(counts[key] + " " + labels[key]);
     });
-    var line = (data.count || 0) + " Softwares";
-    if (data.source) line += " · " + data.source;
-    if (parts.length) line += " · " + parts.join(" · ");
-    if (data.running) line += " · Starting";
+    var line = (data.count || 0) + " Softwares are listed.";
+    if (data.source === "GET /v1/software") line += " The names came from the aziel-runtime catalog.";
+    else if (data.source) line += " The names are the copy shipped with this page.";
+    line += " A catalog listing is not a join.";
+    if (parts.length) line += " " + parts.join(". ") + ".";
+    if (data.running) line += " Start suite is still working.";
     return line;
   }
 

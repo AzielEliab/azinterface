@@ -137,7 +137,8 @@ bash install-azinterface.sh
 ```
 
 Pipe-to-bash (`curl … | bash`) remains available and is optional, not the
-recommended path. One-click on the Worker homepage copies the tarball steps.
+recommended path. The Worker homepage button copies the tarball steps. It
+does not install by itself.
 
 ## Counted download (Cloudflare Worker)
 

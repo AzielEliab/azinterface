@@ -129,6 +129,8 @@ def test_operator_page_is_a_console() -> None:
     assert "#c9a227" in html
     assert 'name="viewport"' in html
     assert "One-click install" not in html
+    assert "Full JSON" not in html
+    assert "JSON.stringify(obj" not in html
     assert "Download " not in html
     assert "Live Nodes" not in html
     assert "THIS IS NOT" not in html
@@ -150,7 +152,8 @@ def test_operator_page_is_a_console() -> None:
         'data-state="OFF"',
         'data-state="FULL_SHUTDOWN"',
         'data-state="MEMORIAL"',
-        "Response JSON",
+        "function humanLines",
+        "This request was refused.",
     ):
         assert token in html
 

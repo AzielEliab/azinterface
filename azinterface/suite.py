@@ -28,6 +28,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .meta import FRAGGATE_CALL, IDENTITY, LOOPBACK
+from .plain import HUMAN_JS
 from .shadow_links import add_link, links_path, list_links, remove_link, shadow_desk_html, shadow_map_html
 from .trajectory_review import accept_product_imagery, review_event, review_html
 
@@ -315,7 +316,7 @@ class Suite:
         if slug == "4dmap":
             return (
                 "map",
-                "4DMap shows ShadowLock links on a Softwares · Shadow layer.",
+                "4DMap shows ShadowLock links on a Softwares · Shadow layer. It is not a live map.",
                 "Press Map. If nothing is linked, the layer says so.",
             )
         if isinstance(card.get("ui_port"), int) and self._page_is_product(card["ui_port"], card):
@@ -1301,7 +1302,7 @@ class Suite:
         status = "ON" if up else "Repair"
         listen = escape(self._vpn_listen or f"http://{LOOPBACK}:{port}/")
         safe_reason = escape(reason)
-        return f"""<!DOCTYPE html>
+        page = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -1326,7 +1327,7 @@ p, summary {{ color:var(--muted); }}
   <p id="status">Status: {status}. AZVPN starts with the suite. It is not optional.</p>
   <p>{safe_reason}</p>
   <p><button id="rotate" type="button">Rotate IP</button></p>
-  <pre id="out">Rotate IP opens a new in-process path. It does not change this computer's public address.</pre>
+  <p id="out">Rotate IP opens a new in-process path. It does not change this computer's public address.</p>
   <details>
     <summary>Settings</summary>
     <p>Listening address the suite uses: {listen}. The Softwares catalog has no AZVPN download, so a missing install uses the project archive.</p>
@@ -1334,14 +1335,14 @@ p, summary {{ color:var(--muted); }}
   </details>
 </main>
 <script>
+___HUMAN_LINES___
 document.getElementById("rotate").addEventListener("click", async function () {{
   var out = document.getElementById("out");
   out.textContent = "Rotating…";
   try {{
     var res = await fetch("/suite/azvpn/rotate", {{ method: "POST", headers: {{ "content-type": "application/json" }}, body: "{{}}" }});
     var data = await res.json();
-    out.textContent = data.note || data.error || JSON.stringify(data, null, 2);
-    if (data.next) out.textContent += " Next: " + data.next;
+    out.textContent = humanLines(data).join(" ");
   }} catch (e) {{
     out.textContent = "Rotate IP could not reach AZVPN. Press Start suite again. There is no opt-out.";
   }}
@@ -1350,6 +1351,7 @@ document.getElementById("rotate").addEventListener("click", async function () {{
 </body>
 </html>
 """
+        return page.replace("___HUMAN_LINES___", HUMAN_JS)
 
     def rotate_azvpn(self) -> dict[str, Any]:
         card = self._card("azvpn")
@@ -1415,7 +1417,7 @@ document.getElementById("rotate").addEventListener("click", async function () {{
             return None
         name = escape(card["name"])
         safe_slug = escape(card["slug"])
-        return f"""<!DOCTYPE html>
+        page = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -1439,13 +1441,14 @@ p {{ color:var(--muted); }}
 <body>
 <main>
   <h1>{name}</h1>
-  <p>This is a FragGate session for slug <code>{safe_slug}</code>. It is not a local page. The call goes to the aziel-runtime door.</p>
+  <p>This session calls {name} through the existing FragGate door. It is not a local page, and it does not replace that door.</p>
   <label for="op">Operation</label>
   <input id="op" value="health">
   <p><button id="call" type="button">Call</button></p>
-  <pre id="out">No call yet.</pre>
+  <p id="out">No call yet.</p>
 </main>
 <script>
+___HUMAN_LINES___
 document.getElementById("call").addEventListener("click", async function () {{
   var out = document.getElementById("out");
   out.textContent = "Calling…";
@@ -1456,7 +1459,7 @@ document.getElementById("call").addEventListener("click", async function () {{
       body: JSON.stringify({{ slug: "{safe_slug}", op: document.getElementById("op").value, payload: {{}} }})
     }});
     var data = await res.json();
-    out.textContent = JSON.stringify(data, null, 2);
+    out.textContent = humanLines(data).join(" ");
   }} catch (e) {{
     out.textContent = "The session could not reach the door. Stay on this computer and try Call again.";
   }}
@@ -1465,6 +1468,7 @@ document.getElementById("call").addEventListener("click", async function () {{
 </body>
 </html>
 """
+        return page.replace("___HUMAN_LINES___", HUMAN_JS)
 
     def fraggate_call(self, slug: str, op: str, payload: dict[str, Any]) -> dict[str, Any]:
         card = self._card(slug)

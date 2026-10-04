@@ -261,10 +261,6 @@ footer p { margin: 0.2rem 0; }
           <button class="ghost" id="pipeline-btn" type="button">Pipeline cite</button>
         </div>
       </details>
-      <details class="group" id="response-json">
-        <summary>Response JSON</summary>
-        <pre id="json-out">No response yet.</pre>
-      </details>
       <details class="group" id="about">
         <summary>Notes</summary>
         <p>AZInterface __VERSION__ (__SPEC__) records a one-time genesis hash, an integrity check, and the sealed page cycle on this computer. The seed is hashed and discarded. Vault contents are not shown. Witness rows are metadata.</p>
@@ -279,30 +275,15 @@ footer p { margin: 0.2rem 0; }
   </footer>
 </div>
 <script>
+___HUMAN_LINES___
 (function () {
   var nextName = null;
-  function textOf(obj) {
-    var lines = [];
-    var display = obj && obj.display;
-    if (display && display.title) lines.push(String(display.title));
-    if (display && display.summary) lines.push(String(display.summary));
-    var fields = (display && display.fields) || [];
-    for (var i = 0; i < fields.length; i++) {
-      var row = fields[i];
-      if (row && row.label != null) lines.push(String(row.label) + ": " + String(row.value));
-    }
-    if (!lines.length) lines.push((obj && (obj.error || obj.code)) || "Done.");
-    if (obj && obj.ok === false && obj.code) lines.push("Code: " + obj.code);
+  function show(obj) {
+    var lines = humanLines(obj);
     if (obj && obj.ok && obj.integrity_ok && obj.current === "integrity" && !obj.living_presence) {
       lines.push("Next: open Advanced and press ON.");
     }
-    return lines.join("\\n");
-  }
-  function show(obj) {
-    var result = document.getElementById("result");
-    result.textContent = textOf(obj);
-    var pre = document.getElementById("json-out");
-    pre.textContent = JSON.stringify(obj, null, 2);
+    document.getElementById("result").textContent = lines.join("\\n");
   }
   function failed() {
     document.getElementById("result").textContent = "The local page could not complete that request. Stay on this computer and try again.";
@@ -462,10 +443,13 @@ footer p { margin: 0.2rem 0; }
 
 
 def operator_html(*, port: int = PORT) -> str:
+    from .plain import HUMAN_JS
+
     return (
         _PAGE.replace("__VERSION__", VERSION)
         .replace("__SPEC__", SPEC)
         .replace("__AUTHOR__", IDENTITY)
         .replace("__LOOPBACK__", LOOPBACK)
         .replace("__PORT__", str(port))
+        .replace("___HUMAN_LINES___", HUMAN_JS)
     )

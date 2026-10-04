@@ -37,8 +37,17 @@ def test_home_html_wires_buttons() -> None:
     assert "toastMemorial" in html
     assert "MEMORIAL is terminal" in html
     assert "out-panel" in html
-    assert "out-pre" in html
-    assert "collapsed by default" in html
+    assert "function humanLines" in html
+    assert "This request was refused." in html
+    assert "Full JSON" not in html
+    assert "Copy install steps" in html
+    assert "One-click install" not in html
+    assert "Internet is not live." in html
+    assert "Mail send is not live." in html
+    assert "The kernel is not live." in html
+    assert "Boot is not live." in html
+    assert "AZNews is not live." in html
+    assert "not a live map" in html
     assert "max-height:12rem" in html
     assert "install-steps" in html
     assert "install-advanced" in html

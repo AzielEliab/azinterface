@@ -17,6 +17,7 @@ from pathlib import Path
 from .engine import LIVE_OPS, STUB_OPS, Engine
 from .meta import IDENTITY, LOOPBACK, PORT, SPEC, VERSION
 from .doctor import run_doctor
+from .plain import human_text
 from .receipts import Ledger
 
 ROOT_HELP = f"""\
@@ -188,53 +189,17 @@ def _human(obj: object) -> int:
     ok = bool(obj.get("ok", True))
     display = obj.get("display") if isinstance(obj.get("display"), dict) else None
     if isinstance(obj.get("live_ops"), list) and isinstance(obj.get("stub_ops"), list) and display is None:
-        print("Live operations")
+        print("These operations run on this computer.")
         for name in obj["live_ops"]:
-            print(f"  {name}")
-        print("Stub operations")
+            print(f"  {str(name).replace('_', ' ')} runs here.")
+        print("These operations are refused. They are not live.")
         for name in obj["stub_ops"]:
-            print(f"  {name}")
+            print(f"  {str(name).replace('_', ' ')} is refused.")
         return 0 if ok else 2
-    if display:
-        title = str(display.get("title") or "AZInterface")
-        print(title)
-        summary = display.get("summary") or ""
-        if summary:
-            print(summary)
-        for row in display.get("fields") or []:
-            if isinstance(row, dict) and row.get("label") is not None:
-                print(f"  {row.get('label')}: {row.get('value')}")
-    elif obj.get("error"):
-        print(str(obj["error"]))
-        if obj.get("code"):
-            print(f"Code: {obj['code']}")
-    elif obj.get("code"):
-        print(str(obj["code"]))
-    else:
-        print("AZInterface")
-    witnesses = obj.get("witnesses")
-    if isinstance(witnesses, list) and witnesses:
-        print("Witnesses")
-        for row in witnesses:
-            if not isinstance(row, dict):
-                continue
-            kind = row.get("kind") or "witness"
-            ident = row.get("hold_id") or row.get("id") or row.get("pair_id") or ""
-            print(f"  {kind}  {ident}".rstrip())
-    pairs = obj.get("pairs")
-    if isinstance(pairs, list) and pairs and display is not None:
-        print("Pairs")
-        for row in pairs:
-            if not isinstance(row, dict):
-                continue
-            print(
-                f"  {row.get('pair_id') or ''}  {row.get('handshake') or ''}  {row.get('via') or ''}".rstrip()
-            )
+    print(human_text(obj))
     if ok and obj.get("integrity_ok") and obj.get("current") == "integrity" and not obj.get("living_presence"):
         print("Next: azinterface state-set ON")
     if not ok:
-        if obj.get("code") and display:
-            print(f"Code: {obj['code']}")
         print(_hint(obj))
     return 0 if ok else 2
 
@@ -353,10 +318,14 @@ def main(argv: list[str] | None = None) -> int:
         doc = Suite(refresh=False).document()
         if as_json:
             return emit(doc, True)
-        print(f"Softwares — {doc['count']} in the {doc['source']}.")
+        if doc["source"] == "GET /v1/software":
+            origin = "The names came from the aziel-runtime catalog."
+        else:
+            origin = "The names are the copy shipped with AZInterface."
+        print(f"{doc['count']} Softwares are listed. {origin} A catalog listing is not a join.")
         print()
         for row in doc["software"]:
-            print(f"{row['name']} — {row['label']}")
+            print(f"{row['name']}. {row['label']}.")
             if row.get("reason"):
                 print(f"  {row['reason']}")
             if row.get("next"):
