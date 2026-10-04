@@ -115,6 +115,27 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/suite/shadowlock":
             self._html(SUITE.shadow_html())
             return
+        if path == "/suite/azmail":
+            if wants_json(self.headers.get("Accept")):
+                self._json({"ok": True, "status": "Mail send submits the message over SMTP."})
+                return
+            self._html(SUITE.mail_html())
+            return
+        if path == "/suite/aznet":
+            if wants_json(self.headers.get("Accept")):
+                self._json({"ok": True, "status": "The internet door fetches a URL and returns the response body."})
+                return
+            self._html(SUITE.net_html())
+            return
+        if path == "/suite/azos":
+            if wants_json(self.headers.get("Accept")):
+                self._json({"ok": True, "status": "The overlay kernel boots a session and runs a command inside it. The host kernel stays the host kernel.", "host_kernel": False})
+                return
+            self._html(SUITE.kernel_html())
+            return
+        if path == "/suite/4dmap/map":
+            self._json(SUITE.map_state())
+            return
         if path == "/suite/4dmap/news":
             if wants_json(self.headers.get("Accept")):
                 self._json(SUITE.news_view())
@@ -126,7 +147,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/suite/4dmap":
             if wants_json(self.headers.get("Accept")):
-                self._json(SUITE.news_view())
+                body = SUITE.news_view()
+                body["map"] = SUITE.map_state()
+                self._json(body)
                 return
             self._html(SUITE.map_html())
             return
@@ -201,6 +224,33 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"ok": False, "error": "The link body must be a JSON object."}, 400)
                 return
             self._json(SUITE.shadow_unlink(payload))
+            return
+        if path == "/suite/4dmap/map/pin":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The card body must be a JSON object."}, 400)
+                return
+            self._json(SUITE.place_map_card(payload))
+            return
+        if path == "/suite/azmail/send":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The message body must be a JSON object."}, 400)
+                return
+            self._json(SUITE.send_mail(payload))
+            return
+        if path == "/suite/aznet/fetch":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The fetch body must be a JSON object."}, 400)
+                return
+            self._json(SUITE.fetch_internet(payload))
+            return
+        if path == "/suite/azos/boot":
+            self._json(SUITE.boot_kernel())
+            return
+        if path == "/suite/azos/command":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The command body must be a JSON object."}, 400)
+                return
+            self._json(SUITE.kernel_command(payload))
             return
         if path in {"/suite/4dmap/news", "/suite/4dmap/pin", "/suite/4dmap/unpin"}:
             if not isinstance(payload, dict):

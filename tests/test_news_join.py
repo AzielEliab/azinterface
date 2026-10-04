@@ -21,10 +21,10 @@ STORY = {
     "body": "The harbor master posted a written notice about the morning tide.",
 }
 HONEST = {
-    "4dmap": "This row is in the catalog. It is not a running map.",
-    "azmail": "This row is in the catalog. Mail send does not run here.",
-    "aznet": "This row is in the catalog. Internet does not run here.",
-    "azos": "This row is in the catalog. The kernel does not run here. Boot does not run here.",
+    "4dmap": "This row is in the catalog. The map places a card on the clock and reads that card back.",
+    "azmail": "This row is in the catalog. Mail send submits the message over SMTP.",
+    "aznet": "This row is in the catalog. The internet door fetches a URL and returns the response body.",
+    "azos": "This row is in the catalog. The overlay kernel boots a session and runs a command inside it.",
 }
 
 
@@ -165,25 +165,25 @@ def test_http_door_keeps_sentences_json_and_an_off_site(tmp_path: Path, monkeypa
     base = f"http://127.0.0.1:{port}"
     try:
         home = urlopen(Request(base + "/", headers={"Accept": "text/html"})).read().decode()
-        assert "AZNews is not live." in home
-        assert "not a live map" in home
-        assert "Internet is not live." in home
-        assert "Mail send is not live." in home
-        assert "The kernel is not live." in home
-        assert "Boot is not live." in home
+        assert "The map places a card on the clock and reads that card back." in home
+        assert "Mail send submits the message over SMTP." in home
+        assert "The internet door fetches a URL and returns the response body." in home
+        assert "The host kernel stays the host kernel." in home
+        assert "AZNews can stand alone." in home
+        assert "Internet is not live." not in home
         assert "AZNews is live." not in home
         assert "4DMap is live" not in home
 
         desk = suite_html(port=port, vendor=str(tmp_path))
         worker = home_html(views=0, downloads=0, github={"stars": 0})
         for page in (desk, worker):
-            assert "AZNews is not live." in page
-            assert "Internet is not live." in page
-            assert "Mail send is not live." in page
+            assert "AZNews can stand alone." in page
+            assert "Mail send submits the message over SMTP." in page
+            assert "Internet is not live." not in page
             assert "AZNews is live." not in page
 
         html = urlopen(Request(base + "/suite/4dmap", headers={"Accept": "text/html"})).read().decode()
-        assert "4DMap is not a live map." in html
+        assert "places cards on the clock" in html
         assert "does not invent marks" in html
         assert "No news item has landed as a pin." in html
         assert not html.lstrip().startswith("{")
@@ -191,7 +191,7 @@ def test_http_door_keeps_sentences_json_and_an_off_site(tmp_path: Path, monkeypa
         news_page = urlopen(Request(base + "/suite/4dmap/news", headers={"Accept": "text/html"})).read().decode()
         assert "AZNews stands on its own." in news_page
         assert "4DMap stands on its own." in news_page
-        assert "The join is not live until a news item lands as a pin." in news_page
+        assert "The join stays unmarked until a news item lands as a pin." in news_page
         assert "AZNews is live." not in news_page
         assert not news_page.lstrip().startswith("{")
 

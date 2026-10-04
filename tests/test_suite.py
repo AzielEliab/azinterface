@@ -48,10 +48,13 @@ def test_suite_page_leads_with_start() -> None:
     assert "A catalog listing is not a join." in html
     assert "This page stands on its own." in html
     assert "existing FragGate door" in html
-    assert "Internet is not live." in html
-    assert "Mail send is not live." in html
-    assert "AZNews is not live." in html
-    assert "not a live map" in html
+    assert "The map places a card on the clock and reads that card back." in html
+    assert "Mail send submits the message over SMTP." in html
+    assert "The internet door fetches a URL and returns the response body." in html
+    assert "AZNews can stand alone." in html
+    assert "The host kernel stays the host kernel." in html
+    assert "Internet is not live." not in html
+    assert "not a live map" not in html
     assert "Rotate IP" in html
     assert html.find('id="start-suite"') < html.find('id="advanced"')
     assert "/custody" in html.split('id="advanced"', 1)[1]

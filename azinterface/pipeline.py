@@ -208,7 +208,7 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         "softwares": (
             {"slug": "azbrowser", "name": "AZBrowser", "status": "live"},
             {"slug": "aziel-corpus", "name": "Aziel Corpus", "status": "live"},
-            {"slug": "4dmap", "name": "4DMap", "status": "This row is in the catalog. It is not a running map."},
+            {"slug": "4dmap", "name": "4DMap", "status": "This row is in the catalog. The map places a card on the clock and reads that card back."},
         ),
     },
     {
@@ -216,7 +216,7 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         "slug": "comms",
         "name": "Comms",
         "softwares": (
-            {"slug": "azmail", "name": "AZMail", "status": "This row is in the catalog. Mail send does not run here."},
+            {"slug": "azmail", "name": "AZMail", "status": "This row is in the catalog. Mail send submits the message over SMTP."},
             {"slug": "azchat", "name": "AZChat", "status": "stub / not hosted yet"},
         ),
     },
@@ -225,7 +225,7 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         "slug": "network",
         "name": "Network",
         "softwares": (
-            {"slug": "aznet", "name": "AZNet", "status": "This row is in the catalog. Internet does not run here."},
+            {"slug": "aznet", "name": "AZNet", "status": "This row is in the catalog. The internet door fetches a URL and returns the response body."},
             {"slug": "miragegrid", "name": "MirageGrid", "status": "live"},
             {"slug": "azieltether", "name": "AzielTether", "status": "live"},
         ),
@@ -234,7 +234,7 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         "id": "09",
         "slug": "system",
         "name": "System",
-        "softwares": ({"slug": "azos", "name": "AZ-OS", "status": "This row is in the catalog. The kernel does not run here. Boot does not run here."},),
+        "softwares": ({"slug": "azos", "name": "AZ-OS", "status": "This row is in the catalog. The overlay kernel boots a session and runs a command inside it."},),
     },
     {
         "id": "10",

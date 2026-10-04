@@ -113,7 +113,7 @@ ${meshStripHtml()}
 ${pipelineStripHtml()}
 ${domainMapHtml()}
 <p class="banner">${LIMITATION}</p>
-<p class="banner">This page stands on its own. Calls to aziel-runtime still use the existing FragGate door. Internet is not live. Mail send is not live. The kernel is not live. Boot is not live. AZNews is not live. 4DMap on this page is not a live map.</p>
+<p class="banner">This page stands on its own. Calls to aziel-runtime still use the existing FragGate door. The map places a card on the clock and reads that card back. Mail send submits the message over SMTP. The internet door fetches a URL and returns the response body. The overlay kernel boots a session and runs a command inside it. The host kernel stays the host kernel. AZNews can stand alone. A story joins the map only when that story lands as a pin.</p>
 <div class="nums">
   <div class="count">${v}<span>Views</span></div>
   <div class="count">${n}<span>Downloads</span></div>

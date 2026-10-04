@@ -130,7 +130,7 @@ function fieldSentence(label, value, obj) {
   if (key === "digest") return text ? "The integrity record is " + text + "." : "";
   if (key === "pipeline" || key === "path") return "The path is cited. FragGate remains the door.";
   if (key === "owner" || key === "pipeline_owner") return "The fabric owner is " + (text || "aziel-runtime") + ".";
-  if (key === "4dmap") return "4DMap is an inspection frame on aziel-runtime. It is not live as a map on this page, and it is not an extra door.";
+  if (key === "4dmap") return "4DMap is an inspection frame on aziel-runtime, and it is not an extra door.";
   if (key === "qns_cd") return "Pair custody follows " + text + ".";
   if (key === "qnsd") return "The via runs on " + text + ".";
   if (key === "count") return "The count is " + text + ".";

@@ -87,7 +87,7 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
   <main>
     <h1>Softwares</h1>
     <p class="lede">AZInterface is the suite on this computer. Start suite opens every Software that can run here. AZVPN starts with the suite. AZCoherence stays in the background. TrajectoryLock opens a review of satellite imagery for an event place and time. ShadowLock links any Software. 4DMap shows those links.</p>
-    <p id="stand">This page stands on its own. It can call aziel-runtime through the existing FragGate door. It can open AZOS when that software is installed on this computer. Opening AZOS does not boot a kernel. A catalog listing is not a join. Internet is not live. Mail send is not live. The kernel is not live. Boot is not live. AZNews is not live. 4DMap on this desk is the shadow-link layer, not a live map.</p>
+    <p id="stand">This page stands on its own. It can call aziel-runtime through the existing FragGate door. Opening AZOS boots an overlay session and runs a command inside it. The host kernel stays the host kernel. A catalog listing is not a join. The map places a card on the clock and reads that card back. Mail send submits the message over SMTP. The internet door fetches a URL and returns the response body. AZNews can stand alone. A story joins the map only when that story lands as a pin.</p>
     <div class="actions">
       <button class="primary" id="start-suite" type="button">Start suite</button>
       <button class="ghost" id="refresh" type="button">Refresh</button>
@@ -209,10 +209,11 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
         else if (row.review) action = "Review";
         else if (row.link) action = "Link";
         else if (row.map) action = "Map";
+        else if (row.desk) action = "Open";
         button.textContent = action;
         button.addEventListener("click", function () {
           picked = row.slug;
-          if (row.always_on || row.review || row.link || row.map) show(row);
+          if (row.always_on || row.review || row.link || row.map || row.desk) show(row);
           else openOne(row.slug);
         });
         tile.appendChild(button);

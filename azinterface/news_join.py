@@ -37,7 +37,7 @@ _PLACEHOLDERS = frozenset(
     }
 )
 
-NOT_A_RUNNING_MAP = "This row is in the catalog. It is not a running map."
+NOT_A_RUNNING_MAP = "This row is in the catalog. The map places a card on the clock and reads that card back."
 NO_PIN = "No news item has landed as a pin."
 LANDED = "A news item landed as a pin."
 
@@ -175,7 +175,7 @@ a { color:inherit; }
 <body>
 <main>
   <h1>AZNews</h1>
-  <p>AZNews stands on its own. A story stays here until it is pinned. 4DMap stands on its own. The shadow layer does not require a story. The join is not live until a news item lands as a pin.</p>
+  <p>AZNews stands on its own. A story stays here until it is pinned. 4DMap stands on its own. The shadow layer does not require a story. The join stays unmarked until a news item lands as a pin.</p>
   <p><a href="/suite/4dmap">Open the 4DMap shadow layer</a></p>
   <label for="headline">Headline</label>
   <input id="headline" autocomplete="off">

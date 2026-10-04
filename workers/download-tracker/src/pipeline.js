@@ -118,19 +118,19 @@ export const DOMAIN_MAP = Object.freeze([
   Object.freeze({ id: "06", slug: "research", name: "Research", softwares: Object.freeze([
     Object.freeze({ slug: "azbrowser", name: "AZBrowser", status: "live" }),
     Object.freeze({ slug: "aziel-corpus", name: "Aziel Corpus", status: "live" }),
-    Object.freeze({ slug: "4dmap", name: "4DMap", status: "This row is in the catalog. It is not a running map." }),
+    Object.freeze({ slug: "4dmap", name: "4DMap", status: "This row is in the catalog. The map places a card on the clock and reads that card back." }),
   ]) }),
   Object.freeze({ id: "07", slug: "comms", name: "Comms", softwares: Object.freeze([
-    Object.freeze({ slug: "azmail", name: "AZMail", status: "This row is in the catalog. Mail send does not run here." }),
+    Object.freeze({ slug: "azmail", name: "AZMail", status: "This row is in the catalog. Mail send submits the message over SMTP." }),
     Object.freeze({ slug: "azchat", name: "AZChat", status: "stub / not hosted yet" }),
   ]) }),
   Object.freeze({ id: "08", slug: "network", name: "Network", softwares: Object.freeze([
-    Object.freeze({ slug: "aznet", name: "AZNet", status: "This row is in the catalog. Internet does not run here." }),
+    Object.freeze({ slug: "aznet", name: "AZNet", status: "This row is in the catalog. The internet door fetches a URL and returns the response body." }),
     Object.freeze({ slug: "miragegrid", name: "MirageGrid", status: "live" }),
     Object.freeze({ slug: "azieltether", name: "AzielTether", status: "live" }),
   ]) }),
   Object.freeze({ id: "09", slug: "system", name: "System", softwares: Object.freeze([
-    Object.freeze({ slug: "azos", name: "AZ-OS", status: "This row is in the catalog. The kernel does not run here. Boot does not run here." }),
+    Object.freeze({ slug: "azos", name: "AZ-OS", status: "This row is in the catalog. The overlay kernel boots a session and runs a command inside it." }),
   ]) }),
   Object.freeze({ id: "10", slug: "simulation", name: "Simulation", softwares: Object.freeze([
     Object.freeze({ slug: "postking", name: "Post-King Chess", status: "live" }),

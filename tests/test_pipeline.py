@@ -134,10 +134,10 @@ def test_strip_and_domain_map_html() -> None:
     assert 'data-domain="core-time"' in html
     assert 'data-slug="4dmap"' in html
     catalog = {
-        "4dmap": "This row is in the catalog. It is not a running map.",
-        "azmail": "This row is in the catalog. Mail send does not run here.",
-        "aznet": "This row is in the catalog. Internet does not run here.",
-        "azos": "This row is in the catalog. The kernel does not run here. Boot does not run here.",
+        "4dmap": "This row is in the catalog. The map places a card on the clock and reads that card back.",
+        "azmail": "This row is in the catalog. Mail send submits the message over SMTP.",
+        "aznet": "This row is in the catalog. The internet door fetches a URL and returns the response body.",
+        "azos": "This row is in the catalog. The overlay kernel boots a session and runs a command inside it.",
     }
     cited = {
         row["slug"]: row
