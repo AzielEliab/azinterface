@@ -1,7 +1,8 @@
-"""Mail send on the existing suite door.
+"""Local SMTP handoff on the existing suite door.
 
-The door submits one message over SMTP. sent is true only when the
-server accepts the recipients. This does not store a username.
+The desk submits one message to an SMTP host named in the request.
+sent is true only when that host accepts the recipients.
+Mail send does not run on the public worker. This does not store a username.
 """
 
 from __future__ import annotations
@@ -14,6 +15,11 @@ from typing import Any
 _ADDR = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
+def _local(body: dict[str, Any]) -> dict[str, Any]:
+    body["public_worker_mail_send"] = False
+    return body
+
+
 def submit_smtp(payload: dict[str, Any]) -> dict[str, Any]:
     sender = str(payload.get("from") or payload.get("sender") or "").strip()
     recipient = str(payload.get("to") or payload.get("recipient") or "").strip()
@@ -23,7 +29,7 @@ def submit_smtp(payload: dict[str, Any]) -> dict[str, Any]:
     port = payload.get("port")
     problem = _problem(sender, recipient, subject, body, host, port)
     if problem:
-        return {"ok": False, "sent": False, "error": problem, "status": "The message was not submitted."}
+        return _local({"ok": False, "sent": False, "error": problem, "status": "The message was not submitted."})
     message = EmailMessage()
     message["From"] = sender
     message["To"] = recipient
@@ -34,28 +40,28 @@ def submit_smtp(payload: dict[str, Any]) -> dict[str, Any]:
         with smtplib.SMTP(host, int(port), timeout=5) as smtp:
             refused = smtp.sendmail(sender, [recipient], raw)
     except (OSError, smtplib.SMTPException) as exc:
-        return {
+        return _local({
             "ok": False,
             "sent": False,
             "error": f"SMTP did not accept the message. {exc}",
             "status": "SMTP did not accept the message.",
-        }
+        })
     if refused:
-        return {
+        return _local({
             "ok": False,
             "sent": False,
             "refused": {str(key): str(val) for key, val in refused.items()},
             "status": "SMTP did not accept the message.",
-        }
-    return {
+        })
+    return _local({
         "ok": True,
         "sent": True,
         "accepted": [recipient],
         "from": sender,
         "subject": subject,
         "bytes": len(raw),
-        "status": "SMTP accepted the message.",
-    }
+        "status": "SMTP accepted the message. Mail send does not run on the public worker.",
+    })
 
 
 def mail_page_html() -> str:
@@ -86,7 +92,7 @@ button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; 
 <body>
 <main>
   <h1>AZMail</h1>
-  <p>Mail send submits the message over SMTP. The desk reports acceptance only after the server takes the recipients.</p>
+  <p>This desk hands a message to the SMTP host named here. Mail send does not run on the public worker. The desk reports acceptance only after that host takes the recipients.</p>
   <label for="from">From</label>
   <input id="from" autocomplete="off">
   <label for="to">To</label>

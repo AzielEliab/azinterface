@@ -21,10 +21,10 @@ STORY = {
     "body": "The harbor master posted a written notice about the morning tide.",
 }
 HONEST = {
-    "4dmap": "This row is in the catalog. The map places a card on the clock and reads that card back.",
-    "azmail": "This row is in the catalog. Mail send submits the message over SMTP.",
-    "aznet": "This row is in the catalog. The internet door fetches a URL and returns the response body.",
-    "azos": "This row is in the catalog. The overlay kernel boots a session and runs a command inside it.",
+    "4dmap": "This row is in the catalog. 4DMap can stand alone. AZNews can stand alone. A pin counts only after the same item is read back.",
+    "azmail": "This row is in the catalog. Mail send does not run on the public worker.",
+    "aznet": "This row is in the catalog. The packet path does not run. An alternative internet does not run. WARN-5 stands.",
+    "azos": "This row is in the catalog. The public worker does not run a kernel. Boot does not run on the public worker.",
 }
 
 
@@ -165,11 +165,16 @@ def test_http_door_keeps_sentences_json_and_an_off_site(tmp_path: Path, monkeypa
     base = f"http://127.0.0.1:{port}"
     try:
         home = urlopen(Request(base + "/", headers={"Accept": "text/html"})).read().decode()
-        assert "The map places a card on the clock and reads that card back." in home
-        assert "Mail send submits the message over SMTP." in home
-        assert "The internet door fetches a URL and returns the response body." in home
-        assert "The host kernel stays the host kernel." in home
+        assert "Softwares 42 is the runtime catalog." in home
+        assert "The domain count stays 33." in home
+        assert "The packet path does not run." in home
+        assert "An alternative internet does not run." in home
+        assert "WARN-5 stands." in home
+        assert "Mail send does not run on the public worker." in home
+        assert "The public worker does not run a kernel." in home
+        assert "Boot does not run on the public worker." in home
         assert "AZNews can stand alone." in home
+        assert "4DMap can stand alone." in home
         assert "Internet is not live." not in home
         assert "AZNews is live." not in home
         assert "4DMap is live" not in home
@@ -178,7 +183,9 @@ def test_http_door_keeps_sentences_json_and_an_off_site(tmp_path: Path, monkeypa
         worker = home_html(views=0, downloads=0, github={"stars": 0})
         for page in (desk, worker):
             assert "AZNews can stand alone." in page
-            assert "Mail send submits the message over SMTP." in page
+            assert "Mail send does not run on the public worker." in page
+            assert "WARN-5 stands." in page
+            assert "Softwares 42 is the runtime catalog." in page
             assert "Internet is not live." not in page
             assert "AZNews is live." not in page
 

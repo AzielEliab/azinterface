@@ -42,12 +42,17 @@ def test_home_html_wires_buttons() -> None:
     assert "Full JSON" not in html
     assert "Copy install steps" in html
     assert "One-click install" not in html
-    assert "The map places a card on the clock and reads that card back." in html
-    assert "Mail send submits the message over SMTP." in html
-    assert "The internet door fetches a URL and returns the response body." in html
-    assert "The overlay kernel boots a session and runs a command inside it." in html
-    assert "The host kernel stays the host kernel." in html
+    assert "Softwares 42 is the runtime catalog." in html
+    assert "The domain count stays 33." in html
+    assert "The packet path does not run." in html
+    assert "An alternative internet does not run." in html
+    assert "WARN-5 stands." in html
+    assert "Mail send does not run on the public worker." in html
+    assert "The public worker does not run a kernel." in html
+    assert "Boot does not run on the public worker." in html
+    assert "The host operating system stays the host operating system." in html
     assert "AZNews can stand alone." in html
+    assert "4DMap can stand alone." in html
     assert "Internet is not live." not in html
     assert "not a live map" not in html
     assert "max-height:12rem" in html

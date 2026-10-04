@@ -1,7 +1,9 @@
-"""AZ-OS overlay kernel on the existing suite door.
+"""AZ-OS overlay session on the existing suite door.
 
-Boot creates a session folder. A later command reads and writes only
-inside that folder. The host kernel is not started and is not replaced.
+Opening a session creates a folder. A later command reads and writes only
+inside that folder. The host operating system stays the host operating
+system. The public worker does not run a kernel. Boot does not run on
+the public worker.
 """
 
 from __future__ import annotations
@@ -13,6 +15,13 @@ from typing import Any
 from uuid import uuid4
 
 _VERBS = frozenset({"write", "cat", "echo", "pwd"})
+
+
+def _local(body: dict[str, Any]) -> dict[str, Any]:
+    body["host_kernel"] = False
+    body["public_worker_kernel"] = False
+    body["public_worker_boot"] = False
+    return body
 
 
 def sessions_root(vendor: Path) -> Path:
@@ -31,20 +40,18 @@ def boot_session(root: Path) -> dict[str, Any]:
     (folder / "BOOT").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     read_back = json.loads((folder / "BOOT").read_text(encoding="utf-8"))
     if read_back.get("session") != session:
-        return {
+        return _local({
             "ok": False,
             "booted": False,
-            "host_kernel": False,
-            "error": "The session did not boot.",
-            "status": "The session did not boot.",
-        }
-    return {
+            "error": "The session did not open.",
+            "status": "The session did not open.",
+        })
+    return _local({
         "ok": True,
         "booted": True,
         "session": session,
-        "host_kernel": False,
-        "status": "The overlay session booted. The host kernel stays the host kernel.",
-    }
+        "status": "The overlay session is open. The host operating system stays the host operating system. The public worker does not run a kernel.",
+    })
 
 
 def run_command(root: Path, payload: dict[str, Any]) -> dict[str, Any]:
@@ -52,75 +59,68 @@ def run_command(root: Path, payload: dict[str, Any]) -> dict[str, Any]:
     verb = str(payload.get("op") or payload.get("command") or "").strip().lower()
     folder = _session_dir(root, session) if session.startswith("os-") and "/" not in session else None
     if folder is None or not (folder / "BOOT").is_file():
-        return {
+        return _local({
             "ok": False,
             "ran": False,
-            "host_kernel": False,
-            "error": "Boot a session before running a command.",
+            "error": "Open a session before running a command.",
             "status": "The command did not run.",
-        }
+        })
     if verb not in _VERBS:
-        return {
+        return _local({
             "ok": False,
             "ran": False,
-            "host_kernel": False,
             "error": "That command is not registered.",
             "status": "The command did not run.",
-        }
+        })
     if verb == "pwd":
-        return {"ok": True, "ran": True, "host_kernel": False, "output": "/", "status": "The command ran inside the session."}
+        return _local({"ok": True, "ran": True, "output": "/", "status": "The command ran inside the session."})
     if verb == "echo":
         text = str(payload.get("text") or "")
-        return {"ok": True, "ran": True, "host_kernel": False, "output": text, "status": "The command ran inside the session."}
+        return _local({"ok": True, "ran": True, "output": text, "status": "The command ran inside the session."})
     rel = str(payload.get("path") or "").strip()
     try:
         target = _inside(folder, rel)
     except (ValueError, OSError):
-        return {
+        return _local({
             "ok": False,
             "ran": False,
-            "host_kernel": False,
             "error": "That path stays inside the session.",
             "status": "The command did not run.",
-        }
+        })
     if verb == "write":
         text = str(payload.get("text") if payload.get("text") is not None else "")
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding="utf-8")
         read_back = target.read_text(encoding="utf-8")
         if read_back != text:
-            return {
+            return _local({
                 "ok": False,
                 "ran": False,
-                "host_kernel": False,
                 "error": "The file did not read back.",
                 "status": "The command did not run.",
-            }
-        return {
+            })
+        return _local({
             "ok": True,
             "ran": True,
-            "host_kernel": False,
             "path": rel,
             "output": read_back,
             "status": "The command wrote the file and read it back.",
-        }
+        })
     if not target.is_file():
-        return {
+        return _local({
             "ok": False,
             "ran": False,
-            "host_kernel": False,
             "error": "That file is not in the session.",
             "status": "The command did not run.",
-        }
+        })
     output = target.read_text(encoding="utf-8")
-    return {
+    return _local({
         "ok": True,
         "ran": True,
-        "host_kernel": False,
         "path": rel,
         "output": output,
         "status": "The command read the file back.",
-    }
+    })
 
 
 def kernel_page_html() -> str:
@@ -151,8 +151,8 @@ button.primary { background:#c9a227; color:#1a1404; border:0; font-weight:650; }
 <body>
 <main>
   <h1>AZ-OS</h1>
-  <p>The overlay kernel boots a session and runs a command inside it. The host kernel stays the host kernel.</p>
-  <p><button class="primary" id="boot" type="button">Boot session</button></p>
+  <p>This desk opens an overlay session and runs a command inside it. That session is not a kernel. The host operating system stays the host operating system. The public worker does not run a kernel. Boot does not run on the public worker.</p>
+  <p><button class="primary" id="boot" type="button">Open session</button></p>
   <label for="path">File</label>
   <input id="path" value="marker.txt" autocomplete="off">
   <label for="text">Text</label>
@@ -161,7 +161,7 @@ button.primary { background:#c9a227; color:#1a1404; border:0; font-weight:650; }
     <button id="write" type="button">Write</button>
     <button id="cat" type="button">Read back</button>
   </p>
-  <p id="status" role="status">No session is booted.</p>
+  <p id="status" role="status">No session is open.</p>
 </main>
 <script>
 (function () {
@@ -177,8 +177,8 @@ button.primary { background:#c9a227; color:#1a1404; border:0; font-weight:650; }
   document.getElementById("boot").addEventListener("click", function () {
     post("/suite/azos/boot", {}).then(function (data) {
       session = data.session || "";
-      status.textContent = data.status || data.error || "The session did not boot.";
-    }).catch(function () { status.textContent = "The session did not boot."; });
+      status.textContent = data.status || data.error || "The session did not open.";
+    }).catch(function () { status.textContent = "The session did not open."; });
   });
   document.getElementById("write").addEventListener("click", function () {
     post("/suite/azos/command", {

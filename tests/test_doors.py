@@ -30,10 +30,10 @@ def test_catalog_sentences_match_the_doors_and_omit_the_live_label() -> None:
     assert len(cited) == 33
     assert "aznews" not in cited
     expected = {
-        "4dmap": "This row is in the catalog. The map places a card on the clock and reads that card back.",
-        "azmail": "This row is in the catalog. Mail send submits the message over SMTP.",
-        "aznet": "This row is in the catalog. The internet door fetches a URL and returns the response body.",
-        "azos": "This row is in the catalog. The overlay kernel boots a session and runs a command inside it.",
+        "4dmap": "This row is in the catalog. 4DMap can stand alone. AZNews can stand alone. A pin counts only after the same item is read back.",
+        "azmail": "This row is in the catalog. Mail send does not run on the public worker.",
+        "aznet": "This row is in the catalog. The packet path does not run. An alternative internet does not run. WARN-5 stands.",
+        "azos": "This row is in the catalog. The public worker does not run a kernel. Boot does not run on the public worker.",
     }
     for slug, status in expected.items():
         assert cited[slug] == status
@@ -89,6 +89,7 @@ def test_mail_send_is_watched_by_an_smtp_server(tmp_path: Path) -> None:
     )
     assert sent["ok"] is True
     assert sent["sent"] is True
+    assert sent["public_worker_mail_send"] is False
     assert sent["accepted"] == ["desk@example.com"]
     assert box, "the SMTP server did not see a message"
     raw = box[0].decode("utf-8", "replace")
@@ -123,6 +124,9 @@ def test_internet_door_returns_the_body_the_server_sent(tmp_path: Path) -> None:
         assert refused["fetched"] is False
         fetched = suite.fetch_internet({"url": f"http://127.0.0.1:{port}/marker"})
         assert fetched["fetched"] is True
+        assert fetched["packet_path"] is False
+        assert fetched["alt_internet"] is False
+        assert fetched["warn_5"] == "stands"
         assert fetched["http_status"] == 200
         assert fetched["body"] == "tide-marker"
         assert seen == ["/marker"]
@@ -136,6 +140,8 @@ def test_internet_door_fetches_a_public_page() -> None:
 
     fetched = fetch_url({"url": "https://example.com/"})
     assert fetched["fetched"] is True
+    assert fetched["packet_path"] is False
+    assert fetched["alt_internet"] is False
     assert fetched["http_status"] == 200
     assert "Example Domain" in fetched["body"]
 
@@ -147,6 +153,8 @@ def test_overlay_kernel_boots_and_reads_a_file_back(tmp_path: Path) -> None:
     booted = suite.boot_kernel()
     assert booted["booted"] is True
     assert booted["host_kernel"] is False
+    assert booted["public_worker_kernel"] is False
+    assert booted["public_worker_boot"] is False
     session = booted["session"]
     folder = tmp_path / "vendor" / "azos-sessions" / session
     receipt = json.loads((folder / "BOOT").read_text(encoding="utf-8"))
@@ -184,7 +192,7 @@ def test_http_doors_stay_json_and_leave_the_site_off(tmp_path: Path, monkeypatch
         assert placed["map_running"] is True
         assert placed["card"]["h"] == _expected_hash(placed["card"])
         mail_page = urlopen(Request(base + "/suite/azmail", headers={"Accept": "text/html"})).read().decode()
-        assert "Mail send submits the message over SMTP." in mail_page
+        assert "Mail send does not run on the public worker." in mail_page
         sent = _post(
             base + "/suite/azmail/send",
             {
@@ -197,12 +205,17 @@ def test_http_doors_stay_json_and_leave_the_site_off(tmp_path: Path, monkeypatch
             },
         )
         assert sent["sent"] is True
+        assert sent["public_worker_mail_send"] is False
         assert STORY in box[-1].decode("utf-8", "replace")
         net_json = json.loads(urlopen(Request(base + "/suite/aznet", headers={"Accept": "application/json"})).read().decode())
-        assert net_json["status"].startswith("The internet door fetches")
+        assert net_json["packet_path"] is False
+        assert net_json["alt_internet"] is False
+        assert net_json["warn_5"] == "stands"
+        assert "WARN-5 stands." in net_json["status"]
         booted = _post(base + "/suite/azos/boot", {})
         assert booted["booted"] is True
         assert booted["host_kernel"] is False
+        assert booted["public_worker_boot"] is False
         wrote = _post(
             base + "/suite/azos/command",
             {"session": booted["session"], "op": "write", "path": "marker.txt", "text": "kernel-marker"},

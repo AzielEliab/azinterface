@@ -37,7 +37,7 @@ _PLACEHOLDERS = frozenset(
     }
 )
 
-NOT_A_RUNNING_MAP = "This row is in the catalog. The map places a card on the clock and reads that card back."
+NOT_A_RUNNING_MAP = "This row is in the catalog. 4DMap can stand alone. AZNews can stand alone. A pin counts only after the same item is read back."
 NO_PIN = "No news item has landed as a pin."
 LANDED = "A news item landed as a pin."
 

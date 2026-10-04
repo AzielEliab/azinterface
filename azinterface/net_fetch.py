@@ -1,7 +1,8 @@
-"""Internet fetch on the existing suite door.
+"""One URL fetch on the existing suite door.
 
-The door requests one http or https URL and returns the status and body
-it actually received.
+The desk requests one http or https URL and returns the status and body
+it actually received. That fetch is not the packet path and not an
+alternative internet. WARN-5 stands.
 """
 
 from __future__ import annotations
@@ -14,16 +15,23 @@ from urllib.request import Request, urlopen
 _LIMIT = 200_000
 
 
+def _local(body: dict[str, Any]) -> dict[str, Any]:
+    body["packet_path"] = False
+    body["alt_internet"] = False
+    body["warn_5"] = "stands"
+    return body
+
+
 def fetch_url(payload: dict[str, Any]) -> dict[str, Any]:
     url = str(payload.get("url") or "").strip()
     parsed = urlparse(url)
     if parsed.scheme not in {"http", "https"} or not parsed.hostname:
-        return {
+        return _local({
             "ok": False,
             "fetched": False,
-            "error": "The internet door needs an http or https URL.",
+            "error": "The desk needs an http or https URL.",
             "status": "The response did not come back.",
-        }
+        })
     request = Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "*/*"})
     try:
         with urlopen(request, timeout=5) as resp:
@@ -35,14 +43,14 @@ def fetch_url(payload: dict[str, Any]) -> dict[str, Any]:
         payload_bytes = exc.read(_LIMIT + 1)
         final_url = url
     except (URLError, OSError, TimeoutError, ValueError) as exc:
-        return {
+        return _local({
             "ok": False,
             "fetched": False,
             "error": f"The response did not come back. {exc}",
             "status": "The response did not come back.",
-        }
+        })
     body = payload_bytes[:_LIMIT].decode("utf-8", "replace")
-    return {
+    return _local({
         "ok": 200 <= status < 400,
         "fetched": True,
         "http_status": status,
@@ -50,7 +58,7 @@ def fetch_url(payload: dict[str, Any]) -> dict[str, Any]:
         "body": body,
         "truncated": len(payload_bytes) > _LIMIT,
         "status": "The response body came back." if 200 <= status < 400 else "The server answered and the body came back.",
-    }
+    })
 
 
 def net_page_html() -> str:
@@ -80,7 +88,7 @@ button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; 
 <body>
 <main>
   <h1>AZNet</h1>
-  <p>The internet door fetches a URL and returns the response body.</p>
+  <p>This desk fetches one http or https URL and shows the body. That fetch is not the packet path. An alternative internet does not run. WARN-5 stands.</p>
   <label for="url">URL</label>
   <input id="url" autocomplete="off" placeholder="https://">
   <p><button id="fetch" type="button">Fetch</button></p>

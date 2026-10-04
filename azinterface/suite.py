@@ -28,6 +28,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .meta import FRAGGATE_CALL, IDENTITY, LOOPBACK
+from .pipeline import pipeline_arch
 from .plain import HUMAN_JS
 from .mail_send import mail_page_html, submit_smtp
 from .map_frame import lattice_path, map_view, place_card
@@ -194,6 +195,9 @@ class Suite:
         return {
             "ok": True,
             "count": len(rows),
+            "runtime_catalog_count": len(rows),
+            "software_count": pipeline_arch()["software_count"],
+            "catalog_note": "This count is the runtime Softwares catalog. It is not software_count.",
             "source": self.source,
             "author": IDENTITY,
             "running": self._job,
@@ -331,26 +335,26 @@ class Suite:
         if slug == "4dmap":
             return (
                 "map",
-                "4DMap places a card on the clock and reads that card back. The shadow layer still lists ShadowLock links. A news pin is a separate mark.",
+                "This desk places a card on the clock and reads that card back. AZNews can stand alone. 4DMap can stand alone. A pin counts only after the same item is read back.",
                 "Press Map. Place a clock time. The card appears on the clock after it reads back.",
             )
         if slug == "azmail":
             return (
                 "ready",
-                "Mail send submits a message over SMTP.",
-                "Open the desk. The status changes when the server accepts the message.",
+                "This desk can hand a message to an SMTP host named here. Mail send does not run on the public worker.",
+                "Open the desk. The status changes when that host accepts the message.",
             )
         if slug == "aznet":
             return (
                 "ready",
-                "The internet door fetches a URL and returns the response body.",
+                "This desk can fetch one http or https URL. That fetch is not the packet path. An alternative internet does not run. WARN-5 stands.",
                 "Open the desk and fetch a URL.",
             )
         if slug == "azos":
             return (
                 "ready",
-                "The overlay kernel boots a session and runs a command inside it. The host kernel stays the host kernel.",
-                "Open the desk, boot a session, then write a file and read it back.",
+                "This desk opens an overlay session and runs a command inside it. The public worker does not run a kernel. Boot does not run on the public worker.",
+                "Open the desk, open a session, then write a file and read it back.",
             )
         if isinstance(card.get("ui_port"), int) and self._page_is_product(card["ui_port"], card):
             return (
@@ -680,7 +684,7 @@ class Suite:
                 posture="map",
                 mode="map",
                 url="/suite/4dmap",
-                desk_reason="The map places a card on the clock and reads that card back.",
+                desk_reason="This desk places a card on the clock and reads that card back.",
                 nxt="Press Map. Place a clock time.",
             )
         if slug == "azmail":
@@ -690,8 +694,8 @@ class Suite:
                 posture="ready",
                 mode="mail",
                 url="/suite/azmail",
-                desk_reason="Mail send submits a message over SMTP.",
-                nxt="Send a message. The status changes when SMTP accepts it.",
+                desk_reason="This desk can hand a message to an SMTP host named here. Mail send does not run on the public worker.",
+                nxt="Send a message. The status changes when that host accepts it.",
             )
         if slug == "aznet":
             return self._as_desk(
@@ -700,7 +704,7 @@ class Suite:
                 posture="ready",
                 mode="net",
                 url="/suite/aznet",
-                desk_reason="The internet door fetches a URL and returns the response body.",
+                desk_reason="This desk can fetch one http or https URL. That fetch is not the packet path. WARN-5 stands.",
                 nxt="Fetch a URL.",
             )
         if slug == "azos":
@@ -710,8 +714,8 @@ class Suite:
                 posture="ready",
                 mode="kernel",
                 url="/suite/azos",
-                desk_reason="The overlay kernel boots a session and runs a command inside it.",
-                nxt="Boot a session, then write a file and read it back.",
+                desk_reason="This desk opens an overlay session and runs a command inside it. The public worker does not run a kernel.",
+                nxt="Open a session, then write a file and read it back.",
             )
         return row
 

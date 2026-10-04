@@ -319,7 +319,7 @@ button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; 
 <main>
   <h1>4DMap</h1>
   <h2>Softwares · Shadow</h2>
-  <p>This page places cards on the clock. The shadow layer lists ShadowLock links. A news pin is a separate mark. AZNews can stay on its own. <a href="/suite/4dmap/news">Open AZNews</a></p>
+  <p>This page places cards on the clock. The shadow layer lists ShadowLock links. A news pin is a separate mark. AZNews can stand alone. 4DMap can stand alone. A pin counts only after the same item is read back. <a href="/suite/4dmap/news">Open AZNews</a></p>
   <h2>Clock</h2>
   <p id="map-note">No card is on the clock yet.</p>
   <label for="clock-time">Clock time</label>

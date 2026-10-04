@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 
 from .cite import cite_document
 from .engine import Engine
+from .pipeline import pipeline_arch
 from .local_page import operator_html
 from .meta import IDENTITY, LIMITATION, LOOPBACK, NAME, PORT, SPEC, VERSION
 from .receipts import Ledger
@@ -93,7 +94,9 @@ class Handler(BaseHTTPRequestHandler):
                 doc = home_document(_ENGINE, str(host), int(bound_port))
                 cards = SUITE.cards()
                 doc["suite"] = True
-                doc["software_count"] = len(cards)
+                doc["software_count"] = pipeline_arch()["software_count"]
+                doc["runtime_catalog_count"] = len(cards)
+                doc["runtime_catalog_source"] = SUITE.source
                 doc["software_source"] = SUITE.source
                 self._json(doc)
                 return
@@ -117,19 +120,35 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/suite/azmail":
             if wants_json(self.headers.get("Accept")):
-                self._json({"ok": True, "status": "Mail send submits the message over SMTP."})
+                self._json({
+                    "ok": True,
+                    "public_worker_mail_send": False,
+                    "status": "Mail send does not run on the public worker. This desk can hand a message to an SMTP host named here.",
+                })
                 return
             self._html(SUITE.mail_html())
             return
         if path == "/suite/aznet":
             if wants_json(self.headers.get("Accept")):
-                self._json({"ok": True, "status": "The internet door fetches a URL and returns the response body."})
+                self._json({
+                    "ok": True,
+                    "packet_path": False,
+                    "alt_internet": False,
+                    "warn_5": "stands",
+                    "status": "The packet path does not run. An alternative internet does not run. WARN-5 stands. This desk can fetch one http or https URL. That fetch is not the packet path.",
+                })
                 return
             self._html(SUITE.net_html())
             return
         if path == "/suite/azos":
             if wants_json(self.headers.get("Accept")):
-                self._json({"ok": True, "status": "The overlay kernel boots a session and runs a command inside it. The host kernel stays the host kernel.", "host_kernel": False})
+                self._json({
+                    "ok": True,
+                    "host_kernel": False,
+                    "public_worker_kernel": False,
+                    "public_worker_boot": False,
+                    "status": "The public worker does not run a kernel. Boot does not run on the public worker. This desk opens an overlay session. The host operating system stays the host operating system.",
+                })
                 return
             self._html(SUITE.kernel_html())
             return

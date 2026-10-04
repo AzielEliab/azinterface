@@ -113,7 +113,7 @@ ${meshStripHtml()}
 ${pipelineStripHtml()}
 ${domainMapHtml()}
 <p class="banner">${LIMITATION}</p>
-<p class="banner">This page stands on its own. Calls to aziel-runtime still use the existing FragGate door. The map places a card on the clock and reads that card back. Mail send submits the message over SMTP. The internet door fetches a URL and returns the response body. The overlay kernel boots a session and runs a command inside it. The host kernel stays the host kernel. AZNews can stand alone. A story joins the map only when that story lands as a pin.</p>
+<p class="banner">This page stands on its own. Calls to aziel-runtime still use the existing FragGate door. Softwares 42 is the runtime catalog. The domain count stays 33. The packet path does not run. An alternative internet does not run. WARN-5 stands. Mail send does not run on the public worker. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. AZNews can stand alone. 4DMap can stand alone. A story is a pin only after that story is read back.</p>
 <div class="nums">
   <div class="count">${v}<span>Views</span></div>
   <div class="count">${n}<span>Downloads</span></div>
