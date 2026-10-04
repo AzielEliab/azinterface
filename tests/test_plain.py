@@ -74,6 +74,22 @@ def test_python_matches_browser_sentences() -> None:
             },
         },
         {"ok": True, "note": "Opened a new in-process onion path.", "next": "Use Rotate IP."},
+        {
+            "ok": True,
+            "display": {
+                "title": "News pin",
+                "summary": "A news item landed as a pin.",
+                "fields": [{"label": "join_live", "value": True}],
+            },
+        },
+        {
+            "ok": True,
+            "display": {
+                "title": "No news pin",
+                "summary": "No news item has landed as a pin.",
+                "fields": [{"label": "join_live", "value": False}],
+            },
+        },
     ]
     script = HUMAN_JS + "\nconst cases = " + json.dumps(cases) + ";\nfor (const row of cases) console.log(JSON.stringify(humanLines(row)));\n"
     proc = subprocess.run(["node", "--input-type=module", "-e", script], capture_output=True, text=True, check=True)

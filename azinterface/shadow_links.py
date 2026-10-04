@@ -309,6 +309,8 @@ p, li { overflow-wrap:anywhere; }
 #empty, .when { color:var(--muted); }
 ol { padding-left:1.2rem; }
 li { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:0.6rem 0.7rem; margin:0 0 0.5rem; }
+label { display:block; margin:0.45rem 0 0.15rem; }
+input { font:inherit; width:100%; min-height:44px; padding:0.4rem 0.55rem; border:1px solid var(--line); border-radius:10px; background:transparent; color:inherit; }
 button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; color:#1a1404; border:0; font-weight:650; padding:0.45rem 0.8rem; }
 :focus-visible { outline:2px solid #c9a227; outline-offset:3px; }
 </style>
@@ -317,9 +319,18 @@ button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; 
 <main>
   <h1>4DMap</h1>
   <h2>Softwares · Shadow</h2>
-  <p>This is the shadow-link layer. 4DMap is not a live map.</p>
+  <p>This page places cards on the clock. The shadow layer lists ShadowLock links. A news pin is a separate mark. AZNews can stand alone. 4DMap can stand alone. A pin counts only after the same item is read back. <a href="/suite/4dmap/news">Open AZNews</a></p>
+  <h2>Clock</h2>
+  <p id="map-note">No card is on the clock yet.</p>
+  <label for="clock-time">Clock time</label>
+  <input id="clock-time" autocomplete="off" placeholder="2026-10-04T18:00:00Z">
+  <p><button id="place-card" type="button">Place on the clock</button></p>
+  <ol id="clock"></ol>
   <p id="empty">No ShadowLock links yet. Open the ShadowLock tile and link a Software. This layer does not invent marks.</p>
   <ol id="layer"></ol>
+  <h2>News pins</h2>
+  <p id="pin-note">No news item has landed as a pin.</p>
+  <ol id="pins"></ol>
   <p><button id="refresh" type="button">Refresh</button></p>
 </main>
 <script>
@@ -354,10 +365,58 @@ button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; 
       layer.appendChild(li);
     });
   }
+  var pinNote = document.getElementById("pin-note");
+  var pins = document.getElementById("pins");
+  async function paintPins() {
+    var data = await (await fetch("/suite/4dmap/pins", { headers: { "accept": "application/json" } })).json();
+    pins.replaceChildren();
+    pinNote.textContent = data.status || "No news item has landed as a pin.";
+    (data.pins || []).forEach(function (pin) {
+      var li = document.createElement("li");
+      var title = document.createElement("strong");
+      title.textContent = pin.headline || "";
+      var body = document.createElement("div");
+      body.textContent = pin.body || "";
+      li.appendChild(title);
+      li.appendChild(body);
+      pins.appendChild(li);
+    });
+  }
   document.getElementById("refresh").addEventListener("click", function () {
     paint().catch(function () { empty.hidden = false; empty.textContent = "The Shadow layer could not be read."; });
+    paintPins().catch(function () { pinNote.textContent = "The news pins could not be read."; });
+    paintMap().catch(function () { mapNote.textContent = "The clock could not be read."; });
+  });
+  var mapNote = document.getElementById("map-note");
+  var clock = document.getElementById("clock");
+  async function paintMap() {
+    var data = await (await fetch("/suite/4dmap/map", { headers: { "accept": "application/json" } })).json();
+    clock.replaceChildren();
+    mapNote.textContent = data.status || "No card is on the clock yet.";
+    (data.cards || []).forEach(function (card) {
+      var li = document.createElement("li");
+      var title = document.createElement("strong");
+      title.textContent = (card.axis || "T") + " · " + (card.t || "");
+      var note = document.createElement("div");
+      note.textContent = card.note || "";
+      li.appendChild(title);
+      li.appendChild(note);
+      clock.appendChild(li);
+    });
+  }
+  document.getElementById("place-card").addEventListener("click", function () {
+    fetch("/suite/4dmap/map/pin", {
+      method: "POST",
+      headers: { "content-type": "application/json", "accept": "application/json" },
+      body: JSON.stringify({ t: document.getElementById("clock-time").value, note: "clock card" })
+    }).then(function (res) { return res.json(); }).then(function (data) {
+      mapNote.textContent = data.status || data.error || "No card is on the clock yet.";
+      return paintMap();
+    }).catch(function () { mapNote.textContent = "The card did not read back."; });
   });
   paint().catch(function () { empty.textContent = "The Shadow layer could not be read."; });
+  paintPins().catch(function () { pinNote.textContent = "The news pins could not be read."; });
+  paintMap().catch(function () { mapNote.textContent = "The clock could not be read."; });
 })();
 </script>
 </body>

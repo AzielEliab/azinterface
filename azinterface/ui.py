@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 
 from .cite import cite_document
 from .engine import Engine
+from .pipeline import pipeline_arch
 from .local_page import operator_html
 from .meta import IDENTITY, LIMITATION, LOOPBACK, NAME, PORT, SPEC, VERSION
 from .receipts import Ledger
@@ -93,7 +94,9 @@ class Handler(BaseHTTPRequestHandler):
                 doc = home_document(_ENGINE, str(host), int(bound_port))
                 cards = SUITE.cards()
                 doc["suite"] = True
-                doc["software_count"] = len(cards)
+                doc["software_count"] = pipeline_arch()["software_count"]
+                doc["runtime_catalog_count"] = len(cards)
+                doc["runtime_catalog_source"] = SUITE.source
                 doc["software_source"] = SUITE.source
                 self._json(doc)
                 return
@@ -115,7 +118,58 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/suite/shadowlock":
             self._html(SUITE.shadow_html())
             return
+        if path == "/suite/azmail":
+            if wants_json(self.headers.get("Accept")):
+                self._json({
+                    "ok": True,
+                    "public_worker_mail_send": False,
+                    "status": "Mail send does not run on the public worker. This desk can hand a message to an SMTP host named here.",
+                })
+                return
+            self._html(SUITE.mail_html())
+            return
+        if path == "/suite/aznet":
+            if wants_json(self.headers.get("Accept")):
+                self._json({
+                    "ok": True,
+                    "packet_path": False,
+                    "alt_internet": False,
+                    "warn_5": "stands",
+                    "status": "The packet path does not run. An alternative internet does not run. WARN-5 stands. This desk can fetch one http or https URL. That fetch is not the packet path.",
+                })
+                return
+            self._html(SUITE.net_html())
+            return
+        if path == "/suite/azos":
+            if wants_json(self.headers.get("Accept")):
+                self._json({
+                    "ok": True,
+                    "host_kernel": False,
+                    "public_worker_kernel": False,
+                    "public_worker_boot": False,
+                    "status": "The public worker does not run a kernel. Boot does not run on the public worker. This desk opens an overlay session. The host operating system stays the host operating system.",
+                })
+                return
+            self._html(SUITE.kernel_html())
+            return
+        if path == "/suite/4dmap/map":
+            self._json(SUITE.map_state())
+            return
+        if path == "/suite/4dmap/news":
+            if wants_json(self.headers.get("Accept")):
+                self._json(SUITE.news_view())
+                return
+            self._html(SUITE.news_html())
+            return
+        if path == "/suite/4dmap/pins":
+            self._json(SUITE.news_view())
+            return
         if path == "/suite/4dmap":
+            if wants_json(self.headers.get("Accept")):
+                body = SUITE.news_view()
+                body["map"] = SUITE.map_state()
+                self._json(body)
+                return
             self._html(SUITE.map_html())
             return
         if path == "/suite/shadowlock/links":
@@ -189,6 +243,44 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"ok": False, "error": "The link body must be a JSON object."}, 400)
                 return
             self._json(SUITE.shadow_unlink(payload))
+            return
+        if path == "/suite/4dmap/map/pin":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The card body must be a JSON object."}, 400)
+                return
+            self._json(SUITE.place_map_card(payload))
+            return
+        if path == "/suite/azmail/send":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The message body must be a JSON object."}, 400)
+                return
+            self._json(SUITE.send_mail(payload))
+            return
+        if path == "/suite/aznet/fetch":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The fetch body must be a JSON object."}, 400)
+                return
+            self._json(SUITE.fetch_internet(payload))
+            return
+        if path == "/suite/azos/boot":
+            self._json(SUITE.boot_kernel())
+            return
+        if path == "/suite/azos/command":
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The command body must be a JSON object."}, 400)
+                return
+            self._json(SUITE.kernel_command(payload))
+            return
+        if path in {"/suite/4dmap/news", "/suite/4dmap/pin", "/suite/4dmap/unpin"}:
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The story body must be a JSON object."}, 400)
+                return
+            if path.endswith("/pin"):
+                self._json(SUITE.pin_news(payload))
+            elif path.endswith("/unpin"):
+                self._json(SUITE.unpin_news(payload))
+            else:
+                self._json(SUITE.add_news(payload))
             return
         if path == "/suite/boot":
             slug = str(payload.get("slug") or "") if isinstance(payload, dict) else ""

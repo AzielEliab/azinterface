@@ -322,7 +322,7 @@ def main(argv: list[str] | None = None) -> int:
             origin = "The names came from the aziel-runtime catalog."
         else:
             origin = "The names are the copy shipped with AZInterface."
-        print(f"{doc['count']} Softwares are listed. {origin} A catalog listing is not a join.")
+        print(f"{doc['count']} Softwares are listed. {origin} That list is the runtime catalog. It is not the domain count. The domain count stays 33. A catalog listing is not a join.")
         print()
         for row in doc["software"]:
             print(f"{row['name']}. {row['label']}.")

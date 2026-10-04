@@ -189,7 +189,7 @@ def _field_sentence(label: str, value: object, obj: dict[str, Any]) -> str:
     if label in {"owner", "pipeline_owner"}:
         return f"The fabric owner is {text or 'aziel-runtime'}."
     if label == "4dmap":
-        return "4DMap is an inspection frame on aziel-runtime. It is not live as a map on this page, and it is not an extra door."
+        return "4DMap is an inspection frame on aziel-runtime, and it is not an extra door."
     if label == "qns_cd":
         return f"Pair custody follows {text}."
     if label == "qnsd":
@@ -220,6 +220,8 @@ def _field_sentence(label: str, value: object, obj: dict[str, Any]) -> str:
         return f"The hold cite is {text}." if text else ""
     if label == "status":
         return f"The record is {text}." if text else ""
+    if label == "join_live":
+        return "A news item landed as a pin." if flag is True else "No news item has landed as a pin."
     if flag is False:
         return f"The {label.replace('_', ' ')} is off."
     if flag is True:

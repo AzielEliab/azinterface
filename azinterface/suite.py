@@ -28,7 +28,13 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .meta import FRAGGATE_CALL, IDENTITY, LOOPBACK
+from .pipeline import pipeline_arch
 from .plain import HUMAN_JS
+from .mail_send import mail_page_html, submit_smtp
+from .map_frame import lattice_path, map_view, place_card
+from .net_fetch import fetch_url, net_page_html
+from .news_join import add_news, join_view, news_page_html, news_path, pin_news, unpin_news
+from .overlay_kernel import boot_session, kernel_page_html, run_command, sessions_root
 from .shadow_links import add_link, links_path, list_links, remove_link, shadow_desk_html, shadow_map_html
 from .trajectory_review import accept_product_imagery, review_event, review_html
 
@@ -189,6 +195,9 @@ class Suite:
         return {
             "ok": True,
             "count": len(rows),
+            "runtime_catalog_count": len(rows),
+            "software_count": pipeline_arch()["software_count"],
+            "catalog_note": "This count is the runtime Softwares catalog. It is not software_count.",
             "source": self.source,
             "author": IDENTITY,
             "running": self._job,
@@ -229,6 +238,15 @@ class Suite:
             elif slug == "4dmap":
                 url = "/suite/4dmap"
                 mode = "map"
+            elif slug == "azmail":
+                url = "/suite/azmail"
+                mode = "mail"
+            elif slug == "aznet":
+                url = "/suite/aznet"
+                mode = "net"
+            elif slug == "azos":
+                url = "/suite/azos"
+                mode = "kernel"
             else:
                 url = None
                 mode = None
@@ -254,6 +272,7 @@ class Suite:
             "review": slug == "trajectorylock",
             "link": slug == "shadowlock",
             "map": slug == "4dmap",
+            "desk": slug in {"azmail", "aznet", "azos"},
             "bucket": card.get("bucket"),
         }
 
@@ -316,8 +335,26 @@ class Suite:
         if slug == "4dmap":
             return (
                 "map",
-                "4DMap shows ShadowLock links on a Softwares · Shadow layer. It is not a live map.",
-                "Press Map. If nothing is linked, the layer says so.",
+                "This desk places a card on the clock and reads that card back. AZNews can stand alone. 4DMap can stand alone. A pin counts only after the same item is read back.",
+                "Press Map. Place a clock time. The card appears on the clock after it reads back.",
+            )
+        if slug == "azmail":
+            return (
+                "ready",
+                "This desk can hand a message to an SMTP host named here. Mail send does not run on the public worker.",
+                "Open the desk. The status changes when that host accepts the message.",
+            )
+        if slug == "aznet":
+            return (
+                "ready",
+                "This desk can fetch one http or https URL. That fetch is not the packet path. An alternative internet does not run. WARN-5 stands.",
+                "Open the desk and fetch a URL.",
+            )
+        if slug == "azos":
+            return (
+                "ready",
+                "This desk opens an overlay session and runs a command inside it. The public worker does not run a kernel. Boot does not run on the public worker.",
+                "Open the desk, open a session, then write a file and read it back.",
             )
         if isinstance(card.get("ui_port"), int) and self._page_is_product(card["ui_port"], card):
             return (
@@ -647,8 +684,38 @@ class Suite:
                 posture="map",
                 mode="map",
                 url="/suite/4dmap",
-                desk_reason="The map pane shows the ShadowLock link record on the Softwares · Shadow layer.",
-                nxt="Press Map. The layer lists only links that were saved.",
+                desk_reason="This desk places a card on the clock and reads that card back.",
+                nxt="Press Map. Place a clock time.",
+            )
+        if slug == "azmail":
+            return self._as_desk(
+                row,
+                slug="azmail",
+                posture="ready",
+                mode="mail",
+                url="/suite/azmail",
+                desk_reason="This desk can hand a message to an SMTP host named here. Mail send does not run on the public worker.",
+                nxt="Send a message. The status changes when that host accepts it.",
+            )
+        if slug == "aznet":
+            return self._as_desk(
+                row,
+                slug="aznet",
+                posture="ready",
+                mode="net",
+                url="/suite/aznet",
+                desk_reason="This desk can fetch one http or https URL. That fetch is not the packet path. WARN-5 stands.",
+                nxt="Fetch a URL.",
+            )
+        if slug == "azos":
+            return self._as_desk(
+                row,
+                slug="azos",
+                posture="ready",
+                mode="kernel",
+                url="/suite/azos",
+                desk_reason="This desk opens an overlay session and runs a command inside it. The public worker does not run a kernel.",
+                nxt="Open a session, then write a file and read it back.",
             )
         return row
 
@@ -889,6 +956,52 @@ class Suite:
 
     def shadow_unlink(self, payload: dict[str, Any]) -> dict[str, Any]:
         return remove_link(links_path(self.vendor), str(payload.get("id") or ""))
+
+    def _shadow_count(self) -> int:
+        counted = list_links(links_path(self.vendor)).get("count")
+        return counted if isinstance(counted, int) else 0
+
+    def news_view(self) -> dict[str, Any]:
+        return join_view(news_path(self.vendor), shadow_links=self._shadow_count())
+
+    def news_html(self) -> str:
+        return news_page_html()
+
+    def map_state(self) -> dict[str, Any]:
+        return map_view(lattice_path(self.vendor))
+
+    def place_map_card(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return place_card(lattice_path(self.vendor), payload)
+
+    def send_mail(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return submit_smtp(payload)
+
+    def fetch_internet(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return fetch_url(payload)
+
+    def boot_kernel(self) -> dict[str, Any]:
+        return boot_session(sessions_root(self.vendor))
+
+    def kernel_command(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return run_command(sessions_root(self.vendor), payload)
+
+    def mail_html(self) -> str:
+        return mail_page_html()
+
+    def net_html(self) -> str:
+        return net_page_html()
+
+    def kernel_html(self) -> str:
+        return kernel_page_html()
+
+    def add_news(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return add_news(news_path(self.vendor), payload, shadow_links=self._shadow_count())
+
+    def pin_news(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return pin_news(news_path(self.vendor), payload, shadow_links=self._shadow_count())
+
+    def unpin_news(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return unpin_news(news_path(self.vendor), payload, shadow_links=self._shadow_count())
 
     def review_trajectory(self, payload: dict[str, Any]) -> dict[str, Any]:
         place = str(payload.get("place") or "").strip()

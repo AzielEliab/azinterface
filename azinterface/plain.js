@@ -129,7 +129,7 @@ function fieldSentence(label, value, obj) {
   if (key === "digest") return text ? "The integrity record is " + text + "." : "";
   if (key === "pipeline" || key === "path") return "The path is cited. FragGate remains the door.";
   if (key === "owner" || key === "pipeline_owner") return "The fabric owner is " + (text || "aziel-runtime") + ".";
-  if (key === "4dmap") return "4DMap is an inspection frame on aziel-runtime. It is not live as a map on this page, and it is not an extra door.";
+  if (key === "4dmap") return "4DMap is an inspection frame on aziel-runtime, and it is not an extra door.";
   if (key === "qns_cd") return "Pair custody follows " + text + ".";
   if (key === "qnsd") return "The via runs on " + text + ".";
   if (key === "count") return "The count is " + text + ".";
@@ -147,6 +147,7 @@ function fieldSentence(label, value, obj) {
   if (key === "photon_id") return text ? "The photon cite is " + text + "." : "";
   if (key === "hold_id") return text ? "The hold cite is " + text + "." : "";
   if (key === "status") return text ? "The record is " + text + "." : "";
+  if (key === "join_live") return flag === true ? "A news item landed as a pin." : "No news item has landed as a pin.";
   if (flag === false) return "The " + key.replace(/_/g, " ") + " is off.";
   if (flag === true) return "The " + key.replace(/_/g, " ") + " is on.";
   if (!text) return "";

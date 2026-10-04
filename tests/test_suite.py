@@ -48,10 +48,18 @@ def test_suite_page_leads_with_start() -> None:
     assert "A catalog listing is not a join." in html
     assert "This page stands on its own." in html
     assert "existing FragGate door" in html
-    assert "Internet is not live." in html
-    assert "Mail send is not live." in html
-    assert "AZNews is not live." in html
-    assert "not a live map" in html
+    assert "Softwares 42 is the runtime catalog." in html
+    assert "The domain count stays 33." in html
+    assert "This desk places a card on the clock and reads that card back." in html
+    assert "Mail send does not run on the public worker." in html
+    assert "That fetch is not the packet path." in html
+    assert "WARN-5 stands." in html
+    assert "AZNews can stand alone." in html
+    assert "4DMap can stand alone." in html
+    assert "The public worker does not run a kernel." in html
+    assert "That session is not a kernel." in html
+    assert "Internet is not live." not in html
+    assert "not a live map" not in html
     assert "Rotate IP" in html
     assert html.find('id="start-suite"') < html.find('id="advanced"')
     assert "/custody" in html.split('id="advanced"', 1)[1]
@@ -289,7 +297,10 @@ def test_json_home_names_live_catalog_when_fetch_wins(tmp_path: Path, monkeypatc
         assert data["software_source"] == "GET /v1/software"
         assert data["software_source"] != "bundled snapshot"
         assert data["software_source"] == listed["source"]
-        assert data["software_count"] == listed["count"] == 1
+        assert data["software_count"] == 33
+        assert data["runtime_catalog_count"] == listed["count"] == 1
+        assert listed["software_count"] == 33
+        assert data["software_count"] != data["runtime_catalog_count"]
         assert listed["software"][0]["slug"] == "liveonly"
     finally:
         httpd.shutdown()
@@ -313,7 +324,10 @@ def test_json_home_keeps_bundled_snapshot_when_live_fetch_fails(tmp_path: Path, 
         listed = json.loads(urlopen(f"http://127.0.0.1:{port}/suite/software").read().decode())
         assert data["software_source"] == "bundled snapshot"
         assert data["software_source"] == listed["source"]
-        assert data["software_count"] == listed["count"] == len(bundled_software())
+        assert data["software_count"] == 33
+        assert data["runtime_catalog_count"] == listed["count"] == listed["runtime_catalog_count"] == len(bundled_software())
+        assert len(bundled_software()) == 42
+        assert listed["catalog_note"] == "This count is the runtime Softwares catalog. It is not software_count."
     finally:
         httpd.shutdown()
         httpd.server_close()
