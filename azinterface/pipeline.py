@@ -208,7 +208,7 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         "softwares": (
             {"slug": "azbrowser", "name": "AZBrowser", "status": "live"},
             {"slug": "aziel-corpus", "name": "Aziel Corpus", "status": "live"},
-            {"slug": "4dmap", "name": "4DMap", "status": "live"},
+            {"slug": "4dmap", "name": "4DMap", "status": "This row is in the catalog. It is not a running map."},
         ),
     },
     {
@@ -216,7 +216,7 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         "slug": "comms",
         "name": "Comms",
         "softwares": (
-            {"slug": "azmail", "name": "AZMail", "status": "live"},
+            {"slug": "azmail", "name": "AZMail", "status": "This row is in the catalog. Mail send does not run here."},
             {"slug": "azchat", "name": "AZChat", "status": "stub / not hosted yet"},
         ),
     },
@@ -225,7 +225,7 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         "slug": "network",
         "name": "Network",
         "softwares": (
-            {"slug": "aznet", "name": "AZNet", "status": "live"},
+            {"slug": "aznet", "name": "AZNet", "status": "This row is in the catalog. Internet does not run here."},
             {"slug": "miragegrid", "name": "MirageGrid", "status": "live"},
             {"slug": "azieltether", "name": "AzielTether", "status": "live"},
         ),
@@ -234,7 +234,7 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         "id": "09",
         "slug": "system",
         "name": "System",
-        "softwares": ({"slug": "azos", "name": "AZ-OS", "status": "live"},),
+        "softwares": ({"slug": "azos", "name": "AZ-OS", "status": "This row is in the catalog. The kernel does not run here. Boot does not run here."},),
     },
     {
         "id": "10",
@@ -452,19 +452,13 @@ def pipeline_strip_html() -> str:
 
 
 def human_status_phrase(row: dict[str, Any]) -> str:
-    """What a person should read. The machine status field stays on the JSON cite."""
+    """Sentence beside a catalog row. The same text is the JSON status.
+    A status of "live" only means the row is listed on aziel-runtime.
+    """
     slug = str(row.get("slug") or "")
     status = str(row.get("status") or "")
-    if slug == "4dmap":
-        return "not live — shadow layer on this desk only"
-    if slug == "azmail":
-        return "listed — mail send is not live"
-    if slug == "aznet":
-        return "listed — internet is not live"
-    if slug == "azos":
-        return "listed — kernel is not live and boot is not live"
     if slug == "aznews":
-        return "not live"
+        return "AZNews is absent from this catalog."
     if "stub" in status:
         return status
     if status == "live":

@@ -118,19 +118,19 @@ export const DOMAIN_MAP = Object.freeze([
   Object.freeze({ id: "06", slug: "research", name: "Research", softwares: Object.freeze([
     Object.freeze({ slug: "azbrowser", name: "AZBrowser", status: "live" }),
     Object.freeze({ slug: "aziel-corpus", name: "Aziel Corpus", status: "live" }),
-    Object.freeze({ slug: "4dmap", name: "4DMap", status: "live" }),
+    Object.freeze({ slug: "4dmap", name: "4DMap", status: "This row is in the catalog. It is not a running map." }),
   ]) }),
   Object.freeze({ id: "07", slug: "comms", name: "Comms", softwares: Object.freeze([
-    Object.freeze({ slug: "azmail", name: "AZMail", status: "live" }),
+    Object.freeze({ slug: "azmail", name: "AZMail", status: "This row is in the catalog. Mail send does not run here." }),
     Object.freeze({ slug: "azchat", name: "AZChat", status: "stub / not hosted yet" }),
   ]) }),
   Object.freeze({ id: "08", slug: "network", name: "Network", softwares: Object.freeze([
-    Object.freeze({ slug: "aznet", name: "AZNet", status: "live" }),
+    Object.freeze({ slug: "aznet", name: "AZNet", status: "This row is in the catalog. Internet does not run here." }),
     Object.freeze({ slug: "miragegrid", name: "MirageGrid", status: "live" }),
     Object.freeze({ slug: "azieltether", name: "AzielTether", status: "live" }),
   ]) }),
   Object.freeze({ id: "09", slug: "system", name: "System", softwares: Object.freeze([
-    Object.freeze({ slug: "azos", name: "AZ-OS", status: "live" }),
+    Object.freeze({ slug: "azos", name: "AZ-OS", status: "This row is in the catalog. The kernel does not run here. Boot does not run here." }),
   ]) }),
   Object.freeze({ id: "10", slug: "simulation", name: "Simulation", softwares: Object.freeze([
     Object.freeze({ slug: "postking", name: "Post-King Chess", status: "live" }),
@@ -291,11 +291,7 @@ export function pipelineStripHtml() {
 export function humanStatusPhrase(row) {
   const slug = String((row && row.slug) || "");
   const status = String((row && row.status) || "");
-  if (slug === "4dmap") return "not live — shadow layer on this desk only";
-  if (slug === "azmail") return "listed — mail send is not live";
-  if (slug === "aznet") return "listed — internet is not live";
-  if (slug === "azos") return "listed — kernel is not live and boot is not live";
-  if (slug === "aznews") return "not live";
+  if (slug === "aznews") return "AZNews is absent from this catalog.";
   if (status.includes("stub")) return status;
   if (status === "live") return "listed on aziel-runtime";
   return status;

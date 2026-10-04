@@ -133,12 +133,24 @@ def test_strip_and_domain_map_html() -> None:
     assert 'data-domain="vault-custody"' in html
     assert 'data-domain="core-time"' in html
     assert 'data-slug="4dmap"' in html
-    assert "not live — shadow layer on this desk only" in html
-    assert "mail send is not live" in html
-    assert "internet is not live" in html
-    assert "kernel is not live and boot is not live" in html
-    four = next(s for d in DOMAIN_MAP for s in d["softwares"] if s["slug"] == "4dmap")
-    assert four["status"] == "live"
+    catalog = {
+        "4dmap": "This row is in the catalog. It is not a running map.",
+        "azmail": "This row is in the catalog. Mail send does not run here.",
+        "aznet": "This row is in the catalog. Internet does not run here.",
+        "azos": "This row is in the catalog. The kernel does not run here. Boot does not run here.",
+    }
+    cited = {
+        row["slug"]: row
+        for domain in pipeline_arch()["domain_map"]
+        for row in domain["softwares"]
+    }
+    assert len(cited) == 33
+    for slug, status in catalog.items():
+        assert cited[slug]["status"] == status
+        lowered = status.lower()
+        for word in ("live", "installed", "booted", "joined"):
+            assert word not in lowered
+        assert status in html
     assert "aziel-runtime" in html
     assert "AZCoherence" in html
     assert "scoring-review" in html

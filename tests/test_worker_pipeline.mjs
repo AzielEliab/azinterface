@@ -77,10 +77,23 @@ assert.match(html, /id="domains"/);
 assert.match(html, /AZCoherence/);
 assert.match(html, /scoring-review/);
 assert.match(html, /plain A–Z/);
-assert.match(html, /not live — shadow layer on this desk only/);
-assert.match(html, /mail send is not live/);
-assert.match(html, /internet is not live/);
-assert.match(html, /kernel is not live and boot is not live/);
+const catalogStatus = {
+  "4dmap": "This row is in the catalog. It is not a running map.",
+  azmail: "This row is in the catalog. Mail send does not run here.",
+  aznet: "This row is in the catalog. Internet does not run here.",
+  azos: "This row is in the catalog. The kernel does not run here. Boot does not run here.",
+};
+const citedRows = Object.fromEntries(pipe.domain_map.flatMap((domain) => domain.softwares.map((row) => [row.slug, row])));
+assert.equal(Object.keys(citedRows).length, 33);
+assert.equal(pipe.software_count, 33);
+for (const [slug, status] of Object.entries(catalogStatus)) {
+  assert.equal(citedRows[slug].status, status);
+  const lowered = status.toLowerCase();
+  for (const word of ["live", "installed", "booted", "joined"]) {
+    assert.equal(lowered.includes(word), false);
+  }
+  assert.match(html, new RegExp(status.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+}
 assert.match(html, /data-slug="azchat"/);
 assert.match(html, /stub \/ not hosted yet/);
 assert.match(html, /No LambGate/);
