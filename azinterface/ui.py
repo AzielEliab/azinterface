@@ -115,7 +115,19 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/suite/shadowlock":
             self._html(SUITE.shadow_html())
             return
+        if path == "/suite/4dmap/news":
+            if wants_json(self.headers.get("Accept")):
+                self._json(SUITE.news_view())
+                return
+            self._html(SUITE.news_html())
+            return
+        if path == "/suite/4dmap/pins":
+            self._json(SUITE.news_view())
+            return
         if path == "/suite/4dmap":
+            if wants_json(self.headers.get("Accept")):
+                self._json(SUITE.news_view())
+                return
             self._html(SUITE.map_html())
             return
         if path == "/suite/shadowlock/links":
@@ -189,6 +201,17 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"ok": False, "error": "The link body must be a JSON object."}, 400)
                 return
             self._json(SUITE.shadow_unlink(payload))
+            return
+        if path in {"/suite/4dmap/news", "/suite/4dmap/pin", "/suite/4dmap/unpin"}:
+            if not isinstance(payload, dict):
+                self._json({"ok": False, "error": "The story body must be a JSON object."}, 400)
+                return
+            if path.endswith("/pin"):
+                self._json(SUITE.pin_news(payload))
+            elif path.endswith("/unpin"):
+                self._json(SUITE.unpin_news(payload))
+            else:
+                self._json(SUITE.add_news(payload))
             return
         if path == "/suite/boot":
             slug = str(payload.get("slug") or "") if isinstance(payload, dict) else ""

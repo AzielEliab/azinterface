@@ -148,6 +148,7 @@ function fieldSentence(label, value, obj) {
   if (key === "photon_id") return text ? "The photon cite is " + text + "." : "";
   if (key === "hold_id") return text ? "The hold cite is " + text + "." : "";
   if (key === "status") return text ? "The record is " + text + "." : "";
+  if (key === "join_live") return flag === true ? "A news item landed as a pin." : "No news item has landed as a pin.";
   if (flag === false) return "The " + key.replace(/_/g, " ") + " is off.";
   if (flag === true) return "The " + key.replace(/_/g, " ") + " is on.";
   if (!text) return "";

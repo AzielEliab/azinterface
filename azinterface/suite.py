@@ -29,6 +29,7 @@ from urllib.parse import urlparse
 
 from .meta import FRAGGATE_CALL, IDENTITY, LOOPBACK
 from .plain import HUMAN_JS
+from .news_join import add_news, join_view, news_page_html, news_path, pin_news, unpin_news
 from .shadow_links import add_link, links_path, list_links, remove_link, shadow_desk_html, shadow_map_html
 from .trajectory_review import accept_product_imagery, review_event, review_html
 
@@ -889,6 +890,25 @@ class Suite:
 
     def shadow_unlink(self, payload: dict[str, Any]) -> dict[str, Any]:
         return remove_link(links_path(self.vendor), str(payload.get("id") or ""))
+
+    def _shadow_count(self) -> int:
+        counted = list_links(links_path(self.vendor)).get("count")
+        return counted if isinstance(counted, int) else 0
+
+    def news_view(self) -> dict[str, Any]:
+        return join_view(news_path(self.vendor), shadow_links=self._shadow_count())
+
+    def news_html(self) -> str:
+        return news_page_html()
+
+    def add_news(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return add_news(news_path(self.vendor), payload, shadow_links=self._shadow_count())
+
+    def pin_news(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return pin_news(news_path(self.vendor), payload, shadow_links=self._shadow_count())
+
+    def unpin_news(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return unpin_news(news_path(self.vendor), payload, shadow_links=self._shadow_count())
 
     def review_trajectory(self, payload: dict[str, Any]) -> dict[str, Any]:
         place = str(payload.get("place") or "").strip()

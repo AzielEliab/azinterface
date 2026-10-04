@@ -317,9 +317,12 @@ button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; 
 <main>
   <h1>4DMap</h1>
   <h2>Softwares · Shadow</h2>
-  <p>This is the shadow-link layer. 4DMap is not a live map.</p>
+  <p>This is the shadow-link layer. 4DMap is not a live map. AZNews can stay on its own. <a href="/suite/4dmap/news">Open AZNews</a></p>
   <p id="empty">No ShadowLock links yet. Open the ShadowLock tile and link a Software. This layer does not invent marks.</p>
   <ol id="layer"></ol>
+  <h2>News pins</h2>
+  <p id="pin-note">No news item has landed as a pin.</p>
+  <ol id="pins"></ol>
   <p><button id="refresh" type="button">Refresh</button></p>
 </main>
 <script>
@@ -354,10 +357,29 @@ button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; 
       layer.appendChild(li);
     });
   }
+  var pinNote = document.getElementById("pin-note");
+  var pins = document.getElementById("pins");
+  async function paintPins() {
+    var data = await (await fetch("/suite/4dmap/pins", { headers: { "accept": "application/json" } })).json();
+    pins.replaceChildren();
+    pinNote.textContent = data.status || "No news item has landed as a pin.";
+    (data.pins || []).forEach(function (pin) {
+      var li = document.createElement("li");
+      var title = document.createElement("strong");
+      title.textContent = pin.headline || "";
+      var body = document.createElement("div");
+      body.textContent = pin.body || "";
+      li.appendChild(title);
+      li.appendChild(body);
+      pins.appendChild(li);
+    });
+  }
   document.getElementById("refresh").addEventListener("click", function () {
     paint().catch(function () { empty.hidden = false; empty.textContent = "The Shadow layer could not be read."; });
+    paintPins().catch(function () { pinNote.textContent = "The news pins could not be read."; });
   });
   paint().catch(function () { empty.textContent = "The Shadow layer could not be read."; });
+  paintPins().catch(function () { pinNote.textContent = "The news pins could not be read."; });
 })();
 </script>
 </body>
