@@ -30,15 +30,8 @@ import {
   dispatch,
 } from "./engine.js";
 import { classifyV1Path, doorTargetUrl, runtimeArchUrl, RUNTIME_ARCH_PATH } from "./door.js";
+import { corsHeaders, htmlHeaders } from "./headers.js";
 import { pipelineArch } from "./pipeline.js";
-
-function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Accept, MCP-Protocol-Version, mcp-session-id, User-Agent, Authorization",
-  };
-}
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body, null, 2), {
@@ -466,7 +459,7 @@ export async function handleRuntimeApi(request, url, env) {
   }
   if (path === "/openapi.json" && request.method === "GET") return json(openapiSpec(originOf(request)));
   if ((path === "/ai" || url.pathname === "/ai/") && request.method === "GET") {
-    return new Response(aiHtml(originOf(request)), { headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders() } });
+    return new Response(aiHtml(originOf(request)), { headers: htmlHeaders() });
   }
   if (path === "/llms.txt" || path === "/ai.txt") {
     return new Response(

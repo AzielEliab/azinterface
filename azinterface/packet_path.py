@@ -15,6 +15,8 @@ import threading
 from pathlib import Path
 from typing import Any
 
+from .honesty import seal_standing
+
 ORDER = ("lan", "wifi", "bluetooth", "rf", "photon")
 NAMES = {"lan": "LAN", "wifi": "Wi-Fi", "bluetooth": "Bluetooth", "rf": "RF", "photon": "Photon"}
 RADIO_ABSENT = "QNM-RADIO-ABSENT"
@@ -143,7 +145,7 @@ def _assemble(carriers: list[dict[str, Any]], carry: dict[str, Any] | None, *, n
         and not second_device(quiet.get("local_host"), quiet.get("remote_host"))
     )
     status = not_live_sentence()
-    return {
+    report = {
         "ok": name_only_refuse is None,
         "packet_path": False,
         "alt_internet": False,
@@ -172,6 +174,7 @@ def _assemble(carriers: list[dict[str, Any]], carry: dict[str, Any] | None, *, n
         "alt_line": "An alternative internet is not live (alt_internet_live is false).",
         "status": status,
     }
+    return seal_standing(report, None)
 
 
 def _carrier_clause(ident: str, row: dict[str, Any] | None) -> str:

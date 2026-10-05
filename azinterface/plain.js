@@ -146,7 +146,12 @@ function fieldSentence(label, value, obj) {
   if (key === "pair_id") return text ? "The pair cite is " + text + "." : "";
   if (key === "photon_id") return text ? "The photon cite is " + text + "." : "";
   if (key === "hold_id") return text ? "The hold cite is " + text + "." : "";
+  if (key === "honesty") return text;
   if (key === "status") return text ? "The record is " + text + "." : "";
+  if (key === "booted") return flag === true ? "A folder session is open. The host operating system did not boot." : "No folder session is open. The host operating system did not boot.";
+  if (key === "sent") return flag === true ? "The named SMTP host accepted the message. Public mail send is not live." : "The message was not submitted. Public mail send is not live.";
+  if (key === "public_worker_boot" || key === "public_worker_kernel" || key === "host_kernel" || key === "host_os_booted") return "The host operating system did not boot. The public worker did not boot.";
+  if (key === "public_worker_mail_send" || key === "mail_send" || key === "public_smtp_send") return "Public mail send is not live.";
   if (key === "join_live") return flag === true ? "A news item landed as a pin." : "No news item has landed as a pin.";
   if (flag === false) return "The " + key.replace(/_/g, " ") + " is off.";
   if (flag === true) return "The " + key.replace(/_/g, " ") + " is on.";

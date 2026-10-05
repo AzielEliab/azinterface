@@ -49,8 +49,16 @@ def boot_session(root: Path) -> dict[str, Any]:
     return _local({
         "ok": True,
         "booted": True,
+        "folder_session": True,
+        "host_os_booted": False,
         "session": session,
-        "status": "The overlay session is open. The host operating system stays the host operating system. The public worker does not run a kernel.",
+        "status": (
+            "A folder session is open on this computer. "
+            "booted names that folder only. "
+            "The host operating system did not boot. "
+            "The public worker did not boot. "
+            "public_worker_boot is false. public_worker_kernel is false."
+        ),
     })
 
 
@@ -151,7 +159,7 @@ button.primary { background:#c9a227; color:#1a1404; border:0; font-weight:650; }
 <body>
 <main>
   <h1>AZ-OS</h1>
-  <p>This desk opens an overlay session and runs a command inside it. That session is not a kernel. The host operating system stays the host operating system. The public worker does not run a kernel. Boot does not run on the public worker.</p>
+  <p>This desk opens a folder session and runs a command inside it. That session is not a kernel. The host operating system did not boot. The host operating system stays the host operating system. The public worker does not run a kernel. Boot does not run on the public worker. public_worker_boot stays false.</p>
   <p><button class="primary" id="boot" type="button">Open session</button></p>
   <label for="path">File</label>
   <input id="path" value="marker.txt" autocomplete="off">

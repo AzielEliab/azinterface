@@ -47,6 +47,7 @@ from .meta import (
     SPEC_STRING,
     VERSION,
 )
+from .honesty import seal_standing
 from .pipeline import FOURDMAP_FRAME, PIPELINE_PATH, pipeline_arch
 from .receipts import Ledger, sha256_text
 
@@ -786,10 +787,10 @@ class Engine:
             ),
         )
 
-    def page_cycle_status(self, _payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    def page_cycle_status(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
         rec = self._receipt("page_cycle_status", {"cycle": self.cycle_posture()})
         cycle = self.page_cycle_snapshot()
-        return self._base(
+        body = self._base(
             ok=True,
             **cycle,
             receipt=rec,
@@ -804,9 +805,11 @@ class Engine:
                     ("cloud_asleep", False),
                     ("pipeline", cycle.get("pipeline_path") or PIPELINE_PATH),
                     ("4dmap", FOURDMAP_FRAME),
+                    ("honesty", seal_standing({}, payload if isinstance(payload, dict) else None)["honesty"]["text"]),
                 ],
             ),
         )
+        return seal_standing(body, payload if isinstance(payload, dict) else None)
 
     def pipeline_arch(self, _payload: dict[str, Any] | None = None) -> dict[str, Any]:
         rec = self._receipt("pipeline_arch", {"locked": True})

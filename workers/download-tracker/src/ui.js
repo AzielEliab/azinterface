@@ -3,6 +3,7 @@ import { LIMITATION } from "./engine.js";
 import { HUMAN_LINES_SOURCE } from "./human.js";
 import { meshClientScript, meshStripHtml } from "./mesh.js";
 import { notLiveSentence } from "./alt-internet-fact.js";
+import { COUNTED_TARBALL_SHA256, standingText } from "./honesty.js";
 import { domainMapHtml, pipelineStripHtml } from "./pipeline.js";
 
 const HOST = "https://azinterface-download-tracker.vibelock.workers.dev";
@@ -114,7 +115,7 @@ ${meshStripHtml()}
 ${pipelineStripHtml()}
 ${domainMapHtml()}
 <p class="banner">${LIMITATION}</p>
-<p class="banner">This page stands on its own. Calls to aziel-runtime still use the existing FragGate door. Softwares 42 is the runtime catalog. The domain count stays 33. ${notLiveSentence()} Mail send does not run on the public worker. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. AZNews can stand alone. 4DMap can stand alone. A story is a pin only after that story is read back.</p>
+<p class="banner">This page stands on its own. Calls to aziel-runtime still use the existing FragGate door. Softwares 42 is the runtime catalog. The domain count stays 33. ${notLiveSentence()} Mail send does not run on the public worker. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. AZNews can stand alone. 4DMap can stand alone. A story is a pin only after that story is read back. ${standingText()}</p>
 <div class="nums">
   <div class="count">${v}<span>Views</span></div>
   <div class="count">${n}<span>Downloads</span></div>
@@ -134,7 +135,7 @@ ${domainMapHtml()}
   <p>Prefer the tarball steps. This host is custody UI only. Agents use aziel-runtime FragGate/MCP — not a second Interface MCP.</p>
   <pre id="install-cmd">${INSTALL_LINE}
 # review install-azinterface.sh, then: bash install-azinterface.sh</pre>
-  <p class="checksum-note">Checksum note: after download, run <code>sha256sum ${ASSET}</code> (or <code>shasum -a 256</code>) and compare with a hash you trust. Pipe-to-bash (<code>curl … | bash</code>) is optional and not the recommended path.</p>
+  <p class="checksum-note">Checksum note: after download, run <code>sha256sum ${ASSET}</code> (or <code>shasum -a 256</code>) and compare with <code>${COUNTED_TARBALL_SHA256}</code>. Pipe-to-bash (<code>curl … | bash</code>) is optional and not the recommended path.</p>
 </details>
 <p class="iso">Isolated counter: Worker <code>azinterface-download-tracker</code>, KV AZINTERFACE_DOWNLOADS. /v1 does not increment.
 <strong>Human UI is this page (custody UI only).</strong> Agents use aziel-runtime FragGate/MCP:

@@ -7,6 +7,7 @@ GET paths do not install or start anything.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -77,6 +78,26 @@ def bundled_software() -> list[dict[str, Any]]:
     return [normalize_card(row) for row in rows if isinstance(row, dict) and row.get("slug")]
 
 
+def _cite_archive(raw: dict[str, Any]) -> str | None:
+    cite = raw.get("runtime_cite")
+    if not isinstance(cite, dict):
+        return None
+    for key in ("download_url", "archive", "tarball", "url"):
+        value = cite.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+def _known_digest(raw: dict[str, Any], hint: dict[str, Any]) -> str | None:
+    for source in (raw, hint):
+        for key in ("sha256", "digest"):
+            value = source.get(key)
+            if isinstance(value, str) and re.fullmatch(r"[a-fA-F0-9]{64}", value.strip()):
+                return value.strip().lower()
+    return None
+
+
 def normalize_card(raw: dict[str, Any], hint: dict[str, Any] | None = None) -> dict[str, Any]:
     hint = hint or {}
     slug = str(raw.get("slug") or hint.get("slug") or "").strip()
@@ -92,13 +113,22 @@ def normalize_card(raw: dict[str, Any], hint: dict[str, Any] | None = None) -> d
     download = raw.get("download_url")
     if download is None and "download_url" not in raw:
         download = hint.get("download_url")
+    download = str(download).strip() if download else None
+    cite = _cite_archive(raw)
+    from_runtime_cite = bool(cite) and (not download or download == cite)
+    ignored_runtime_cite = cite if cite and download and download != cite else None
     bucket = raw.get("bucket", hint.get("bucket"))
     if bucket not in {"plain", "gate", "lock"}:
         bucket = None
     return {
         "name": str(raw.get("name") or hint.get("name") or slug),
         "slug": slug,
-        "download_url": str(download).strip() if download else None,
+        "download_url": download,
+        "sha256": _known_digest(raw, hint),
+        "from_runtime_cite": from_runtime_cite,
+        "runtime_cite_url": cite,
+        "ignored_runtime_cite": ignored_runtime_cite,
+        "operator_confirm": False,
         "worker_home": raw.get("worker_home") or raw.get("homepage") or hint.get("worker_home"),
         "github": raw.get("github") or hint.get("github"),
         "door": str(raw.get("door") or hint.get("door") or ""),
@@ -109,6 +139,12 @@ def normalize_card(raw: dict[str, Any], hint: dict[str, Any] | None = None) -> d
         "ui_cmd": ui_cmd,
         "bucket": bucket,
     }
+
+
+def _is_loopback(url: str) -> bool:
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    return parsed.scheme == "http" and host in {LOOPBACK, "localhost"}
 
 
 def _url_allowed(url: str) -> bool:
@@ -663,8 +699,8 @@ class Suite:
             with self._lock:
                 self._job = False
 
-    def boot(self, slug: str, *, allow_install: bool = True) -> dict[str, Any]:
-        row = self._boot_impl(slug, allow_install=allow_install)
+    def boot(self, slug: str, *, allow_install: bool = True, confirm: bool = False) -> dict[str, Any]:
+        row = self._boot_impl(slug, allow_install=allow_install, confirm=confirm)
         if slug == "azcoherence":
             return self._as_background(row)
         if slug == "trajectorylock":
@@ -721,7 +757,7 @@ class Suite:
             )
         return row
 
-    def _boot_impl(self, slug: str, *, allow_install: bool = True) -> dict[str, Any]:
+    def _boot_impl(self, slug: str, *, allow_install: bool = True, confirm: bool = False) -> dict[str, Any]:
         card = self._card(slug)
         if card is None:
             return {
@@ -738,7 +774,7 @@ class Suite:
                               reason="AZInterface is this suite. Custody is open in the pane.",
                               nxt="Use Integrity and the page cycle inside the pane.")
         if slug == "azvpn":
-            return self._boot_azvpn(card, allow_install=allow_install)
+            return self._boot_azvpn(card, allow_install=allow_install, confirm=confirm)
         if self._our_proc_alive(slug):
             saved = self._public_row(card)
             saved["ok"] = True
@@ -776,16 +812,36 @@ class Suite:
                     return self._fraggate(card, reason)
                 return self._save(card, posture=posture, mode=None, url=None, outcome=None, reason=reason, nxt=nxt)
             if not card.get("download_url"):
-                if _fraggate_live(card):
-                    return self._fraggate(card, f"{card['ui_cmd']} is not installed, and the catalog has no download.")
-                return self._save(card, posture="failed", mode=None, url=None, outcome="failed",
-                                  reason=f"{card['ui_cmd']} is not installed, and there is no download to fetch.",
-                                  nxt="Install that product yourself, then press Start suite again.")
+                if card.get("from_runtime_cite"):
+                    cite_url = card.get("runtime_cite_url")
+                    if confirm and card.get("sha256") and isinstance(cite_url, str) and cite_url:
+                        card = dict(card)
+                        card["download_url"] = cite_url
+                        card["operator_confirm"] = True
+                    else:
+                        return self._save(
+                            card,
+                            posture="failed",
+                            mode=None,
+                            url=None,
+                            outcome="failed",
+                            reason="A runtime cite archive is not trusted without operator confirmation and a known digest.",
+                            nxt="Confirm the archive and publish its digest before this suite will install it.",
+                        )
+                if not card.get("download_url"):
+                    if _fraggate_live(card):
+                        return self._fraggate(card, f"{card['ui_cmd']} is not installed, and the catalog has no download.")
+                    return self._save(card, posture="failed", mode=None, url=None, outcome="failed",
+                                      reason=f"{card['ui_cmd']} is not installed, and there is no download to fetch.",
+                                      nxt="Install that product yourself, then press Start suite again.")
+            if confirm:
+                card = dict(card)
+                card["operator_confirm"] = True
             self._save(card, posture="installing", mode=None, url=None, outcome=None,
                        reason=f"Installing {card['name']} from its download.",
                        nxt="Wait for this tile. The suite does not open a page until the install finishes.")
             try:
-                self._install(card)
+                self._install(card, confirm=confirm)
                 installed_now = True
             except Exception as exc:  # noqa: BLE001 — show the failure, do not pretend it opened
                 message = str(exc).strip() or "Install failed."
@@ -1175,6 +1231,9 @@ class Suite:
             with self._lock:
                 self._installed.add(card["slug"])
         note = str(card.get("_listen_note") or "").strip()
+        warning = str(card.get("_integrity_warning") or "").strip()
+        if warning:
+            note = f"{note} {warning}".strip()
         if card["slug"] == "azvpn":
             self._remember_vpn(url)
             reason = f"AZVPN is on at {url}. It started with the suite."
@@ -1244,14 +1303,35 @@ class Suite:
             if proc.poll() is None:
                 _terminate(proc)
 
-    def _install(self, card: dict[str, Any]) -> None:
+    def _install(self, card: dict[str, Any], *, confirm: bool = False) -> None:
+        if card.get("from_runtime_cite") and not (confirm or card.get("operator_confirm")):
+            raise RuntimeError("A runtime cite archive is not trusted without operator confirmation.")
         url = str(card.get("download_url") or "")
         if not _url_allowed(url):
             raise RuntimeError("The download address is not one this suite will fetch.")
+        digest = card.get("sha256") if isinstance(card.get("sha256"), str) else None
+        if card.get("from_runtime_cite") and not digest:
+            raise RuntimeError(
+                "A runtime cite archive needs operator confirmation and a known digest. This suite did not install it."
+            )
+        if not digest and not _is_loopback(url):
+            raise RuntimeError(
+                "No digest is published for this download. This suite will not install an https package without a known digest."
+            )
+        data = _download(url)
+        actual = hashlib.sha256(data).hexdigest()
+        if digest and actual != digest:
+            raise RuntimeError("The download digest does not match the known digest. This suite did not install it.")
+        if digest:
+            card["_integrity_checked"] = True
+        else:
+            card["_integrity_warning"] = (
+                "No digest was published for this loopback download. "
+                "This suite did not treat it as a trusted https catalog archive."
+            )
         root = self.vendor / card["slug"]
         root.mkdir(parents=True, exist_ok=True)
         blob = root / "download.bin"
-        data = _download(url)
         if data.lstrip()[:1] in {b"<", b"{"} and not data.startswith(b"\x1f\x8b") and not data.startswith(b"PK"):
             raise RuntimeError("The download address returned a page, not a package.")
         blob.write_bytes(data)
@@ -1302,7 +1382,7 @@ class Suite:
             detail = tail[-1] if tail else f"pip exited {proc.returncode}"
             raise RuntimeError(detail)
 
-    def _boot_azvpn(self, card: dict[str, Any], *, allow_install: bool) -> dict[str, Any]:
+    def _boot_azvpn(self, card: dict[str, Any], *, allow_install: bool, confirm: bool = False) -> dict[str, Any]:
         if self._our_proc_alive("azvpn") or self._azvpn_up(card):
             port = self._vpn_port(card)
             self._remember_vpn(self._vpn_listen or f"http://{LOOPBACK}:{port}/")
@@ -1334,9 +1414,15 @@ class Suite:
                 nxt="Wait. AZVPN starts when the install finishes. There is no opt-out.",
             )
             try:
-                self._install(install_card)
+                self._install(install_card, confirm=confirm)
             except Exception as exc:  # noqa: BLE001 — show the failure, do not pretend it opened
                 return self._azvpn_repair(card, f"Install failed. {exc}")
+            if install_card.get("_integrity_warning") or install_card.get("_integrity_checked"):
+                card = dict(card)
+                if install_card.get("_integrity_warning"):
+                    card["_integrity_warning"] = install_card["_integrity_warning"]
+                if install_card.get("_integrity_checked"):
+                    card["_integrity_checked"] = True
             exe = self._find_exe(card)
             if not exe:
                 return self._azvpn_repair(card, "The AZVPN archive unpacked, but azvpn ui was not found afterward.")

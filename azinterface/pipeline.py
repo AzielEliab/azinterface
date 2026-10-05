@@ -22,9 +22,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from .packet_path import not_live_sentence
-
+from .honesty import VEILLOCK_STATUS
 from .meta import IDENTITY, RUNTIME
+from .packet_path import not_live_sentence
 
 AP_WP = "AP-WP-0.2"
 SG_WP = "SG-WP-0.1"
@@ -162,7 +162,7 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         "name": "Media",
         "softwares": (
             {"slug": "vibelock", "name": "VibeLock", "status": "live"},
-            {"slug": "veillock", "name": "VeilLock", "status": "live"},
+            {"slug": "veillock", "name": "VeilLock", "status": "local_only"},
             {"slug": "spectrallock", "name": "SpectralLock", "status": "live"},
             {"slug": "trajectorylock", "name": "TrajectoryLock", "status": "live"},
         ),
@@ -340,6 +340,8 @@ def domain_map() -> list[dict[str, Any]]:
             copied = dict(item)
             if copied.get("slug") == "aznet":
                 copied["status"] = not_live_sentence()
+            elif copied.get("slug") == "veillock":
+                copied["status"] = VEILLOCK_STATUS
             softwares.append(copied)
         row = {
             "id": domain["id"],
@@ -467,6 +469,8 @@ def human_status_phrase(row: dict[str, Any]) -> str:
     status = str(row.get("status") or "")
     if slug == "aznet":
         return not_live_sentence()
+    if slug == "veillock":
+        return VEILLOCK_STATUS
     if slug == "aznews":
         return "AZNews is absent from this catalog."
     if "stub" in status:
