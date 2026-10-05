@@ -33,12 +33,18 @@ void main() {
       'Mail send does not run on the public worker.',
       'The packet path does not run.',
       'An alternative internet does not run.',
+      'An alternative internet is not live (alt_internet_live is false).',
+      'A packet path is not live (packet_path_live is false).',
+      'Public mail send, the kernel, and boot stay not live.',
+      'The public door stays FG-STUB.',
+      'A second device stays false while both ends share that id.',
       'The public worker does not run a kernel.',
       'Boot does not run on the public worker.',
       'This does not wipe another device.',
       'It does not wipe a second device.',
       'There is no kernel.',
       'This has not booted.',
+      notLiveSentence,
       standSentence,
     ];
     for (final sentence in honest) {
@@ -56,10 +62,17 @@ void main() {
     expect(source.contains("const String siteState = 'OFF';"), isTrue);
     for (final sentence in [
       'The domain count stays 33.',
-      'Softwares 42 is the runtime catalog.',
-      'The packet path does not run.',
-      'An alternative internet does not run.',
-      'WARN-5 stands.',
+      'software_count stays 33.',
+      'An alternative internet is not live (alt_internet_live is false).',
+      'A packet path is not live (packet_path_live is false).',
+      'This isolate cannot see host hardware (worker_hardware is false).',
+      'A second device stays false while both ends share that id.',
+      'A same-machine mesh frame does not count.',
+      'Public mail send, the kernel, and boot stay not live.',
+      'The public door stays FG-STUB.',
+      'Isolation is single-node security-awareness.',
+      'Phoenix is a local wait and re-seal.',
+      'That is not a loopback fence.',
       'Mail send does not run on the public worker.',
       'The public worker does not run a kernel.',
       'Boot does not run on the public worker.',
@@ -73,6 +86,10 @@ void main() {
     ]) {
       expect(source.contains(sentence), isTrue, reason: sentence);
     }
+    expect(source.contains('42'), isFalse);
+    expect(visibleCopy().contains('42'), isFalse);
+    expect(source.contains('alt_internet_live is true'), isFalse);
+    expect(source.contains('packet_path_live is true'), isFalse);
     expect(source.contains('Internet is not live.'), isFalse);
     expect(source.toLowerCase().contains('installed'), isFalse);
     expect(source.contains('One-click'), isFalse);
@@ -93,21 +110,34 @@ void main() {
     expect(find.textContaining('Mail send does not run on the public worker.'),
         findsOneWidget);
     expect(
-        find.textContaining('The packet path does not run.'), findsOneWidget);
-    expect(find.textContaining('An alternative internet does not run.'),
+        find.textContaining(
+            'An alternative internet is not live (alt_internet_live is false).'),
+        findsOneWidget);
+    expect(
+        find.textContaining(
+            'A packet path is not live (packet_path_live is false).'),
+        findsOneWidget);
+    expect(
+        find.textContaining('The public door stays FG-STUB.'), findsOneWidget);
+    expect(find.textContaining('Isolation is single-node security-awareness.'),
+        findsOneWidget);
+    expect(find.textContaining('Phoenix is a local wait and re-seal.'),
+        findsOneWidget);
+    expect(
+        find.textContaining('That is not a loopback fence.'), findsOneWidget);
+    expect(
+        find.textContaining(
+            'A second device stays false while both ends share that id.'),
         findsOneWidget);
     expect(find.textContaining('The public worker does not run a kernel.'),
         findsOneWidget);
     expect(find.textContaining('Boot does not run on the public worker.'),
         findsOneWidget);
+    expect(shownLater(tester).contains('42'), isFalse);
     expect(softwareCount, 33);
     expect(siteState, 'OFF');
 
-    final shown = tester
-        .widgetList<Text>(find.byType(Text))
-        .map((text) => text.data ?? '')
-        .join('\n');
-    expect(liveClaims(shown), isEmpty);
+    expect(liveClaims(shownLater(tester)), isEmpty);
 
     await tester.ensureVisible(find.text('Mail'));
     await tester.pumpAndSettle();
@@ -115,7 +145,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(
         find.text(
-            'This opens the mail sentence. Public mail send does not run on the public worker.'),
+            'This opens the mail sentence. Public mail send stays not live.'),
         findsNothing);
     expect(find.byKey(const Key('hint-popup')), findsOneWidget);
     expect(find.text(backHint), findsOneWidget);
@@ -133,6 +163,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('The page is OFF.'), findsOneWidget);
     expect(find.byKey(const Key('hint-popup')), findsNothing);
+
+    await tester.ensureVisible(find.text('Network'));
+    await tester.tap(find.text('Network'));
+    await tester.pumpAndSettle();
+    expect(find.text(notLiveSentence), findsOneWidget);
+    expect(find.textContaining('Phoenix is a local wait and re-seal.'),
+        findsOneWidget);
+    expect(
+        find.textContaining('That is not a loopback fence.'), findsOneWidget);
+    expect(liveClaims(shownLater(tester)), isEmpty);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Another device'));
+    await tester.tap(find.text('Another device'));
+    await tester.pumpAndSettle();
+    expect(find.text(sameMachineSentence), findsOneWidget);
+    expect(find.text('This does not wipe another device.'), findsOneWidget);
+    expect(find.text('It does not wipe a second device.'), findsOneWidget);
+    expect(liveClaims(shownLater(tester)), isEmpty);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpWidget(AzInterfaceApp(book: HintBook(prefs)));
@@ -154,6 +206,13 @@ Future<void> dismissHints(WidgetTester tester, int count) async {
   }
   await tester.pump(const Duration(milliseconds: 400));
   expect(find.byKey(const Key('hint-popup')), findsNothing);
+}
+
+String shownLater(WidgetTester tester) {
+  return tester
+      .widgetList<Text>(find.byType(Text))
+      .map((text) => text.data ?? '')
+      .join('\n');
 }
 
 String _spokenSource() {
