@@ -253,7 +253,7 @@ azinterface doctor
 
 Flutter app: [`mobile/`](mobile/). Application id `com.azieeliab.azinterface`.
 Projects: `android/`, `ios/`, `linux/`, `macos/`, and `windows/`.
-The page stays OFF. The domain count stays 33. The same sentences as the public worker.
+The page stays OFF. software_count stays 33. An alternative internet is not live. A packet path is not live. The public door stays FG-STUB. Phoenix is a local wait and re-seal. That is not a loopback fence.
 The iPhone project is the Xcode project under `mobile/ios/`. A Linux machine does not build it.
 
 ```bash

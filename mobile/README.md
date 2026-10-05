@@ -8,9 +8,11 @@ Those sentences keep the same facts as aziel-runtime and AZ-OS.
 
 Author: Aziel Eliab. Application id: `com.azieeliab.azinterface`.
 
-The page stays OFF. The domain count stays 33. Softwares 42 is the runtime catalog. That list is not the domain count.
+The page stays OFF. software_count stays 33.
 
-Mail send does not run on the public worker. The packet path does not run. An alternative internet does not run. WARN-5 stands. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. Scorched Earth does not wipe a second device.
+An alternative internet is not live (alt_internet_live is false). A packet path is not live (packet_path_live is false). A second device stays false while both ends share that id. Public mail send, the kernel, and boot stay not live. The public door stays FG-STUB. Isolation is single-node security-awareness. Phoenix is a local wait and re-seal. That is not a loopback fence.
+
+Mail send does not run on the public worker. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. Scorched Earth does not wipe a second device.
 
 The first time a new user meets a control, a short popup says what that control does.
 

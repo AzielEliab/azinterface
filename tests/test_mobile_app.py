@@ -55,6 +55,11 @@ def test_live_claim_checker_flags_each_refused_door() -> None:
         "Mail send does not run on the public worker.",
         "The packet path does not run.",
         "An alternative internet does not run.",
+        "An alternative internet is not live (alt_internet_live is false).",
+        "A packet path is not live (packet_path_live is false).",
+        "Public mail send, the kernel, and boot stay not live.",
+        "The public door stays FG-STUB.",
+        "A second device stays false while both ends share that id.",
         "The public worker does not run a kernel.",
         "Boot does not run on the public worker.",
         "This does not wipe another device.",
@@ -73,10 +78,17 @@ def test_app_keeps_the_worker_facts_and_refuses_live_claims() -> None:
     assert "const String siteState = 'OFF';" in source
     for sentence in (
         "The domain count stays 33.",
-        "Softwares 42 is the runtime catalog.",
-        "The packet path does not run.",
-        "An alternative internet does not run.",
-        "WARN-5 stands.",
+        "software_count stays 33.",
+        "An alternative internet is not live (alt_internet_live is false).",
+        "A packet path is not live (packet_path_live is false).",
+        "This isolate cannot see host hardware (worker_hardware is false).",
+        "A second device stays false while both ends share that id.",
+        "A same-machine mesh frame does not count.",
+        "Public mail send, the kernel, and boot stay not live.",
+        "The public door stays FG-STUB.",
+        "Isolation is single-node security-awareness.",
+        "Phoenix is a local wait and re-seal.",
+        "That is not a loopback fence.",
         "Mail send does not run on the public worker.",
         "The public worker does not run a kernel.",
         "Boot does not run on the public worker.",
@@ -90,6 +102,9 @@ def test_app_keeps_the_worker_facts_and_refuses_live_claims() -> None:
         "The page is OFF.",
     ):
         assert sentence in source
+    assert "42" not in source
+    assert "alt_internet_live is true" not in source
+    assert "packet_path_live is true" not in source
     lowered = source.lower()
     assert "internet is not live." not in lowered
     assert "installed" not in lowered
