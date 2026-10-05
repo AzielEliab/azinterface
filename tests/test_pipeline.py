@@ -136,7 +136,7 @@ def test_strip_and_domain_map_html() -> None:
     catalog = {
         "4dmap": "This row is in the catalog. 4DMap can stand alone. AZNews can stand alone. A pin counts only after the same item is read back.",
         "azmail": "This row is in the catalog. Mail send does not run on the public worker.",
-        "aznet": "This row is in the catalog. The packet path does not run. An alternative internet does not run. WARN-5 stands.",
+        "aznet": "This row is in the catalog. The packet path is not live. The alternative internet is not live. Device-to-device packet carriers stay NOT-READY. WARN-5 stands.",
         "azos": "This row is in the catalog. The public worker does not run a kernel. Boot does not run on the public worker.",
     }
     cited = {
@@ -147,7 +147,7 @@ def test_strip_and_domain_map_html() -> None:
     assert len(cited) == 33
     for slug, status in catalog.items():
         assert cited[slug]["status"] == status
-        lowered = status.lower()
+        lowered = status.lower().replace("not live", "")
         for word in ("live", "installed", "booted", "joined"):
             assert word not in lowered
         assert status in html

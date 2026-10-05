@@ -125,7 +125,7 @@ export const DOMAIN_MAP = Object.freeze([
     Object.freeze({ slug: "azchat", name: "AZChat", status: "stub / not hosted yet" }),
   ]) }),
   Object.freeze({ id: "08", slug: "network", name: "Network", softwares: Object.freeze([
-    Object.freeze({ slug: "aznet", name: "AZNet", status: "This row is in the catalog. The packet path does not run. An alternative internet does not run. WARN-5 stands." }),
+    Object.freeze({ slug: "aznet", name: "AZNet", status: "This row is in the catalog. The packet path is not live. The alternative internet is not live. Device-to-device packet carriers stay NOT-READY. WARN-5 stands." }),
     Object.freeze({ slug: "miragegrid", name: "MirageGrid", status: "live" }),
     Object.freeze({ slug: "azieltether", name: "AzielTether", status: "live" }),
   ]) }),

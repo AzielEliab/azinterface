@@ -23,7 +23,7 @@ STORY = {
 HONEST = {
     "4dmap": "This row is in the catalog. 4DMap can stand alone. AZNews can stand alone. A pin counts only after the same item is read back.",
     "azmail": "This row is in the catalog. Mail send does not run on the public worker.",
-    "aznet": "This row is in the catalog. The packet path does not run. An alternative internet does not run. WARN-5 stands.",
+    "aznet": "This row is in the catalog. The packet path is not live. The alternative internet is not live. Device-to-device packet carriers stay NOT-READY. WARN-5 stands.",
     "azos": "This row is in the catalog. The public worker does not run a kernel. Boot does not run on the public worker.",
 }
 
@@ -50,7 +50,7 @@ def test_catalog_statuses_stay_honest_and_the_count_stays_33() -> None:
     assert "aznews" not in cited
     for slug, status in HONEST.items():
         assert cited[slug] == status
-        assert "live" not in status.lower()
+        assert "live" not in status.lower().replace("not live", "")
     cycle = Engine(Ledger()).page_cycle_status()
     assert cycle["site_state"] == "OFF"
     assert cycle["pipeline"]["software_count"] == 33
@@ -167,8 +167,9 @@ def test_http_door_keeps_sentences_json_and_an_off_site(tmp_path: Path, monkeypa
         home = urlopen(Request(base + "/", headers={"Accept": "text/html"})).read().decode()
         assert "Softwares 42 is the runtime catalog." in home
         assert "The domain count stays 33." in home
-        assert "The packet path does not run." in home
-        assert "An alternative internet does not run." in home
+        assert "The packet path is not live." in home
+        assert "The alternative internet is not live." in home
+        assert "Still missing:" in home
         assert "WARN-5 stands." in home
         assert "Mail send does not run on the public worker." in home
         assert "The public worker does not run a kernel." in home

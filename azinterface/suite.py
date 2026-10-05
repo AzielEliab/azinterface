@@ -33,6 +33,8 @@ from .plain import HUMAN_JS
 from .mail_send import mail_page_html, submit_smtp
 from .map_frame import lattice_path, map_view, place_card
 from .net_fetch import fetch_url, net_page_html
+from .packet_path import path_report as packet_report
+from .packet_path import path_sentence
 from .news_join import add_news, join_view, news_page_html, news_path, pin_news, unpin_news
 from .overlay_kernel import boot_session, kernel_page_html, run_command, sessions_root
 from .shadow_links import add_link, links_path, list_links, remove_link, shadow_desk_html, shadow_map_html
@@ -347,8 +349,8 @@ class Suite:
         if slug == "aznet":
             return (
                 "ready",
-                "This desk can fetch one http or https URL. That fetch is not the packet path. An alternative internet does not run. WARN-5 stands.",
-                "Open the desk and fetch a URL.",
+                path_sentence() + " This desk can fetch one http or https URL. That fetch is not the packet path.",
+                "Open the desk. The sentence names what is still missing.",
             )
         if slug == "azos":
             return (
@@ -704,8 +706,8 @@ class Suite:
                 posture="ready",
                 mode="net",
                 url="/suite/aznet",
-                desk_reason="This desk can fetch one http or https URL. That fetch is not the packet path. WARN-5 stands.",
-                nxt="Fetch a URL.",
+                desk_reason=path_sentence() + " This desk can fetch one http or https URL. That fetch is not the packet path.",
+                nxt="Open the desk. The sentence names what is still missing.",
             )
         if slug == "azos":
             return self._as_desk(
@@ -978,6 +980,9 @@ class Suite:
 
     def fetch_internet(self, payload: dict[str, Any]) -> dict[str, Any]:
         return fetch_url(payload)
+
+    def path_report(self) -> dict[str, Any]:
+        return packet_report()
 
     def boot_kernel(self) -> dict[str, Any]:
         return boot_session(sessions_root(self.vendor))

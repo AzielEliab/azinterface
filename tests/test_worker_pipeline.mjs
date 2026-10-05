@@ -80,7 +80,7 @@ assert.match(html, /plain A–Z/);
 const catalogStatus = {
   "4dmap": "This row is in the catalog. 4DMap can stand alone. AZNews can stand alone. A pin counts only after the same item is read back.",
   azmail: "This row is in the catalog. Mail send does not run on the public worker.",
-  aznet: "This row is in the catalog. The packet path does not run. An alternative internet does not run. WARN-5 stands.",
+  aznet: "This row is in the catalog. The packet path is not live. The alternative internet is not live. Device-to-device packet carriers stay NOT-READY. WARN-5 stands.",
   azos: "This row is in the catalog. The public worker does not run a kernel. Boot does not run on the public worker.",
 };
 const citedRows = Object.fromEntries(pipe.domain_map.flatMap((domain) => domain.softwares.map((row) => [row.slug, row])));
@@ -88,7 +88,7 @@ assert.equal(Object.keys(citedRows).length, 33);
 assert.equal(pipe.software_count, 33);
 for (const [slug, status] of Object.entries(catalogStatus)) {
   assert.equal(citedRows[slug].status, status);
-  const lowered = status.toLowerCase();
+  const lowered = status.toLowerCase().replace(/not live/g, "");
   for (const word of ["live", "installed", "booted", "joined"]) {
     assert.equal(lowered.includes(word), false);
   }

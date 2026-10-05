@@ -5,6 +5,7 @@ from __future__ import annotations
 from html import escape
 
 from .meta import IDENTITY, LOOPBACK, SPEC, VERSION
+from .packet_path import path_sentence
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
@@ -87,7 +88,7 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
   <main>
     <h1>Softwares</h1>
     <p class="lede">AZInterface is the suite on this computer. Start suite opens every Software that can run here. AZVPN starts with the suite. AZCoherence stays in the background. TrajectoryLock opens a review of satellite imagery for an event place and time. ShadowLock links any Software. 4DMap shows those links.</p>
-    <p id="stand">This page stands on its own. It can call aziel-runtime through the existing FragGate door. Softwares 42 is the runtime catalog. The domain count stays 33. The packet path does not run. An alternative internet does not run. WARN-5 stands. Mail send does not run on the public worker. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. This desk places a card on the clock and reads that card back. This desk can hand a message to an SMTP host named on the mail page. That handoff is not public mail send. This desk can fetch one http or https URL. That fetch is not the packet path. This desk opens an overlay session and runs a command inside it. That session is not a kernel. AZNews can stand alone. 4DMap can stand alone. A story is a pin only after that story is read back. A catalog listing is not a join.</p>
+    <p id="stand">This page stands on its own. It can call aziel-runtime through the existing FragGate door. Softwares 42 is the runtime catalog. The domain count stays 33. __PATH_SENTENCE__ Mail send does not run on the public worker. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. This desk places a card on the clock and reads that card back. This desk can hand a message to an SMTP host named on the mail page. That handoff is not public mail send. This desk can fetch one http or https URL. That fetch is not the packet path. This desk opens an overlay session and runs a command inside it. That session is not a kernel. AZNews can stand alone. 4DMap can stand alone. A story is a pin only after that story is read back. A catalog listing is not a join.</p>
     <div class="actions">
       <button class="primary" id="start-suite" type="button">Start suite</button>
       <button class="ghost" id="refresh" type="button">Refresh</button>
@@ -299,4 +300,5 @@ def suite_html(*, port: int, vendor: str) -> str:
         .replace("__LOOPBACK__", LOOPBACK)
         .replace("__PORT__", str(port))
         .replace("__VENDOR__", escape(vendor))
+        .replace("__PATH_SENTENCE__", escape(path_sentence()))
     )

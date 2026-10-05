@@ -7,18 +7,25 @@ alternative internet. WARN-5 stands.
 
 from __future__ import annotations
 
+from html import escape
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
+from .packet_path import path_report
+
 _LIMIT = 200_000
 
 
 def _local(body: dict[str, Any]) -> dict[str, Any]:
+    report = path_report()
     body["packet_path"] = False
     body["alt_internet"] = False
-    body["warn_5"] = "stands"
+    body["packet_path_live"] = False
+    body["alt_internet_live"] = False
+    body["warn_5"] = report["warn5"]
+    body["path_status"] = report["status"]
     return body
 
 
@@ -62,6 +69,7 @@ def fetch_url(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def net_page_html() -> str:
+    sentence = escape(path_report()["status"])
     return """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -88,7 +96,7 @@ button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; 
 <body>
 <main>
   <h1>AZNet</h1>
-  <p>This desk fetches one http or https URL and shows the body. That fetch is not the packet path. An alternative internet does not run. WARN-5 stands.</p>
+  <p>__PATH_SENTENCE__ This desk fetches one http or https URL and shows the body. That fetch is not the packet path.</p>
   <label for="url">URL</label>
   <input id="url" autocomplete="off" placeholder="https://">
   <p><button id="fetch" type="button">Fetch</button></p>
@@ -115,4 +123,4 @@ document.getElementById("fetch").addEventListener("click", function () {
 </script>
 </body>
 </html>
-"""
+""".replace("__PATH_SENTENCE__", sentence)
