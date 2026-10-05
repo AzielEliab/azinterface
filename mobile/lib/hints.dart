@@ -112,7 +112,8 @@ class _HintHostState extends State<HintHost> {
             title: const Text('What this control does'),
             content: Text(text),
             actions: [
-              TextButton(
+              FilledButton(
+                autofocus: true,
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text('OK'),
               ),
