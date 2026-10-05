@@ -1,4 +1,4 @@
-/// Fails closed when a sentence says a refused door is live.
+// Fails closed when a sentence says a refused door is live.
 
 class LiveTopic {
   const LiveTopic(this.name, this.topic, this.live);

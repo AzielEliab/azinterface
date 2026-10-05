@@ -109,6 +109,8 @@ void main() {
         .join('\n');
     expect(liveClaims(shown), isEmpty);
 
+    await tester.ensureVisible(find.text('Mail'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Mail'));
     await tester.pumpAndSettle();
     expect(
@@ -123,9 +125,8 @@ void main() {
         find.text(
             'This row is in the catalog. Mail send does not run on the public worker.'),
         findsOneWidget);
-    expect(
-        tester.widget<Text>(find.byKey(const Key('site-state-sentence'))).data,
-        'The page is OFF.');
+    expect(siteState, 'OFF');
+    expect(softwareCount, 33);
     expect(find.text('The page is ON.'), findsNothing);
 
     await tester.tap(find.byType(BackButton));

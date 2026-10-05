@@ -1,5 +1,5 @@
-/// Sentences a person reads. Same facts as the public worker, aziel-runtime,
-/// and AZ-OS. software_count stays 33. site_state stays OFF.
+// Sentences a person reads. Same facts as the public worker, aziel-runtime,
+// and AZ-OS. software_count stays 33. site_state stays OFF.
 
 const int softwareCount = 33;
 const String siteState = 'OFF';
