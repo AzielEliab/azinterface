@@ -12,6 +12,8 @@
  * Author: Aziel Eliab only.
  */
 
+import { notLiveSentence } from "./alt-internet-fact.js";
+
 export const AP_WP = "AP-WP-0.2";
 export const SG_WP = "SG-WP-0.1";
 export const CL_WP = "CL-WP-0.4";
@@ -125,7 +127,7 @@ export const DOMAIN_MAP = Object.freeze([
     Object.freeze({ slug: "azchat", name: "AZChat", status: "stub / not hosted yet" }),
   ]) }),
   Object.freeze({ id: "08", slug: "network", name: "Network", softwares: Object.freeze([
-    Object.freeze({ slug: "aznet", name: "AZNet", status: "This row is in the catalog. The packet path does not run. An alternative internet does not run. WARN-5 stands." }),
+    Object.freeze({ slug: "aznet", name: "AZNet", status: "computed" }),
     Object.freeze({ slug: "miragegrid", name: "MirageGrid", status: "live" }),
     Object.freeze({ slug: "azieltether", name: "AzielTether", status: "live" }),
   ]) }),
@@ -202,7 +204,10 @@ export function domainMap() {
     id: domain.id,
     slug: domain.slug,
     name: domain.name,
-    softwares: domain.softwares.map((s) => ({ ...s })),
+    softwares: domain.softwares.map((s) => ({
+      ...s,
+      status: s.slug === "aznet" ? notLiveSentence() : s.status,
+    })),
   }));
 }
 
@@ -291,6 +296,7 @@ export function pipelineStripHtml() {
 export function humanStatusPhrase(row) {
   const slug = String((row && row.slug) || "");
   const status = String((row && row.status) || "");
+  if (slug === "aznet") return notLiveSentence();
   if (slug === "aznews") return "AZNews is absent from this catalog.";
   if (status.includes("stub")) return status;
   if (status === "live") return "listed on aziel-runtime";

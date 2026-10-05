@@ -22,6 +22,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .packet_path import not_live_sentence
+
 from .meta import IDENTITY, RUNTIME
 
 AP_WP = "AP-WP-0.2"
@@ -225,7 +227,7 @@ DOMAIN_MAP: tuple[dict[str, Any], ...] = (
         "slug": "network",
         "name": "Network",
         "softwares": (
-            {"slug": "aznet", "name": "AZNet", "status": "This row is in the catalog. The packet path does not run. An alternative internet does not run. WARN-5 stands."},
+            {"slug": "aznet", "name": "AZNet", "status": "computed"},
             {"slug": "miragegrid", "name": "MirageGrid", "status": "live"},
             {"slug": "azieltether", "name": "AzielTether", "status": "live"},
         ),
@@ -333,11 +335,17 @@ def _clone_hop(hop: dict[str, Any]) -> dict[str, Any]:
 def domain_map() -> list[dict[str, Any]]:
     out = []
     for domain in DOMAIN_MAP:
+        softwares = []
+        for item in domain["softwares"]:
+            copied = dict(item)
+            if copied.get("slug") == "aznet":
+                copied["status"] = not_live_sentence()
+            softwares.append(copied)
         row = {
             "id": domain["id"],
             "slug": domain["slug"],
             "name": domain["name"],
-            "softwares": [dict(s) for s in domain["softwares"]],
+            "softwares": softwares,
         }
         out.append(row)
     return out
@@ -457,6 +465,8 @@ def human_status_phrase(row: dict[str, Any]) -> str:
     """
     slug = str(row.get("slug") or "")
     status = str(row.get("status") or "")
+    if slug == "aznet":
+        return not_live_sentence()
     if slug == "aznews":
         return "AZNews is absent from this catalog."
     if "stub" in status:

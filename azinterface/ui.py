@@ -130,13 +130,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/suite/aznet":
             if wants_json(self.headers.get("Accept")):
-                self._json({
-                    "ok": True,
-                    "packet_path": False,
-                    "alt_internet": False,
-                    "warn_5": "stands",
-                    "status": "The packet path does not run. An alternative internet does not run. WARN-5 stands. This desk can fetch one http or https URL. That fetch is not the packet path.",
-                })
+                report = SUITE.path_report()
+                report["status"] = report["status"] + " This desk can fetch one http or https URL. That fetch is not the packet path."
+                self._json(report)
                 return
             self._html(SUITE.net_html())
             return

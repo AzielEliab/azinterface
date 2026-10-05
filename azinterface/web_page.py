@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .meta import HOST, LIMITATION, SIGIL
+from .packet_path import not_live_sentence
 from .pipeline import domain_map_html, pipeline_strip_html
 
 ASSET = "azinterface-0.1.0.tar.gz"
@@ -128,7 +129,7 @@ footer a {{ color:var(--gold); }}
 {pipeline_strip_html()}
 {domain_map_html()}
 <p class="banner">{LIMITATION}</p>
-<p class="banner">This page stands on its own. Calls to aziel-runtime still use the existing FragGate door. Softwares 42 is the runtime catalog. The domain count stays 33. The packet path does not run. An alternative internet does not run. WARN-5 stands. Mail send does not run on the public worker. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. AZNews can stand alone. 4DMap can stand alone. A story is a pin only after that story is read back.</p>
+<p class="banner">This page stands on its own. Calls to aziel-runtime still use the existing FragGate door. Softwares 42 is the runtime catalog. The domain count stays 33. {not_live_sentence()} Mail send does not run on the public worker. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. AZNews can stand alone. 4DMap can stand alone. A story is a pin only after that story is read back.</p>
 <div class="nums">
   <div class="count">{v}<span>Views</span></div>
   <div class="count">{n}<span>Downloads</span></div>

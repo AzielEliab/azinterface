@@ -9,6 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.request import Request, urlopen
 
+from azinterface.packet_path import not_live_sentence
 from azinterface.suite import Suite, bundled_software
 from azinterface.suite_page import suite_html
 from azinterface.ui import SUITE as LIVE_SUITE
@@ -53,7 +54,9 @@ def test_suite_page_leads_with_start() -> None:
     assert "This desk places a card on the clock and reads that card back." in html
     assert "Mail send does not run on the public worker." in html
     assert "That fetch is not the packet path." in html
-    assert "WARN-5 stands." in html
+    assert not_live_sentence() in html
+    assert "An alternative internet is not live (alt_internet_live is false)." in html
+    assert "A packet path is not live (packet_path_live is false)." in html
     assert "AZNews can stand alone." in html
     assert "4DMap can stand alone." in html
     assert "The public worker does not run a kernel." in html

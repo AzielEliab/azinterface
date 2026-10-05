@@ -8,6 +8,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from azinterface.engine import Engine
+from azinterface.packet_path import not_live_sentence
 from azinterface.pipeline import pipeline_arch
 from azinterface.plain import human_lines
 from azinterface.receipts import Ledger
@@ -23,7 +24,6 @@ STORY = {
 HONEST = {
     "4dmap": "This row is in the catalog. 4DMap can stand alone. AZNews can stand alone. A pin counts only after the same item is read back.",
     "azmail": "This row is in the catalog. Mail send does not run on the public worker.",
-    "aznet": "This row is in the catalog. The packet path does not run. An alternative internet does not run. WARN-5 stands.",
     "azos": "This row is in the catalog. The public worker does not run a kernel. Boot does not run on the public worker.",
 }
 
@@ -48,9 +48,14 @@ def test_catalog_statuses_stay_honest_and_the_count_stays_33() -> None:
     assert len(cited) == 33
     assert pipeline_arch()["software_count"] == 33
     assert "aznews" not in cited
+    net = cited["aznet"]
+    assert net == not_live_sentence()
+    assert "alt_internet_live is false" in net
+    assert "packet_path_live is false" in net
+    assert "is true" not in net
     for slug, status in HONEST.items():
         assert cited[slug] == status
-        assert "live" not in status.lower()
+        assert "live" not in status.lower().replace("not live", "")
     cycle = Engine(Ledger()).page_cycle_status()
     assert cycle["site_state"] == "OFF"
     assert cycle["pipeline"]["software_count"] == 33
@@ -167,9 +172,10 @@ def test_http_door_keeps_sentences_json_and_an_off_site(tmp_path: Path, monkeypa
         home = urlopen(Request(base + "/", headers={"Accept": "text/html"})).read().decode()
         assert "Softwares 42 is the runtime catalog." in home
         assert "The domain count stays 33." in home
-        assert "The packet path does not run." in home
-        assert "An alternative internet does not run." in home
-        assert "WARN-5 stands." in home
+        assert not_live_sentence() in home
+        assert "An alternative internet is not live (alt_internet_live is false)." in home
+        assert "A packet path is not live (packet_path_live is false)." in home
+        assert "Still missing: a packet that leaves this machine and arrives on a different machine id." in home
         assert "Mail send does not run on the public worker." in home
         assert "The public worker does not run a kernel." in home
         assert "Boot does not run on the public worker." in home
@@ -184,7 +190,7 @@ def test_http_door_keeps_sentences_json_and_an_off_site(tmp_path: Path, monkeypa
         for page in (desk, worker):
             assert "AZNews can stand alone." in page
             assert "Mail send does not run on the public worker." in page
-            assert "WARN-5 stands." in page
+            assert not_live_sentence() in page
             assert "Softwares 42 is the runtime catalog." in page
             assert "Internet is not live." not in page
             assert "AZNews is live." not in page
