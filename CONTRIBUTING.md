@@ -18,6 +18,7 @@ node tests/test_worker_pipeline.mjs
 node tests/test_worker_ui_mesh.mjs
 node tests/test_worker_mesh_law.mjs
 node tests/test_worker_cite.mjs
+node tests/test_worker_honesty.mjs
 ```
 
 Python 3.10+. Engine is stdlib only. pytest is the dev extra.

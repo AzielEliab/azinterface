@@ -95,6 +95,9 @@ def test_mail_send_is_watched_by_an_smtp_server(tmp_path: Path) -> None:
     assert sent["ok"] is True
     assert sent["sent"] is True
     assert sent["public_worker_mail_send"] is False
+    assert "Public mail send is not live." in sent["status"]
+    assert "sent names that host only." in sent["status"]
+    assert "the public worker sent" not in sent["status"].lower()
     assert sent["accepted"] == ["desk@example.com"]
     assert box, "the SMTP server did not see a message"
     raw = box[0].decode("utf-8", "replace")
@@ -160,6 +163,8 @@ def test_overlay_kernel_boots_and_reads_a_file_back(tmp_path: Path) -> None:
     assert booted["host_kernel"] is False
     assert booted["public_worker_kernel"] is False
     assert booted["public_worker_boot"] is False
+    assert "The host operating system did not boot." in booted["status"]
+    assert "host operating system booted" not in booted["status"].lower()
     session = booted["session"]
     folder = tmp_path / "vendor" / "azos-sessions" / session
     receipt = json.loads((folder / "BOOT").read_text(encoding="utf-8"))

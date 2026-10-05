@@ -218,8 +218,18 @@ def _field_sentence(label: str, value: object, obj: dict[str, Any]) -> str:
         return f"The photon cite is {text}." if text else ""
     if label == "hold_id":
         return f"The hold cite is {text}." if text else ""
+    if label == "honesty":
+        return text
     if label == "status":
         return f"The record is {text}." if text else ""
+    if label == "booted":
+        return "A folder session is open. The host operating system did not boot." if flag is True else "No folder session is open. The host operating system did not boot."
+    if label == "sent":
+        return "The named SMTP host accepted the message. Public mail send is not live." if flag is True else "The message was not submitted. Public mail send is not live."
+    if label in {"public_worker_boot", "public_worker_kernel", "host_kernel", "host_os_booted"}:
+        return "The host operating system did not boot. The public worker did not boot."
+    if label in {"public_worker_mail_send", "mail_send", "public_smtp_send"}:
+        return "Public mail send is not live."
     if label == "join_live":
         return "A news item landed as a pin." if flag is True else "No news item has landed as a pin."
     if flag is False:

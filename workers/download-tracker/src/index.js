@@ -1,4 +1,6 @@
 import { citeDocument } from "./cite.js";
+import { corsHeaders, htmlHeaders } from "./headers.js";
+import { COUNTED_TARBALL_SHA256 } from "./honesty.js";
 import { handleRuntimeApi } from "./runtime.js";
 import { homeHtml } from "./ui.js";
 import { classifyRequest, readBotManagement } from "./classify.js";
@@ -29,14 +31,6 @@ const DEFAULT_REPO = "azinterface";
 const DEFAULT_BRANCH = "main";
 const HOST = "https://azinterface-download-tracker.vibelock.workers.dev";
 const GITHUB_REPO = "https://github.com/AzielEliab/azinterface";
-
-function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Accept, MCP-Protocol-Version, mcp-session-id, User-Agent, Authorization",
-  };
-}
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body, null, 2), {
@@ -252,7 +246,7 @@ async function collectStats(env, request) {
   };
 }
 
-function installScript() {
+export function installScript() {
   return `#!/usr/bin/env bash
 # AZInterface scripted install. Counted download via this Worker.
 # Prefer the counted tarball + local steps. Review this file before bash.
@@ -265,6 +259,19 @@ mkdir -p "\$WORKDIR"
 cd "\$WORKDIR"
 echo "Downloading counted tarball from \${HOST}/download (User-Agent Mozilla/5.0)…"
 curl -fsSL -A 'Mozilla/5.0' "\${HOST}/download?asset=\${ASSET}" -o "\${ASSET}"
+EXPECTED="${COUNTED_TARBALL_SHA256}"
+if command -v sha256sum >/dev/null 2>&1; then
+  ACTUAL="$(sha256sum "\${ASSET}" | awk '{print $1}')"
+elif command -v shasum >/dev/null 2>&1; then
+  ACTUAL="$(shasum -a 256 "\${ASSET}" | awk '{print $1}')"
+else
+  echo "Refusing to install. No sha256 tool is available to check the counted tarball."
+  exit 1
+fi
+if [ "\${ACTUAL}" != "\${EXPECTED}" ]; then
+  echo "Refusing to install. The counted tarball digest does not match."
+  exit 1
+fi
 tar -xzf "\${ASSET}"
 DIR="\$(find . -maxdepth 1 -type d -name 'azinterface-*' | head -n 1)"
 if [ -n "\${DIR}" ]; then
@@ -317,11 +324,11 @@ export default {
       await incrementViews(env, request);
       const stats = await collectStats(env, request);
       return new Response(homeHtml({ views: stats.views, downloads: stats.downloads, github: stats.github }), {
-        headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders() },
+        headers: htmlHeaders(),
       });
     }
     if (url.pathname === "/" && request.method === "HEAD") {
-      return new Response(null, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders() } });
+      return new Response(null, { status: 200, headers: htmlHeaders() });
     }
 
     if (url.pathname === "/count" && request.method === "GET") {

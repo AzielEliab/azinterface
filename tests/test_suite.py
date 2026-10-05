@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import tarfile
 import threading
@@ -225,6 +226,7 @@ httpd.serve_forever()
     try:
         opened = suite.boot("demo")
         assert opened["outcome"] == "install-then-boot", opened
+        assert "No digest was published for this loopback download." in opened["reason"]
         assert opened["mode"] == "local"
         assert opened["url"].startswith("http://127.0.0.1:")
         body = urlopen(opened["url"], timeout=3).read()
@@ -460,7 +462,7 @@ def test_coherence_tile_is_status_only(monkeypatch) -> None:
     assert "review page" in quiet["next"]
     monkeypatch.setattr(suite, "_coherence_health", lambda card: True)
 
-    def fake_boot(slug: str, allow_install: bool = True) -> dict[str, object]:
+    def fake_boot(slug: str, allow_install: bool = True, confirm: bool = False) -> dict[str, object]:
         card = suite._card(slug)
         assert card is not None
         return suite._save(
@@ -938,3 +940,203 @@ raise SystemExit(1)
     assert opened["url"] == "/suite/trajectorylock"
     assert "Could not open" not in opened["label"]
     assert "does not invent pixels" in opened["reason"]
+
+
+def _package(tmp_path: Path, bin_name: str) -> bytes:
+    script = """#!/usr/bin/env python3
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+class H(BaseHTTPRequestHandler):
+    def do_GET(self):
+        body = b"ok"
+        self.send_response(200)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    def log_message(self, fmt, *args):
+        return
+httpd = ThreadingHTTPServer(("127.0.0.1", 0), H)
+print("Open http://127.0.0.1:%s/" % httpd.server_address[1], flush=True)
+httpd.serve_forever()
+""".encode()
+    archive = tmp_path / f"{bin_name}.tar.gz"
+    with tarfile.open(archive, "w:gz") as tar:
+        info = tarfile.TarInfo(f"pkg/bin/{bin_name}")
+        info.size = len(script)
+        info.mode = 0o755
+        tar.addfile(info, __import__("io").BytesIO(script))
+    return archive.read_bytes()
+
+
+def test_https_without_a_digest_is_refused(tmp_path: Path) -> None:
+    suite = Suite(
+        refresh=False,
+        vendor=tmp_path / "vendor",
+        catalog=[
+            {
+                "name": "Hostile",
+                "slug": "hostile",
+                "ui_cmd": "hostile ui",
+                "download_url": "https://evil.example/archive.tar.gz",
+                "sha256": None,
+                "operator_confirm": True,
+                "door": "none",
+                "fraggate_status": "none",
+            }
+        ],
+    )
+    opened = suite.boot("hostile")
+    assert opened["outcome"] == "failed"
+    assert "without a known digest" in opened["reason"]
+    assert not (tmp_path / "vendor" / "hostile" / "download.bin").exists()
+
+
+def test_digest_mismatch_refuses_and_a_match_installs(tmp_path: Path) -> None:
+    blob = _package(tmp_path, "demoui")
+    digest = hashlib.sha256(blob).hexdigest()
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # noqa: N802
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(blob)))
+            self.end_headers()
+            self.wfile.write(blob)
+
+        def log_message(self, fmt: str, *args: object) -> None:
+            return
+
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    port = int(httpd.server_address[1])
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        wrong = Suite(
+            refresh=False,
+            vendor=tmp_path / "wrong",
+            catalog=[
+                {
+                    "name": "Demo",
+                    "slug": "demo",
+                    "ui_cmd": "demoui ui",
+                    "download_url": f"http://127.0.0.1:{port}/download",
+                    "sha256": "0" * 64,
+                    "door": "none",
+                    "fraggate_status": "none",
+                }
+            ],
+        )
+        refused = wrong.boot("demo")
+        assert refused["outcome"] == "failed"
+        assert "does not match the known digest" in refused["reason"]
+        assert not (tmp_path / "wrong" / "demo" / "src").exists()
+        right = Suite(
+            refresh=False,
+            vendor=tmp_path / "right",
+            catalog=[
+                {
+                    "name": "Demo",
+                    "slug": "demo",
+                    "ui_cmd": "demoui ui",
+                    "download_url": f"http://127.0.0.1:{port}/download",
+                    "sha256": digest,
+                    "door": "none",
+                    "fraggate_status": "none",
+                }
+            ],
+        )
+        opened = right.boot("demo")
+        assert opened["outcome"] == "install-then-boot", opened
+        assert "No digest was published" not in opened["reason"]
+        right.stop()
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+
+
+def test_runtime_cite_archive_needs_confirmation(tmp_path: Path) -> None:
+    cited = _package(tmp_path, "citedui")
+    demo = _package(tmp_path, "demoui")
+    digest = hashlib.sha256(cited).hexdigest()
+    seen: list[str] = []
+    files = {"/cited.tar.gz": cited, "/ok.tar.gz": demo}
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # noqa: N802
+            seen.append(self.path.split("?", 1)[0])
+            body = files.get(self.path.split("?", 1)[0], b"")
+            self.send_response(200 if body else 404)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, fmt: str, *args: object) -> None:
+            return
+
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    port = int(httpd.server_address[1])
+    url = f"http://127.0.0.1:{port}/cited.tar.gz"
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        silent = Suite(
+            refresh=False,
+            vendor=tmp_path / "silent",
+            catalog=[
+                {
+                    "name": "Cited",
+                    "slug": "cited",
+                    "ui_cmd": "citedui ui",
+                    "download_url": url,
+                    "sha256": digest,
+                    "operator_confirm": True,
+                    "runtime_cite": {"archive": url, "sha256": digest},
+                    "door": "none",
+                    "fraggate_status": "none",
+                }
+            ],
+        )
+        refused = silent.boot("cited")
+        assert refused["outcome"] == "failed"
+        assert "operator confirmation" in refused["reason"]
+        assert seen == []
+        confirmed = Suite(
+            refresh=False,
+            vendor=tmp_path / "confirmed",
+            catalog=[
+                {
+                    "name": "Cited",
+                    "slug": "cited",
+                    "ui_cmd": "citedui ui",
+                    "runtime_cite": {"download_url": url},
+                    "sha256": digest,
+                    "door": "none",
+                    "fraggate_status": "none",
+                }
+            ],
+        )
+        opened = confirmed.boot("cited", confirm=True)
+        assert opened["outcome"] == "install-then-boot", opened
+        assert seen == ["/cited.tar.gz"]
+        other = Suite(
+            refresh=False,
+            vendor=tmp_path / "other",
+            catalog=[
+                {
+                    "name": "Demo",
+                    "slug": "demo",
+                    "ui_cmd": "demoui ui",
+                    "download_url": f"http://127.0.0.1:{port}/ok.tar.gz",
+                    "runtime_cite": {"archive": "https://evil.example/hostile.tar.gz"},
+                    "door": "none",
+                    "fraggate_status": "none",
+                }
+            ],
+        )
+        kept = other.boot("demo")
+        assert kept["outcome"] == "install-then-boot", kept
+        assert "https://evil.example/hostile.tar.gz" not in "".join(seen)
+        assert "/ok.tar.gz" in seen
+        confirmed.stop()
+        other.stop()
+    finally:
+        httpd.shutdown()
+        httpd.server_close()

@@ -60,7 +60,13 @@ def submit_smtp(payload: dict[str, Any]) -> dict[str, Any]:
         "from": sender,
         "subject": subject,
         "bytes": len(raw),
-        "status": "SMTP accepted the message. Mail send does not run on the public worker.",
+        "status": (
+            "The named SMTP host accepted this message. "
+            "sent names that host only. "
+            "Public mail send is not live. "
+            "public_worker_mail_send is false. "
+            "Mail send does not run on the public worker."
+        ),
     })
 
 
@@ -92,7 +98,7 @@ button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; 
 <body>
 <main>
   <h1>AZMail</h1>
-  <p>This desk hands a message to the SMTP host named here. Mail send does not run on the public worker. The desk reports acceptance only after that host takes the recipients.</p>
+  <p>This desk hands a message to the SMTP host named here. sent names that host only. Public mail send is not live. Mail send does not run on the public worker. public_worker_mail_send stays false. The desk reports acceptance only after that host takes the recipients.</p>
   <label for="from">From</label>
   <input id="from" autocomplete="off">
   <label for="to">To</label>

@@ -6,6 +6,7 @@
  * AZHub is separate software under the one FragGate door.
  * LOCKED suite pipeline is a cite — runtime owns fabric hops. No LambGate.
  */
+import { sealStanding } from "./honesty.js";
 import { FOURDMAP_FRAME, pipelineArch } from "./pipeline.js";
 import { COLD_COPY_SURVIVAL, REHEAL, SPLIT_THE_WIRES, STW_DOC } from "./mesh.js";
 
@@ -1079,7 +1080,8 @@ export async function dispatch(op, payload, _sessionId) {
   if (name === "page_cycle_status") {
     const rec = await appendReceipt(s, "page_cycle_status", { cycle: cyclePosture(s) });
     const cycle = pageCycleSnapshot(s);
-    return base({
+    const facts = sealStanding({}, payload);
+    return sealStanding(base({
       ok: true,
       ...cycle,
       receipt: rec,
@@ -1090,8 +1092,9 @@ export async function dispatch(op, payload, _sessionId) {
         ["cloud_asleep", false],
         ["pipeline", cycle.pipeline_path || ""],
         ["4dmap", FOURDMAP_FRAME],
+        ["honesty", facts.honesty.text],
       ]),
-    });
+    }), payload);
   }
 
   if (name === "pipeline_arch") {

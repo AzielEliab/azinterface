@@ -13,6 +13,7 @@
  */
 
 import { notLiveSentence } from "./alt-internet-fact.js";
+import { VEILLOCK_STATUS } from "./honesty.js";
 
 export const AP_WP = "AP-WP-0.2";
 export const SG_WP = "SG-WP-0.1";
@@ -92,7 +93,7 @@ export const DOMAIN_MAP = Object.freeze([
   ]) }),
   Object.freeze({ id: "02", slug: "media", name: "Media", softwares: Object.freeze([
     Object.freeze({ slug: "vibelock", name: "VibeLock", status: "live" }),
-    Object.freeze({ slug: "veillock", name: "VeilLock", status: "live" }),
+    Object.freeze({ slug: "veillock", name: "VeilLock", status: "local_only" }),
     Object.freeze({ slug: "spectrallock", name: "SpectralLock", status: "live" }),
     Object.freeze({ slug: "trajectorylock", name: "TrajectoryLock", status: "live" }),
   ]) }),
@@ -206,7 +207,7 @@ export function domainMap() {
     name: domain.name,
     softwares: domain.softwares.map((s) => ({
       ...s,
-      status: s.slug === "aznet" ? notLiveSentence() : s.status,
+      status: s.slug === "aznet" ? notLiveSentence() : s.slug === "veillock" ? VEILLOCK_STATUS : s.status,
     })),
   }));
 }
@@ -297,6 +298,7 @@ export function humanStatusPhrase(row) {
   const slug = String((row && row.slug) || "");
   const status = String((row && row.status) || "");
   if (slug === "aznet") return notLiveSentence();
+  if (slug === "veillock") return VEILLOCK_STATUS;
   if (slug === "aznews") return "AZNews is absent from this catalog.";
   if (status.includes("stub")) return status;
   if (status === "live") return "listed on aziel-runtime";
