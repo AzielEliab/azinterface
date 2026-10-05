@@ -3,3 +3,5 @@
 .flutter-plugins-dependencies
 .packages
 build/
+.idea/
+*.iml
