@@ -1,10 +1,9 @@
 """Device-to-device packet path on the existing AZNet door.
 
-Carrier order is LAN, then Wi-Fi, then Bluetooth, then RF, then photon.
-Absent hardware refuses. A frame that stays on this machine is not a live
-public path. Cap-7 and .aziel stay names only. The live flags stay false
-unless a packet leaves this machine and the reply arrives from a different
-machine id.
+The human sentence is the one aziel-runtime computes. Carrier order is LAN,
+then Wi-Fi, then Bluetooth, then RF, then photon. alt_internet_live and
+packet_path_live stay false. A same-machine frame is not a second device.
+Cap-7 and .aziel stay names.
 """
 
 from __future__ import annotations
@@ -21,23 +20,22 @@ NAMES = {"lan": "LAN", "wifi": "Wi-Fi", "bluetooth": "Bluetooth", "rf": "RF", "p
 RADIO_ABSENT = "QNM-RADIO-ABSENT"
 NAME_ONLY = "MG-NO-IP-EXIT"
 
-PACKET_LINE = "The packet path is not live."
-ALT_LINE = "The alternative internet is not live."
-D2D_LINE = "Device-to-device packet carriers stay NOT-READY."
-WARN5_LINE = "WARN-5 stands."
-INTERNET_LINE = "Internet base is present. Not live."
 WARN5 = "STANDS-until-demonstrated"
-CATALOG_STATUS = (
-    "This row is in the catalog. "
-    f"{PACKET_LINE} {ALT_LINE} {D2D_LINE} {WARN5_LINE}"
+HEAD = (
+    "An alternative internet is not live (alt_internet_live is false). "
+    "A packet path is not live (packet_path_live is false)."
 )
-PUBLIC_SENTENCE = (
-    f"{INTERNET_LINE} {PACKET_LINE} {ALT_LINE} {D2D_LINE} {WARN5_LINE} "
-    "Still missing: a packet that leaves this machine and arrives on a different machine id. "
-    "LAN hardware is absent. Wi-Fi hardware is absent. Bluetooth hardware is absent. "
-    "RF hardware is absent. Photon hardware is absent. "
-    "Cap-7 and .aziel stay names only."
-)
+TAIL = " ".join((
+    "Still missing: a packet that leaves this machine and arrives on a different machine id.",
+    "A same-machine mesh frame does not count.",
+    "Cap-7 and .aziel stay names, not a public registrar and not ICANN or BGP.",
+    "WireGuard, OpenVPN, an L3 exit pool, kernel UDP, and TUN/TAP stay SLOT.",
+    "Public mail send, the kernel, and boot stay not live.",
+    "The public door stays FG-STUB.",
+    "Isolation is single-node security-awareness.",
+    "Phoenix is a local wait and re-seal.",
+    "That is not a loopback fence.",
+))
 
 _NET = Path("/sys/class/net")
 _LOCK = threading.Lock()
@@ -54,8 +52,22 @@ def second_device(local_host: object, remote_host: object) -> bool:
     )
 
 
+def host_hardware_visible() -> bool:
+    return _NET.is_dir()
+
+
+def not_live_sentence() -> str:
+    """The sentence aziel-runtime currentAltInternetFact computes. No caller watch."""
+    if not host_hardware_visible():
+        return f"{HEAD} This isolate cannot see host hardware (worker_hardware is false). {TAIL}"
+    carriers = {row["id"]: row for row in _probe_carriers()}
+    clauses = [_carrier_clause(ident, carriers.get(ident)) for ident in ORDER]
+    return f"{HEAD} {' '.join(clauses)} {_machine_clause(_host_id())} {TAIL}"
+
+
 def path_sentence(refresh: bool = False) -> str:
-    return str(path_report(refresh=refresh)["status"])
+    del refresh
+    return not_live_sentence()
 
 
 def path_report(payload: dict[str, Any] | None = None, *, refresh: bool = False) -> dict[str, Any]:
@@ -102,28 +114,25 @@ def _explicit_carrier(payload: dict[str, Any] | None) -> str | None:
 
 def _assemble(carriers: list[dict[str, Any]], carry: dict[str, Any] | None, *, name_only_refuse: str | None) -> dict[str, Any]:
     witnessed = _off_machine(carry)
-    live = witnessed and name_only_refuse is None
-    device = bool(live and carry and carry.get("second_device") is True)
     shown = []
     for row in carriers:
-        carried = bool(live and row["id"] == (carry or {}).get("carrier"))
         shown.append({
             **row,
-            "packet_live": carried,
-            "packet_counted": carried,
-            "peer_exchange_demonstrated": carried,
-            "alt_internet_live": carried,
+            "packet_live": False,
+            "packet_counted": False,
+            "peer_exchange_demonstrated": False,
+            "alt_internet_live": False,
             "mock": False,
             "public_door": "FG-STUB",
         })
     quiet = None if carry is None else {
         **carry,
-        "packet_live": live,
-        "alt_internet_live": live,
-        "peer_exchange_demonstrated": live,
+        "packet_live": False,
+        "alt_internet_live": False,
+        "peer_exchange_demonstrated": False,
         "mock": False,
         "public_door": "FG-STUB",
-        "second_device": device,
+        "second_device": False,
         "cap7_name_only": True,
     }
     same_machine = bool(
@@ -133,16 +142,16 @@ def _assemble(carriers: list[dict[str, Any]], carry: dict[str, Any] | None, *, n
         and quiet.get("remote_host")
         and not second_device(quiet.get("local_host"), quiet.get("remote_host"))
     )
-    status = _sentence(shown, quiet, live=live, same_machine=same_machine, name_only_refuse=name_only_refuse)
+    status = not_live_sentence()
     return {
         "ok": name_only_refuse is None,
-        "packet_path": live,
-        "alt_internet": live,
-        "packet_path_live": live,
-        "alt_internet_live": live,
+        "packet_path": False,
+        "alt_internet": False,
+        "packet_path_live": False,
+        "alt_internet_live": False,
         "alt_internet_earned": False,
         "packet_path_earned": False,
-        "second_device": device,
+        "second_device": False,
         "public_icann": False,
         "bgp": False,
         "cap7_name_only": True,
@@ -158,60 +167,45 @@ def _assemble(carriers: list[dict[str, Any]], carry: dict[str, Any] | None, *, n
         "off_machine": witnessed,
         "code": NAME_ONLY if name_only_refuse else (quiet or {}).get("code"),
         "field_1_0": False,
-        "line": INTERNET_LINE if not live else "Internet base is present.",
-        "packet_line": PACKET_LINE if not live else "The packet path is live.",
-        "alt_line": ALT_LINE if not live else "The alternative internet is live.",
-        "d2d_line": D2D_LINE,
-        "warn5_line": WARN5_LINE,
+        "line": status,
+        "packet_line": "A packet path is not live (packet_path_live is false).",
+        "alt_line": "An alternative internet is not live (alt_internet_live is false).",
         "status": status,
     }
 
 
-def _sentence(
-    carriers: list[dict[str, Any]],
-    carry: dict[str, Any] | None,
-    *,
-    live: bool,
-    same_machine: bool,
-    name_only_refuse: str | None,
-) -> str:
-    if live:
-        return (
-            "The packet path is live. The alternative internet is live. "
-            "A packet left this machine and arrived on a different machine id."
-        )
-    parts = [
-        INTERNET_LINE,
-        PACKET_LINE,
-        ALT_LINE,
-        D2D_LINE,
-        WARN5_LINE,
-        "Still missing: a packet that leaves this machine and arrives on a different machine id.",
-    ]
-    for row in carriers:
-        name = str(row["name"])
-        if row.get("state") != "HW-PRESENT":
-            parts.append(f"{name} hardware is absent.")
-            continue
-        if row["id"] != "lan":
-            parts.append(f"{name} hardware is present. No round trip left this machine on that hardware.")
-            continue
-        hardware = row.get("hardware") or "this machine"
-        if same_machine:
-            parts.append(f"LAN is present on {hardware}.")
-            parts.append("The frame stayed on this machine.")
-            parts.append("A frame that stays on this machine is not a live public path.")
-            parts.append("A second device stays false while both ends share one machine id.")
-        elif carry and (carry.get("watched") is not None or carry.get("address") or carry.get("error")):
-            parts.append(f"LAN is present on {hardware}. The round trip did not leave this machine.")
-        else:
-            parts.append(f"LAN is present on {hardware}.")
-    if carry and carry.get("code") == "MESH-HOST-ABSENT":
-        parts.append("Still missing: a machine id on this computer.")
-    parts.append("Cap-7 and .aziel stay names only.")
-    if name_only_refuse:
-        parts.append(f"{name_only_refuse} is a name only. It is not a packet path.")
-    return " ".join(parts)
+def _carrier_clause(ident: str, row: dict[str, Any] | None) -> str:
+    code = (row or {}).get("code") or RADIO_ABSENT
+    if not row or row.get("state") == "REFUSE":
+        if ident == "lan" and row and row.get("up") is False and row.get("hardware"):
+            return f"LAN interface {row['hardware']} is down ({code})."
+        if ident == "lan":
+            return f"LAN hardware is absent ({code})."
+        if ident == "wifi":
+            return f"Wi-Fi hardware is absent ({code})."
+        if ident == "bluetooth":
+            return f"Bluetooth hardware is absent ({code})."
+        if ident == "rf":
+            return f"RF hardware is absent ({code})."
+        return f"Photon camera or flash is absent ({code})."
+    if ident == "lan":
+        where = f" at {row['address']}" if row.get("address") else ""
+        name = row.get("hardware") or "unnamed"
+        return f"LAN interface {name}{where} is present on this machine and is not a second device."
+    hardware = f" {row['hardware']}" if row.get("hardware") else ""
+    if ident == "wifi":
+        return f"Wi-Fi hardware{hardware} is present on this machine and is not a second device."
+    if ident == "bluetooth":
+        return f"Bluetooth hardware{hardware} is present on this machine and is not a second device."
+    if ident == "rf":
+        return f"RF hardware{hardware} is present on this machine and is not a second device."
+    return f"Photon camera or flash hardware{hardware} is present on this machine and is not a second device."
+
+
+def _machine_clause(machine_id: str | None) -> str:
+    if machine_id:
+        return f"This machine id is {machine_id}. A second device stays false while both ends share that id."
+    return "This machine id is absent (MESH-HOST-ABSENT). A second device stays false without two different ids."
 
 
 def _off_machine(carry: dict[str, Any] | None) -> bool:
@@ -230,53 +224,65 @@ def _off_machine(carry: dict[str, Any] | None) -> bool:
 
 
 def _probe_carriers() -> list[dict[str, Any]]:
-    lan = _probe_lan()
+    wifi = "ieee80211" if _dir_has("/sys/class/ieee80211") or _wireless_nic() else None
+    bluetooth = "bluetooth" if _dir_has("/sys/class/bluetooth") else None
     found = {
-        "lan": lan,
-        "wifi": _dir_has("/sys/class/ieee80211") or _wireless_nic(),
-        "bluetooth": _dir_has("/sys/class/bluetooth"),
-        "rf": _probe_rf(),
-        "photon": _probe_photon(),
+        "lan": _probe_lan(),
+        "wifi": _kind_probe(wifi),
+        "bluetooth": _kind_probe(bluetooth),
+        "rf": _kind_probe(_probe_rf()),
+        "photon": _kind_probe(_probe_photon()),
     }
     rows = []
     for index, ident in enumerate(ORDER, start=1):
-        hit = found[ident]
-        present = bool(hit)
+        probe = found[ident]
+        down = probe["present"] is True and probe["up"] is False
+        if probe["present"] and not down:
+            state, hardware, up, code = "HW-PRESENT", probe["kind"], True, None
+        elif down:
+            state, hardware, up, code = "REFUSE", probe["kind"], False, RADIO_ABSENT
+        else:
+            state, hardware, up, code = "REFUSE", False, False, RADIO_ABSENT
         rows.append({
             "order": index,
             "id": ident,
             "name": NAMES[ident],
-            "state": "HW-PRESENT" if present else "REFUSE",
-            "hardware": hit if present else False,
-            "code": None if present else RADIO_ABSENT,
+            "state": state,
+            "hardware": hardware,
+            "address": probe["address"] if probe["present"] else None,
+            "up": up,
+            "code": code,
             "mock": False,
         })
     return rows
 
 
-def _probe_lan() -> str | None:
-    up = []
-    other = []
+def _kind_probe(kind: str | None) -> dict[str, Any]:
+    if kind:
+        return {"present": True, "kind": kind, "address": None, "up": True}
+    return {"present": False, "kind": None, "address": None, "up": False}
+
+
+def _probe_lan() -> dict[str, Any]:
+    empty = {"present": False, "kind": None, "address": None, "up": False}
+    if not _NET.is_dir():
+        return empty
+    names = _nic_names()
     preferred = _default_iface()
-    for name in _nic_names():
-        address = _ipv4(name)
-        if not address:
+    if preferred and preferred in names and _iface_up(preferred):
+        address = _ipv4(preferred)
+        if address:
+            return {"present": True, "kind": preferred, "address": address, "up": True}
+    for name in names:
+        if not _iface_up(name):
             continue
-        if _oper_up(name):
-            up.append(name)
-        else:
-            other.append(name)
-    if preferred in up:
-        return preferred
-    if up:
-        return up[0]
-    if preferred in other:
-        return preferred
-    if other:
-        return other[0]
-    if _nic_names():
-        return _nic_names()[0]
-    return None
+        address = _ipv4(name)
+        if address:
+            return {"present": True, "kind": name, "address": address, "up": True}
+    if names:
+        name = names[0]
+        return {"present": True, "kind": name, "address": _ipv4(name), "up": False}
+    return empty
 
 
 def _probe_rf() -> str | None:
@@ -531,7 +537,7 @@ def _nic_names() -> list[str]:
         return []
     names = []
     try:
-        for entry in sorted(_NET.iterdir()):
+        for entry in _NET.iterdir():
             if entry.name and entry.name != "lo":
                 names.append(entry.name)
     except OSError:
@@ -546,16 +552,40 @@ def _oper_up(name: str) -> bool:
         return False
 
 
+def _iface_up(name: str) -> bool:
+    if not _oper_up(name):
+        return False
+    carrier = _NET / name / "carrier"
+    if not carrier.exists():
+        return True
+    try:
+        text = carrier.read_text(encoding="utf-8").strip()
+    except OSError:
+        return True
+    return text in {"1", ""}
+
+
 def _default_iface() -> str | None:
     try:
         lines = Path("/proc/net/route").read_text(encoding="utf-8").splitlines()[1:]
     except OSError:
         return None
+    fallback = None
     for line in lines:
-        parts = line.split()
-        if len(parts) >= 2 and parts[1] == "00000000":
-            return parts[0]
-    return None
+        cols = line.split()
+        if len(cols) < 4 or cols[1] != "00000000" or not cols[0] or cols[0] == "lo":
+            continue
+        try:
+            flags = int(cols[3], 16)
+        except ValueError:
+            continue
+        if flags & 1 == 0:
+            continue
+        if cols[2] not in {"", "00000000"}:
+            return cols[0]
+        if fallback is None:
+            fallback = cols[0]
+    return fallback
 
 
 def _ipv4(name: str) -> str | None:

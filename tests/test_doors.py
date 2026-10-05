@@ -11,6 +11,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from azinterface.engine import Engine
+from azinterface.packet_path import not_live_sentence
 from azinterface.pipeline import pipeline_arch
 from azinterface.receipts import Ledger
 from azinterface.suite import Suite
@@ -32,9 +33,13 @@ def test_catalog_sentences_match_the_doors_and_omit_the_live_label() -> None:
     expected = {
         "4dmap": "This row is in the catalog. 4DMap can stand alone. AZNews can stand alone. A pin counts only after the same item is read back.",
         "azmail": "This row is in the catalog. Mail send does not run on the public worker.",
-        "aznet": "This row is in the catalog. The packet path is not live. The alternative internet is not live. Device-to-device packet carriers stay NOT-READY. WARN-5 stands.",
         "azos": "This row is in the catalog. The public worker does not run a kernel. Boot does not run on the public worker.",
     }
+    net = cited["aznet"]
+    assert net == not_live_sentence()
+    assert "alt_internet_live is false" in net
+    assert "packet_path_live is false" in net
+    assert "is true" not in net
     for slug, status in expected.items():
         assert cited[slug] == status
         assert "live" not in status.lower().replace("not live", "")
@@ -214,10 +219,10 @@ def test_http_doors_stay_json_and_leave_the_site_off(tmp_path: Path, monkeypatch
         assert net_json["packet_path_live"] is False
         assert net_json["alt_internet_live"] is False
         assert net_json["second_device"] is False
-        assert "The packet path is not live." in net_json["status"]
-        assert "The alternative internet is not live." in net_json["status"]
-        assert "WARN-5 stands." in net_json["status"]
-        assert "Still missing:" in net_json["status"]
+        assert not_live_sentence() in net_json["status"]
+        assert "An alternative internet is not live (alt_internet_live is false)." in net_json["status"]
+        assert "A packet path is not live (packet_path_live is false)." in net_json["status"]
+        assert "Still missing: a packet that leaves this machine and arrives on a different machine id." in net_json["status"]
         booted = _post(base + "/suite/azos/boot", {})
         assert booted["booted"] is True
         assert booted["host_kernel"] is False

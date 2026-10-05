@@ -1,6 +1,7 @@
 """MASTER-ARCHITECTURE-2.0 pipeline cite — 33/11, FragGate single door."""
 
 from azinterface.engine import Engine, LIVE_OPS
+from azinterface.packet_path import not_live_sentence
 from azinterface.pipeline import (
     DOMAIN_MAP,
     FOURDMAP_FRAME,
@@ -136,7 +137,6 @@ def test_strip_and_domain_map_html() -> None:
     catalog = {
         "4dmap": "This row is in the catalog. 4DMap can stand alone. AZNews can stand alone. A pin counts only after the same item is read back.",
         "azmail": "This row is in the catalog. Mail send does not run on the public worker.",
-        "aznet": "This row is in the catalog. The packet path is not live. The alternative internet is not live. Device-to-device packet carriers stay NOT-READY. WARN-5 stands.",
         "azos": "This row is in the catalog. The public worker does not run a kernel. Boot does not run on the public worker.",
     }
     cited = {
@@ -145,6 +145,12 @@ def test_strip_and_domain_map_html() -> None:
         for row in domain["softwares"]
     }
     assert len(cited) == 33
+    net = cited["aznet"]["status"]
+    assert net == not_live_sentence()
+    assert "alt_internet_live is false" in net
+    assert "packet_path_live is false" in net
+    assert "is true" not in net
+    assert net in html
     for slug, status in catalog.items():
         assert cited[slug]["status"] == status
         lowered = status.lower().replace("not live", "")

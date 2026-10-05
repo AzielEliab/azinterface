@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { dispatch, LIVE_OPS, resetEngine, SKILL_MD } from "../workers/download-tracker/src/engine.js";
 import { DOMAIN_MAP, FOURDMAP_FRAME, PIPELINE_PATH, domainSlugs, pipelineArch, pipelineStripHtml, domainMapHtml } from "../workers/download-tracker/src/pipeline.js";
+import { notLiveSentence } from "../workers/download-tracker/src/alt-internet-fact.js";
 import { homeHtml } from "../workers/download-tracker/src/ui.js";
 import { handleRuntimeApi } from "../workers/download-tracker/src/runtime.js";
 import { classifyV1Path, DEFAULT_RUNTIME_ORIGIN, RUNTIME_ARCH_PATH } from "../workers/download-tracker/src/door.js";
@@ -80,12 +81,17 @@ assert.match(html, /plain A–Z/);
 const catalogStatus = {
   "4dmap": "This row is in the catalog. 4DMap can stand alone. AZNews can stand alone. A pin counts only after the same item is read back.",
   azmail: "This row is in the catalog. Mail send does not run on the public worker.",
-  aznet: "This row is in the catalog. The packet path is not live. The alternative internet is not live. Device-to-device packet carriers stay NOT-READY. WARN-5 stands.",
   azos: "This row is in the catalog. The public worker does not run a kernel. Boot does not run on the public worker.",
 };
 const citedRows = Object.fromEntries(pipe.domain_map.flatMap((domain) => domain.softwares.map((row) => [row.slug, row])));
 assert.equal(Object.keys(citedRows).length, 33);
 assert.equal(pipe.software_count, 33);
+const net = citedRows.aznet.status;
+assert.equal(net, notLiveSentence());
+assert.equal(net.includes("alt_internet_live is false"), true);
+assert.equal(net.includes("packet_path_live is false"), true);
+assert.equal(net.includes("is true"), false);
+assert.equal(html.includes(net), true);
 for (const [slug, status] of Object.entries(catalogStatus)) {
   assert.equal(citedRows[slug].status, status);
   const lowered = status.toLowerCase().replace(/not live/g, "");

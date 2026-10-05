@@ -2,6 +2,7 @@
  * Worker homepage keeps custody chrome and adds the suite Live Nodes strip.
  */
 import assert from "node:assert/strict";
+import { notLiveSentence, notLiveSentenceFromProbe } from "../workers/download-tracker/src/alt-internet-fact.js";
 import { homeHtml } from "../workers/download-tracker/src/ui.js";
 import { LIVE_NODES_COPY, QNS_CD, QNM_BUILD } from "../workers/download-tracker/src/mesh.js";
 
@@ -74,12 +75,16 @@ assert.match(html, /Copy install steps/);
 assert.equal(html.includes("One-click install"), false);
 assert.match(html, /Softwares 42 is the runtime catalog/);
 assert.match(html, /The domain count stays 33/);
-assert.match(html, /The packet path is not live/);
-assert.match(html, /The alternative internet is not live/);
+assert.equal(html.includes(notLiveSentence()), true);
+assert.match(html, /An alternative internet is not live \(alt_internet_live is false\)/);
+assert.match(html, /A packet path is not live \(packet_path_live is false\)/);
 assert.match(html, /Still missing: a packet that leaves this machine and arrives on a different machine id/);
-assert.match(html, /LAN hardware is absent/);
-assert.match(html, /Cap-7 and \.aziel stay names only/);
-assert.match(html, /WARN-5 stands/);
+assert.match(html, /A same-machine mesh frame does not count/);
+assert.match(html, /Cap-7 and \.aziel stay names, not a public registrar and not ICANN or BGP/);
+const unseen = notLiveSentenceFromProbe({ visible: false });
+assert.match(unseen, /worker_hardware is false/);
+assert.equal(unseen.includes("LAN hardware is absent"), false);
+assert.equal(unseen.includes("Wi-Fi hardware is absent"), false);
 assert.match(html, /Mail send does not run on the public worker/);
 assert.match(html, /The public worker does not run a kernel/);
 assert.match(html, /Boot does not run on the public worker/);
