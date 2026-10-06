@@ -107,6 +107,10 @@ function openapiSpec(origin) {
       get: { operationId: "azinterface_mcp_docs", summary: "Pointer only. Agents use aziel-runtime FragGate/MCP; this host is custody UI only. Not a product MCP.", responses: { "200": { description: "docs" } } },
       post: { operationId: "azinterface_mcp", summary: "Pointer only. Agents use aziel-runtime FragGate/MCP; this host is custody UI only. Not a product MCP.", responses: { "200": { description: "rpc" } } },
     },
+    "/v1/newsmap": { get: { operationId: "azinterface_newsmap", summary: "Joined AZNews and 4DMap status from the runtime 4DMap engine through FragGate (news_status). No second map here. Flags pass through.", responses: { "200": { description: "runtime answer" } } } },
+    "/v1/aznews": { get: { operationId: "azinterface_aznews", summary: "Standalone AZNews from the runtime (news_sources). No news store here.", responses: { "200": { description: "runtime answer" } } } },
+    "/v1/map": { get: { operationId: "azinterface_map", summary: "Standalone 4DMap from the runtime (plot). Not installed here.", responses: { "200": { description: "runtime answer" } } } },
+    "/v1/newsmap/{op}": { post: { operationId: "azinterface_newsmap_op", summary: "One AZNews or 4DMap op through FragGate. op: status, pin, open (joined); sources, ingest, weather (AZNews standalone); plot, library_pin, lattice_tip (4DMap standalone).", parameters: [{ name: "op", in: "path", required: true, schema: { type: "string", enum: ["status", "pin", "open", "sources", "ingest", "weather", "plot", "library_pin", "lattice_tip"] } }], responses: { "200": { description: "runtime answer" }, "404": { description: "unknown op" } } } },
   };
   for (const op of OPS) {
     if (op === "health" || op === "skill") continue;
