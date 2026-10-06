@@ -1,37 +1,36 @@
-# AZInterface — iPhone & Android
+# AZInterface
 
-On-device custodial cycle: site state, genesis hash, integrity, witness.
-Not AZHub. Offline. No analytics. Dark matte / gold.
+A person can open this app on Android, iPhone, and desktop. It shows the same sentences as the public worker:
 
-Application id: `com.azieeliab.azinterface`
+https://azinterface-download-tracker.vibelock.workers.dev/
 
-## Open in Android Studio / Xcode
+Those sentences keep the same facts as aziel-runtime and AZ-OS.
 
-The `android/` and `ios/` folders here are skeleton READMEs because
-this tree was written without the Flutter SDK on PATH.
+Author: Aziel Eliab. Application id: `com.azieeliab.azinterface`.
+
+The page stays OFF. software_count stays 33.
+
+An alternative internet is not live (alt_internet_live is false). A packet path is not live (packet_path_live is false). A second device stays false while both ends share that id. Public mail send, the kernel, and boot stay not live. The public door stays FG-STUB. Isolation is single-node security-awareness. Phoenix is a local wait and re-seal. That is not a loopback fence.
+
+Mail send does not run on the public worker. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. Scorched Earth does not wipe a second device.
+
+The first time a new user meets a control, a short popup says what that control does.
+
+## Projects
+
+- `android/` — Android
+- `ios/` — iPhone project for Xcode. This tree was prepared on Linux, so that project is not built here.
+- `linux/`, `macos/`, `windows/` — desktop
+
+There is no store listing and no one-click installer.
 
 ```bash
 cd mobile
-flutter create --org com.azieeliab --project-name azinterface .
 flutter pub get
-flutter run
+flutter test
+flutter run -d linux
 ```
 
-Then open `android/` in Android Studio, or `ios/Runner.xcworkspace` in
-Xcode.
+Open `android/` in Android Studio. On a Mac, open `ios/Runner.xcworkspace` in Xcode.
 
-## Honest scope
-
-Five pre-locked page cycles: OFF → integrity → ON → FULL SHUTDOWN →
-MEMORIAL. One step only. Living presence only at ON after integrity.
-Scorched Earth is not a remote wipe. AZHub is separate software.
-
-## Desktop package (counted download)
-
-This phone app does not replace the desktop package.
-
-# → https://azinterface-download-tracker.vibelock.workers.dev/ ←
-
-GitHub: https://github.com/AzielEliab/azinterface
-
-**Forks are welcome and always allowed.**
+Forks are welcome and always allowed.
