@@ -13,7 +13,7 @@ for (const p of ["/aznews", "/newsmap", "/aznews/"]) {
   assert.equal(res.status, 200, p);
   assert.match(res.headers.get("content-type"), /text\/html/);
   const html = await res.text();
-  for (const needle of ['id="map"', 'class="land"', 'id="key"', 'id="last"', 'id="news"', 'id="sky"', 'id="weather"', "?pin=", "/v1/newsmap/globe?view=1", '"/v1/newsmap"', "Natural Earth"]) {
+  for (const needle of ['id="map"', 'class="land"', 'id="key"', 'id="last"', 'id="news"', 'id="sky"', 'id="weather"', "?pin=", "/v1/newsmap/globe?view=1", '"/v1/newsmap"', "Natural Earth", "anchor_name"]) {
     assert.ok(html.includes(needle), p + " has " + needle);
   }
   assert.ok(!html.includes("__LAND__") && !html.includes("__RTORIGIN__") && !html.includes("__GLOBE__"));
