@@ -44,13 +44,13 @@ table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #30363d;
     </svg>
     <p class="muted" style="font-size:12px">Map: equirectangular. Land: __LANDSRC__. Pins with no resolved place are listed but not drawn. <label id="reflabel"><input type="checkbox" id="showref" checked> reference places (GeoNames)</label></p>
     <div class="panel" id="detail"><span class="muted">Select a pin to see it here. Each pin has a permalink.</span></div>
-    <div data-news><h2>Headlines</h2><div id="news" class="panel muted">Loading…</div></div>
+    <div data-news><h2>Headlines</h2><div id="news" class="panel muted">__NEWS_INIT__</div></div>
   </div>
   <div>
     <h2>Color key</h2><div id="key" class="panel"></div>
     <h2>Last 10 pins</h2><div id="last" class="panel muted">Loading…</div>
-    <div data-news><h2>Sky</h2><div id="sky" class="panel muted">Loading…</div>
-    <h2>Weather</h2><div id="weather" class="panel muted">Loading…</div></div>
+    <div data-news><h2>Sky</h2><div id="sky" class="panel muted">__SKY_INIT__</div>
+    <h2>Weather</h2><div id="weather" class="panel muted">__WEATHER_INIT__</div></div>
   </div>
 </div>
 <h2>How this page reads</h2>
@@ -69,7 +69,8 @@ table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #30363d;
   function link(pid){ return "?mode=" + MODE + "&pin=" + encodeURIComponent(pid); }
   document.querySelectorAll("#tabs a").forEach(function(a){ if (a.getAttribute("data-mode")===MODE){ a.style.fontWeight="bold"; a.style.textDecoration="none"; a.style.color="#e6edf3"; } });
   document.getElementById("title").textContent = MODE==="news" ? "AZNews" : MODE==="map" ? "4DMap" : "AZNews + 4DMap";
-  if (!WANT_NEWS) document.querySelectorAll("[data-news]").forEach(function(n){ n.style.display="none"; });
+  // Map-only view: the AZNews panels say so (also in the served HTML, without JS); nothing is loading.
+  if (!WANT_NEWS) { document.getElementById("news").textContent="Headlines hidden in map-only view."; document.getElementById("sky").textContent="Sky hidden in map-only view."; document.getElementById("weather").textContent="Weather hidden in map-only view."; }
   if (!WANT_MAP) document.getElementById("reflabel").style.display="none";
   var grat=document.getElementById("grat"), ns="http://www.w3.org/2000/svg";
   for (var x=0;x<=360;x+=30){ var l=document.createElementNS(ns,"line"); l.setAttribute("x1",x);l.setAttribute("x2",x);l.setAttribute("y1",0);l.setAttribute("y2",180); grat.appendChild(l); }
@@ -128,6 +129,7 @@ table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #30363d;
   if (WANT_NEWS) getJson("/v1/newsmap").then(flags).catch(function(){ document.getElementById("plain").textContent="The newsmap door gave no JSON. Nothing here reads live."; });
   else document.getElementById("plain").textContent="4DMap on its own: no AZNews is read on this view.";
   if (WANT_MAP) getJson("/v1/map?layers=corpus,reference").then(function(m){
+    if (m.retracted && m.retracted.count) document.getElementById("how").appendChild(el("span", " " + m.retracted.count + " retracted corpus pin(s) (GEO-PIN-QUALITY-1.0, e.g. geoparser_junk) stay on the lattice but are hidden: /v1/map?include_retracted=1."));
     var f=clear("mapflags"); f.appendChild(el("span","4DMap")); chip(f,"standalone",m.standalone); chip(f,"live",m.live);
     var mc=(m.map_copy&&m.map_copy.copy)||{};
     f.appendChild(el("span", m.ok===false ? "4DMap: " + (m.code||"no answer") : "source: " + (m.source||"") + (mc.tip_seq ? " · copy tip " + mc.tip_seq : "") + " · " + ((m.pins||[]).length) + " pins"));
@@ -157,6 +159,8 @@ table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #30363d;
 })();
 </script></body></html>`;
 
-export function newsmapPageHtml(runtimeOrigin = "https://aziel-runtime.vibelock.workers.dev") {
-  return PAGE.replace("__LAND__", LAND_PATH).replace("__LANDSRC__", LAND_SOURCE).replace(/__GLOBE__/g, runtimeOrigin + "/aznews").replace("__RTORIGIN__", runtimeOrigin);
+export const PAGE_MODES = Object.freeze(["combined", "news", "map"]);
+export function newsmapPageHtml(runtimeOrigin = "https://aziel-runtime.vibelock.workers.dev", mode = "combined") {
+  const mapOnly = mode === "map";
+  return PAGE.replace("__NEWS_INIT__", mapOnly ? "Headlines hidden in map-only view." : "Loading…").replace("__SKY_INIT__", mapOnly ? "Sky hidden in map-only view." : "Loading…").replace("__WEATHER_INIT__", mapOnly ? "Weather hidden in map-only view." : "Loading…").replace("__LAND__", LAND_PATH).replace("__LANDSRC__", LAND_SOURCE).replace(/__GLOBE__/g, runtimeOrigin + "/aznews").replace("__RTORIGIN__", runtimeOrigin);
 }
