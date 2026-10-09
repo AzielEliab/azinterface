@@ -24,10 +24,24 @@ run_worker_first = ["/aznews", "/aznews/", "/newsmap", "/newsmap/", "/", "/downl
 
 [vars]
 AZIEL_RUNTIME_ORIGIN = "https://aziel-runtime.vibelock.workers.dev"
+# Local verified copies (src/news-copy.js): host label and the pinned runtime tether key
+# (public key only; the same key AZ-OS pins). Packets signed by any other key are refused.
+COPY_HOST = "azinterface"
+RUNTIME_TETHER_PUBKEY = "C9Psex_Bf8uG_nCwIeiskejJaBYUSYn7lHkPm4qV6Ik"
 
 [[services]]
 binding = "AZIEL_RUNTIME"
 service = "aziel-runtime"
+
+# AZInterface's own verified copies of the runtime AZNews store and 4DMap store
+# (signed tether AZRT-AZOS-NEWS-1.0 / AZRT-MAP-COPY-1.0). SQLite Durable Object only; no KV or D1 writes.
+[[durable_objects.bindings]]
+name = "LOCAL_NEWS_COPY"
+class_name = "LocalNewsCopy"
+
+[[migrations]]
+tag = "azinterface-local-copy-v1"
+new_sqlite_classes = ["LocalNewsCopy"]
 
 [observability]
 enabled = true
