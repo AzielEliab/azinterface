@@ -1,5 +1,5 @@
 name = "azinterface-download-tracker"
-main = "src/index.js"
+main = "src/entry.js"
 compatibility_date = "2026-09-06"
 workers_dev = true
 # Public in sibling AzielEliab *Lock Workers. First deploy must use this account.
@@ -20,7 +20,7 @@ id = "c7f3fab13653463e8c84b534bcf745b6"
 [assets]
 directory = "./public"
 binding = "ASSETS"
-run_worker_first = ["/", "/download", "/download/*", "/stats", "/event", "/go", "/count", "/install.sh", "/v1", "/v1/*", "/openapi.json", "/ai", "/ai/*", "/mcp", "/mcp/", "/robots.txt", "/sitemap.xml", "/cite.json", "/llms.txt", "/ai.txt"]
+run_worker_first = ["/aznews", "/aznews/", "/newsmap", "/newsmap/", "/", "/download", "/download/*", "/stats", "/event", "/go", "/count", "/install.sh", "/v1", "/v1/*", "/openapi.json", "/ai", "/ai/*", "/mcp", "/mcp/", "/robots.txt", "/sitemap.xml", "/cite.json", "/llms.txt", "/ai.txt"]
 
 [vars]
 AZIEL_RUNTIME_ORIGIN = "https://aziel-runtime.vibelock.workers.dev"
