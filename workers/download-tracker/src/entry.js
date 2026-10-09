@@ -79,7 +79,7 @@ export default {
     const path = url.pathname.replace(/\/+$/, "") || "/";
     if (NEWSMAP_PAGE_PATHS.includes(path) && (request.method === "GET" || request.method === "HEAD")) {
       const headers = { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60", "X-Look-Rule": "page JS reads /v1/newsmap/globe?view=1 once" };
-      return new Response(request.method === "HEAD" ? null : newsmapPageHtml(runtimeOrigin(env)), { status: 200, headers });
+      return new Response(request.method === "HEAD" ? null : newsmapPageHtml(runtimeOrigin(env), url.searchParams.get("mode") || "combined"), { status: 200, headers });
     }
     const copy = await handleNewsCopyRoute(request, url, env);
     if (copy) return new Response(JSON.stringify(copy.body), { status: copy.status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" } });

@@ -126,6 +126,19 @@ assert.equal((await call("/v1/map")).body.standalone, true);
 // Page: three views.
 const html = await (await entry.fetch(new Request("https://azi.example/aznews?mode=map"), down, {})).text();
 for (const n of ['data-mode="combined"', 'data-mode="news"', 'data-mode="map"', "/v1/map?layers=corpus,reference", "standalone"]) assert.ok(html.includes(n), n);
+assert.ok(html.includes('id="news" class="panel muted">Headlines hidden in map-only view.'), "map-only view says the headlines are hidden, in the served HTML");
+assert.ok(!html.includes('id="news" class="panel muted">Loading'), "map-only view never shows Loading for headlines");
+const combined = await (await entry.fetch(new Request("https://azi.example/aznews"), down, {})).text();
+assert.ok(combined.includes('id="news" class="panel muted">Loading'));
+// Retracted 4DMap pins are hidden by default through the door, listed with ?include_retracted=1.
+await map.add("map_pin", { kind: "4dmap-pin", layer: "corpus", pin_type: "library-aziel-event", color: "purple", color_hex: "#8e24aa", event: "1101 event", date: "1101", geo: { name: "coord", lat: 1, lon: 2 }, source_id: "corpus:AZEVT-1", source: { event_id: "AZEVT-1" }, supersedes_seq: 2, retracted: "geoparser_junk", retract_reason: "bare coordinate pair" });
+assert.equal((await call("/v1/tether/4dmap", post(await packet(map, "4dmap", 2, 3)))).body.stored, true);
+o = await call("/v1/map");
+assert.equal(o.body.pins.length, 1);
+assert.equal(o.body.retracted.count, 1);
+assert.equal(o.body.standalone, true);
+o = await call("/v1/map?include_retracted=1");
+assert.equal(o.body.pins.find((p) => p.source_id === "corpus:AZEVT-1").retracted, "geoparser_junk");
 const spec = await (await entry.fetch(new Request("https://azi.example/openapi.json"), down, {})).json();
 for (const p of ["/v1/map", "/v1/tether/aznews", "/v1/tether/4dmap", "/v1/aznews/copy", "/v1/4dmap/copy"]) assert.ok(spec.paths[p], p);
 assert.match(spec["x-local-copy-rule"], /AZInterface/);
