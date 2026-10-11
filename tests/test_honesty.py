@@ -96,8 +96,9 @@ def test_banner_and_status_keep_the_standing_facts() -> None:
     assert cycle["alt_internet_live"] is False
     assert cycle["packet_path_live"] is False
     assert cycle["second_device"] is False
-    assert "github.com/AzielEliab/fraggate" in str(cycle["kernel"])
-    assert cycle["kernel"] is not True
+    # KERNEL-FIELD-1.0: kernel is boolean False; the repo URL moved to kernel_repo_url.
+    assert cycle["kernel"] is False
+    assert "github.com/AzielEliab/fraggate" in str(cycle["kernel_repo_url"])
     _assert_facts(cycle["honesty"])
     assert cycle["pipeline"]["software_count"] == 33
     walked = Engine(Ledger())
@@ -159,3 +160,24 @@ def test_folder_session_copy_cannot_be_read_as_a_host_boot(tmp_path: Path) -> No
     assert "The host operating system did not boot." in spoken
     assert "The booted is on." not in spoken
     assert "host operating system booted" not in spoken.lower()
+
+
+def _kernels(o, path=""):
+    out = []
+    if isinstance(o, dict):
+        if "kernel" in o and o["kernel"] is not False:
+            out.append(path + ".kernel")
+        for k, v in o.items():
+            out += _kernels(v, path + "." + k)
+    elif isinstance(o, list):
+        for i, v in enumerate(o):
+            out += _kernels(v, f"{path}[{i}]")
+    return out
+
+
+def test_kernel_is_strictly_boolean_false_everywhere() -> None:
+    from azinterface.honesty import standing_facts
+
+    facts = standing_facts(CALLER)
+    assert _kernels(facts) == []
+    assert "kernel" in facts["lines"]["kernel_note"].lower()
