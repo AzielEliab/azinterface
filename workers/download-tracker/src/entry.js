@@ -13,6 +13,7 @@
  * Everything else goes to index.js as before. Author: Aziel Eliab.
  */
 import worker from "./index.js";
+import { stampHealth } from "./build-stamp.js";
 import { NEWSMAP_PAGE_PATHS, newsmapPageHtml } from "./newsmap-page.js";
 import { LOOK_RULE, MAP_RULE, registerLocalCopy } from "./newsmap-door.js";
 import { LocalNewsCopy, handleNewsCopyRoute, newsCopyCall, localMapRead, COPY_RULE } from "./news-copy.js";
@@ -83,7 +84,7 @@ export default {
     }
     const copy = await handleNewsCopyRoute(request, url, env);
     if (copy) return new Response(JSON.stringify(copy.body), { status: copy.status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" } });
-    const res = await worker.fetch(request, env, ctx);
+    const res = await stampHealth(path, request, await worker.fetch(request, env, ctx), env);
     if (path === "/openapi.json" && request.method === "GET" && res.status === 200) {
       try {
         const spec = await res.clone().json();
