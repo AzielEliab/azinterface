@@ -78,7 +78,7 @@ export function standingFacts(caller) {
     lines: {
       internet: STANDING_SENTENCES[0],
       os: STANDING_SENTENCES[1],
-      kernel: STANDING_SENTENCES[2],
+      kernel_note: STANDING_SENTENCES[2],
       mail: STANDING_SENTENCES[3],
       veillock: STANDING_SENTENCES[4],
       whitestone: STANDING_SENTENCES[5],

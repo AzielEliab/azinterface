@@ -5,7 +5,8 @@ const env = { DOWNLOADS: { get: async () => null, put: async () => {}, list: asy
 let n = 0;
 function urlKernels(o, p = "", out = []) {
   if (!o || typeof o !== "object") return out;
-  if (typeof o.kernel === "string" && /^https?:/.test(o.kernel)) out.push(p + ".kernel");
+  // KERNEL-FIELD-1.0: any `kernel` key anywhere must be exactly boolean false.
+  if (Object.prototype.hasOwnProperty.call(o, "kernel") && o.kernel !== false) out.push(p + ".kernel=" + JSON.stringify(o.kernel));
   for (const [k, v] of Object.entries(o)) urlKernels(v, p + "." + k, out);
   return out;
 }
@@ -20,4 +21,9 @@ const h = await (await worker.fetch(new Request("https://h.example/v1/health"), 
 assert.equal(h.kernel, false);
 assert.equal(h.kernel_repo_url, "https://github.com/AzielEliab/fraggate");
 n += 2;
+import { standingFacts } from "../workers/download-tracker/src/honesty.js";
+const sf = standingFacts({ kernel: true });
+assert.deepEqual(urlKernels(sf), []);
+assert.match(sf.lines.kernel_note, /kernel/i);
+n++;
 console.log(`test_worker_kernel_field: ${n} passed`);
