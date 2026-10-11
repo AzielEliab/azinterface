@@ -94,8 +94,12 @@ assert.equal(out.body.installed, false);
 // AZNews standalone and 4DMap standalone paths.
 env = { AZIEL_RUNTIME: fakeRuntime((b) => ({ ok: true, op: b.op })) };
 for (const [path, op, kind] of [["/v1/aznews", "news_sources", "aznews-standalone"]]) {
+  const before = calls.length;
   out = await handleNewsmap(req(path), new URL("https://h.example" + path), env, HOST);
-  assert.equal(calls.at(-1).body.op, op);
+  assert.equal(calls[before].body.op, op);
+  // AZNEWS-LIVE-DERIVED-1.0: then a dry_run news_status probe; no claim -> flags stay false.
+  assert.equal(calls.at(-1).body.op, "news_status");
+  assert.equal(calls.at(-1).body.payload.dry_run, true);
   assert.equal(out.body.path, kind);
   assert.equal(out.body.ok, true);
   assert.equal(out.body.live, false);
@@ -112,7 +116,8 @@ for (const [path, op, kind] of [["/v1/aznews", "news_sources", "aznews-standalon
 }
 for (const [key, spec] of Object.entries(NEWSMAP_OPS)) {
   out = await handleNewsmap(req("/v1/newsmap/" + key, "POST", {}), new URL("https://h.example/v1/newsmap/" + key), env, HOST);
-  assert.equal(calls.at(-1).body.op, spec.op, key);
+  // "sources" ends with the derived news_status probe (AZNEWS-LIVE-DERIVED-1.0).
+  assert.equal(calls.at(key === "sources" ? -2 : -1).body.op, spec.op, key);
   assert.equal(out.body.path, spec.path);
 }
 
