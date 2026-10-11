@@ -46,3 +46,15 @@ const other = { AZIEL_RUNTIME: binding(st2) };
 v = await deriveJoinFlagsCached(view(), other, "azinterface", undefined, t0 + JOIN_CACHE_LIVE_MS + JOIN_CACHE_FAIL_MS + 3);
 assert.equal(v.live, false); n++;
 console.log(`ok aznews join cache: ${n} checks`);
+// Plain text carries the cache age when the flags come from the cache.
+{
+  clearJoinCache();
+  const st3 = { down: false };
+  const env3 = { AZIEL_RUNTIME: binding(st3) };
+  const fresh = await deriveJoinFlagsCached(view(), env3, "azinterface", undefined, 5_000_000);
+  assert.doesNotMatch(fresh.plain, /reused from this door's short cache/);
+  const cached = await deriveJoinFlagsCached(view(), env3, "azinterface", undefined, 5_000_000 + 12_000);
+  assert.equal(cached.join_cached, true);
+  assert.match(cached.plain, /derived 12 s ago and reused from this door's short cache/);
+  console.log("ok aznews plain text carries cache age");
+}
