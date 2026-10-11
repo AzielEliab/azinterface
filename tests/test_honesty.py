@@ -96,8 +96,9 @@ def test_banner_and_status_keep_the_standing_facts() -> None:
     assert cycle["alt_internet_live"] is False
     assert cycle["packet_path_live"] is False
     assert cycle["second_device"] is False
-    assert "github.com/AzielEliab/fraggate" in str(cycle["kernel"])
-    assert cycle["kernel"] is not True
+    # KERNEL-FIELD-1.0: kernel is boolean False; the repo URL moved to kernel_repo_url.
+    assert cycle["kernel"] is False
+    assert "github.com/AzielEliab/fraggate" in str(cycle["kernel_repo_url"])
     _assert_facts(cycle["honesty"])
     assert cycle["pipeline"]["software_count"] == 33
     walked = Engine(Ledger())

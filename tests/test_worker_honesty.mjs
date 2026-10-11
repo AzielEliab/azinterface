@@ -82,8 +82,9 @@ assert.equal(cycle.os_yet, false);
 assert.equal(cycle.alt_internet_live, false);
 assert.equal(cycle.packet_path_live, false);
 assert.equal(cycle.second_device, false);
-assert.equal(String(cycle.kernel).includes("github.com/AzielEliab/fraggate"), true);
-assert.equal(cycle.kernel === true, false);
+// KERNEL-FIELD-1.0: kernel is boolean false; the repo URL moved to kernel_repo_url.
+assert.equal(cycle.kernel, false);
+assert.equal(String(cycle.kernel_repo_url).includes("github.com/AzielEliab/fraggate"), true);
 assert.equal(cycle.pipeline.software_count, 33);
 assertFacts(cycle.honesty);
 assertFacts(standingFacts(caller));
