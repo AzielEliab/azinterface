@@ -3,7 +3,7 @@
  * go through the runtime FragGate door, pass flags through, and never raise them.
  */
 import assert from "node:assert/strict";
-import { handleNewsmap, newsmapView, NEWSMAP_OPS } from "../workers/download-tracker/src/newsmap-door.js";
+import { handleNewsmap, newsmapView, NEWSMAP_OPS, clearJoinCache } from "../workers/download-tracker/src/newsmap-door.js";
 import worker from "../workers/download-tracker/src/index.js";
 
 const HOST = "azinterface";
@@ -115,6 +115,7 @@ for (const [path, op, kind] of [["/v1/aznews", "news_sources", "aznews-standalon
   assert.equal(m.body.live, false);
 }
 for (const [key, spec] of Object.entries(NEWSMAP_OPS)) {
+  clearJoinCache(); // AZNEWS-JOIN-CACHE-1.0: force the uncached path this test asserts on.
   out = await handleNewsmap(req("/v1/newsmap/" + key, "POST", {}), new URL("https://h.example/v1/newsmap/" + key), env, HOST);
   // "sources" ends with the derived news_status probe (AZNEWS-LIVE-DERIVED-1.0).
   assert.equal(calls.at(key === "sources" ? -2 : -1).body.op, spec.op, key);

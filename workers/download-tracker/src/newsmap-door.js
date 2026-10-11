@@ -391,7 +391,7 @@ export async function handleNewsmap(request, url, env, host) {
     check = await doorJoinCheck((op, p) => callRuntime(env, op, p));
   }
   const view = newsmapView(host, key, runtime, check);
-  if (!check && key === "sources") await deriveJoinFlags(view, env, host);
+  if (!check && key === "sources") await deriveJoinFlagsCached(view, env, host);
   view.source = "runtime";
   if (copyMiss) view.local_copy = copyMiss;
   view.standalone = false;
@@ -432,4 +432,45 @@ export async function deriveJoinFlags(view, env, host, call = (op, p) => callRun
   for (const k of ["live", "joined", "merged", "lattice_live", "runtime_claims", "door_join_check", "join_reason"]) view[k] = sv[k];
   view.plain = plainOf(view.path, view);
   return assertNewsmapHonest(view);
+}
+
+/**
+ * AZNEWS-JOIN-CACHE-1.0: the derived join flags are reused briefly per isolate so /v1/aznews does
+ * not pay the runtime round trips on every hit. A passing derivation is reused for at most
+ * JOIN_CACHE_LIVE_MS, a failing one for JOIN_CACHE_FAIL_MS. Both are labelled (join_cached,
+ * join_cache_age_s). Fail closed: anything not derived true here stays false.
+ */
+export const JOIN_CACHE_LIVE_MS = 30_000;
+export const JOIN_CACHE_FAIL_MS = 10_000;
+const JOIN_KEYS = ["live", "joined", "merged", "lattice_live", "runtime_claims", "door_join_check", "join_reason"];
+// Keyed by the runtime binding (or env) object, so a different runtime never shares an entry.
+let joinCaches = new WeakMap();
+export function clearJoinCache() {
+  joinCaches = new WeakMap();
+}
+export async function deriveJoinFlagsCached(view, env, host, call = (op, p) => callRuntime(env, op, p), now = Date.now()) {
+  if (view.refused) return deriveJoinFlags(view, env, host, call);
+  const key = String(host || "");
+  const owner = (env && (env.AZIEL_RUNTIME || env.RUNTIME)) || env;
+  const holder = owner && typeof owner === "object" ? owner : null;
+  const joinCache = holder ? joinCaches.get(holder) : null;
+  if (joinCache && joinCache.key === key) {
+    const age = now - joinCache.at;
+    const ttl = joinCache.flags.live === true ? JOIN_CACHE_LIVE_MS : JOIN_CACHE_FAIL_MS;
+    if (age >= 0 && age < ttl) {
+      view.flags_from = joinCache.flags_from;
+      for (const k of JOIN_KEYS) if (k in joinCache.flags) view[k] = joinCache.flags[k];
+      view.join_cached = true;
+      view.join_cache_age_s = Math.floor(age / 1000);
+      view.plain = plainOf(view.path, view);
+      return joinCache.flags.live === true ? assertNewsmapHonest(view) : view;
+    }
+  }
+  await deriveJoinFlags(view, env, host, call);
+  const flags = {};
+  for (const k of JOIN_KEYS) if (k in view) flags[k] = view[k];
+  if (holder) joinCaches.set(holder, { key, at: now, flags, flags_from: view.flags_from });
+  view.join_cached = false;
+  view.join_cache_age_s = 0;
+  return view;
 }
