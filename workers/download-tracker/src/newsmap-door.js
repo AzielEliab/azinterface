@@ -391,6 +391,7 @@ export async function handleNewsmap(request, url, env, host) {
     check = await doorJoinCheck((op, p) => callRuntime(env, op, p));
   }
   const view = newsmapView(host, key, runtime, check);
+  if (!check && key === "sources") await deriveJoinFlags(view, env, host);
   view.source = "runtime";
   if (copyMiss) view.local_copy = copyMiss;
   view.standalone = false;
@@ -398,4 +399,37 @@ export async function handleNewsmap(request, url, env, host) {
   view.look = isRead ? (payload.dry_run === true ? "not a look: forwarded with dry_run, no receipt minted" : "a look: ?view=1 from a page on this host") : "not a read op";
   view.look_rule = LOOK_RULE;
   return { status: 200, body: view };
+}
+
+/**
+ * AZNEWS-LIVE-DERIVED-1.0: /v1/aznews (news_sources) carries no join claim of its own.
+ * Its live / joined / merged / lattice_live are derived, never hardcoded: read the
+ * runtime's news_status (dry_run) and copy its flags only when this door's own join
+ * round trip passes on this request. Unreachable, refused, or unverified -> false.
+ */
+export async function deriveJoinFlags(view, env, host, call = (op, p) => callRuntime(env, op, p)) {
+  view.flags_from = "runtime news_status + " + DOOR_JOIN_SPEC + " (derived, fail closed)";
+  if (view.refused) return view;
+  let statusRt = null;
+  try {
+    statusRt = await call("news_status", { dry_run: true });
+  } catch {
+    statusRt = null;
+  }
+  const r = resultOf(statusRt);
+  const src = r && r.status && typeof r.status === "object" ? r.status : r;
+  if (!src || !CLAIM_KEYS.some((k) => src[k] === true)) {
+    view.join_reason = statusRt ? "the runtime's news_status does not claim the join" : "the runtime was unreachable for news_status";
+    return view;
+  }
+  let check = null;
+  try {
+    check = await doorJoinCheck(call);
+  } catch {
+    check = null;
+  }
+  const sv = newsmapView(host, "status", statusRt, check);
+  for (const k of ["live", "joined", "merged", "lattice_live", "runtime_claims", "door_join_check", "join_reason"]) view[k] = sv[k];
+  view.plain = plainOf(view.path, view);
+  return assertNewsmapHonest(view);
 }
