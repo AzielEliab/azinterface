@@ -89,7 +89,17 @@ async function callRuntime(env, op, payload) {
   return { status: res.status, body };
 }
 
+function cacheNote(view) {
+  if (view.join_cached !== true) return "";
+  const age = Number(view.join_cache_age_s) || 0;
+  return " These flags were derived " + age + " s ago and reused from this door's short cache (up to 30 s after a pass, 10 s after a fail); they were not re-checked on this request.";
+}
+
 function plainOf(path, view) {
+  return plainCore(path, view) + cacheNote(view);
+}
+
+function plainCore(path, view) {
   const base =
     "AZNews can stand alone. 4DMap can stand alone. On the joined path a news item can land as a map pin, or a pin can open the matching news. " +
     "This page reads the aziel-runtime 4DMap engine through the one FragGate door. It keeps no second map and installs nothing.";
