@@ -82,6 +82,15 @@ export default {
       const headers = { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60", "X-Look-Rule": "page JS reads /v1/newsmap/globe?view=1 once" };
       return new Response(request.method === "HEAD" ? null : newsmapPageHtml(runtimeOrigin(env), url.searchParams.get("mode") || "combined"), { status: 200, headers });
     }
+    if (path === "/v1/runtime/sync" && (request.method === "GET" || request.method === "HEAD")) {
+      // RUNTIME-SYNC-1.0: read-only mirror over the AZIEL_RUNTIME service binding. This tracker stores no
+      // ChainLock tips of its own; its AZNews / 4DMap copies are compared at /v1/tether/aznews and /v1/tether/4dmap.
+      const { runtimeSync } = await import("./runtime-sync.js");
+      const svc = env && env.AZIEL_RUNTIME && typeof env.AZIEL_RUNTIME.fetch === "function" ? (u, i) => env.AZIEL_RUNTIME.fetch(new Request(u, i)) : fetch;
+      const out = await runtimeSync({ side: "azinterface", fetchImpl: svc, localChains: [] });
+      const body = { ...out, compare_note: "No ChainLock tips stored here. News and map copies: /v1/tether/aznews, /v1/tether/4dmap." };
+      return new Response(request.method === "HEAD" ? null : JSON.stringify(body, null, 2), { status: out.ok ? 200 : 502, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" } });
+    }
     const copy = await handleNewsCopyRoute(request, url, env);
     if (copy) return new Response(JSON.stringify(copy.body), { status: copy.status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" } });
     const res = await stampHealth(path, request, await worker.fetch(request, env, ctx), env);
