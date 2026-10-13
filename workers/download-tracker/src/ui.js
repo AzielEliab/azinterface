@@ -1,3 +1,4 @@
+import { HINTS_HTML } from "./hints.js";
 /** Hosted AZInterface homepage: counted download + pre-locked custody UI. */
 import { LIMITATION } from "./engine.js";
 import { HUMAN_LINES_SOURCE } from "./human.js";
@@ -384,6 +385,7 @@ ${meshClientScript()}
   meshBoot();
 })();
 </script>
+${HINTS_HTML}
 </body>
 </html>`;
 }
