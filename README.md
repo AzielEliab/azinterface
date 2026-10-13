@@ -250,16 +250,18 @@ node tests/test_worker_honesty.mjs
 azinterface doctor
 ```
 
-## iPhone & Android
+## iPhone, Android, and desktop
 
-Flutter sources: [`mobile/`](mobile/). Application id `com.azieeliab.azinterface`.
-Offline. No analytics. Dark matte / gold.
+Flutter app: [`mobile/`](mobile/). Application id `com.azieeliab.azinterface`.
+Projects: `android/`, `ios/`, `linux/`, `macos/`, and `windows/`.
+The page stays OFF. software_count stays 33. An alternative internet is not live. A packet path is not live. The public door stays FG-STUB. Phoenix is a local wait and re-seal. That is not a loopback fence.
+The iPhone project is the Xcode project under `mobile/ios/`. A Linux machine does not build it.
 
 ```bash
 cd mobile
-flutter create --org com.azieeliab --project-name azinterface .
 flutter pub get
-flutter run
+flutter test
+flutter run -d linux
 ```
 
 ## Layout
@@ -269,7 +271,7 @@ azinterface/          library (engine, genesis, cycle, pipeline cite, receipts, 
 tests/                pytest + worker smoke
 docs/                 AIH-WP-1.0 notes + QNS-CD-1.0 + SPLIT THE WIRES / COLD-COPY SURVIVAL
 workers/download-tracker/   Cloudflare Worker azinterface-download-tracker
-mobile/               Flutter scaffold
+mobile/               Flutter app for Android, iPhone, and desktop
 SKILL.md              agent skill (also GET /v1/skill)
 ```
 
