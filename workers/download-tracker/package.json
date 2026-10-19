@@ -5,5 +5,10 @@
   "license": "Apache-2.0",
   "dependencies": {
     "wrangler": "^4.127.1"
+  },
+  "scripts": {
+    "test": "node scripts/verify-checkpoint-copy.mjs && node scripts/verify-refusal-peer.mjs && node scripts/verify-runtime-sync.mjs && node scripts/verify-tether.mjs && node scripts/verify-lockstep.mjs",
+    "lockstep:remote": "LOCKSTEP_REMOTE=1 node scripts/verify-lockstep.mjs",
+    "test:human-bot": "node scripts/verify-human-bot.mjs"
   }
 }

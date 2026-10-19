@@ -13,6 +13,11 @@
  * Everything else goes to index.js as before. Author: Aziel Eliab.
  */
 import worker from "./index.js";
+import { handleLockstepRoute, PINNED as LOCKSTEP_PINNED } from "./lockstep.js";
+/** The tether + mesh facts this leg holds locally; /v1/lockstep checks them against the shared contract. */
+function lockstepLocal(env) {
+  return { tether_pubkey: (env && env.RUNTIME_TETHER_PUBKEY) || null, lattice_names: ["primary", "secondary"], mesh_path: "/v1/mesh", mesh_spec: LOCKSTEP_PINNED.contract.mesh.spec };
+}
 import { stampHealth } from "./build-stamp.js";
 import { NEWSMAP_PAGE_PATHS, newsmapPageHtml } from "./newsmap-page.js";
 import { LOOK_RULE, MAP_RULE, registerLocalCopy } from "./newsmap-door.js";
@@ -86,8 +91,11 @@ const routed = {
       // ChainLock tips of its own; its AZNews / 4DMap copies are compared at /v1/tether/aznews and /v1/tether/4dmap.
       const { runtimeSync } = await import("./runtime-sync.js");
       const svc = env && env.AZIEL_RUNTIME && typeof env.AZIEL_RUNTIME.fetch === "function" ? (u, i) => env.AZIEL_RUNTIME.fetch(new Request(u, i)) : fetch;
-      const out = await runtimeSync({ side: "azinterface", fetchImpl: svc, localChains: [] });
-      const body = { ...out, compare_note: "No ChainLock tips stored here. News and map copies: /v1/tether/aznews, /v1/tether/4dmap." };
+      const { tetherState } = await import("./lattice-tether.js");
+      const st = await tetherState(env).catch(() => ({ chains: [] }));
+      const localChains = (st.chains || []).map((c) => ({ chain: c.chain, primary: c.tips && c.tips.primary, verified: c.verified }));
+      const out = await runtimeSync({ side: "azinterface", fetchImpl: svc, localChains });
+      const body = { ...out, compare_note: localChains.length ? "ChainLock tips this leg verified (GET /v1/tether) compared with the runtime. News and map copies: /v1/tether/aznews, /v1/tether/4dmap." : "No verified ChainLock tips stored here yet (GET /v1/tether). News and map copies: /v1/tether/aznews, /v1/tether/4dmap." };
       return new Response(request.method === "HEAD" ? null : JSON.stringify(body, null, 2), { status: out.ok ? 200 : 502, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" } });
     }
     const copy = await handleNewsCopyRoute(request, url, env);
@@ -120,6 +128,12 @@ export default {
   ...worker,
   async fetch(request, env, ctx) {
     const path = new URL(request.url).pathname.replace(/\/+$/, "") || "/";
+    // AZ-LOCKSTEP-1.0: shared design + contract, pinned by hash; runtime optional (absent -> standalone, flags false).
+    const lockstep = await handleLockstepRoute(request, env, { leg: "azinterface", local: lockstepLocal(env) });
+    if (lockstep) return lockstep;
+    const { handleUnionRoute } = await import("./union.js");
+    const union = await handleUnionRoute(request, env);
+    if (union) return union;
     if (path === "/v1/refusals" && (request.method === "GET" || request.method === "HEAD")) {
       const { peerRefusals } = await import("./refusal-peer.js");
       // No ChainLock tips are stored on this tracker, so local_tip is null (read through the runtime).
