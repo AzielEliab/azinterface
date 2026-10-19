@@ -1,3 +1,4 @@
+import { DESIGN_CSS } from "./lockstep.js";
 /**
  * AZInterface human page for AZNews + 4DMap (GET /aznews, alias /newsmap).
  * Three views (?mode=combined|news|map). AZNews: one globe read marked as a look
@@ -17,19 +18,19 @@ const PAGE = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AZNews + 4DMap — AZInterface — Aziel Eliab</title>
 <meta name="description" content="AZNews headlines, Open-Meteo weather, the computed sky, and 4DMap colored pins, read through the AZInterface newsmap door. Author Aziel Eliab.">
-<style>
-body{font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#0d1117;color:#e6edf3}
+<style>${DESIGN_CSS}
+body{font:var(--az-type-body);margin:0;background:var(--az-bg);color:var(--az-ink)}
 .wrap{max-width:1180px;margin:0 auto;padding:16px}
-a{color:#79c0ff}h1{font-size:22px;margin:4px 0}h2{font-size:17px;margin:18px 0 6px}
-.muted{color:#8b949e}.flags span{display:inline-block;margin:2px 6px 2px 0;padding:2px 8px;border-radius:10px;background:#21262d}
+a{color:var(--az-link)}h1{font-size:22px;margin:4px 0}h2{font-size:17px;margin:18px 0 6px}
+.muted{color:var(--az-muted)}.flags span{display:inline-block;margin:2px 6px 2px 0;padding:2px 8px;border-radius:10px;background:var(--az-card)}
 .flags .t{background:#1f6f3f}.flags .f{background:#6e2b2b}.tabs a{margin-right:4px}
 .grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}@media(max-width:860px){.grid{grid-template-columns:1fr}}
-#map{width:100%;height:auto;background:#0b2239;border:1px solid #30363d;border-radius:8px}
+#map{width:100%;height:auto;background:#0b2239;border:1px solid var(--az-line);border-radius:8px}
 #map .land{fill:#2d3b2d;stroke:#4b5b4b;stroke-width:.15}#map .grat{stroke:#1d3a57;stroke-width:.15;fill:none}
 #map circle{stroke:#000;stroke-width:.25;cursor:pointer}#map circle.sel{stroke:#fff;stroke-width:.8}
-.panel{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:10px 12px}
+.panel{background:var(--az-card);border:1px solid var(--az-line);border-radius:8px;padding:10px 12px}
 ul{padding-left:18px;margin:6px 0}li{margin:3px 0}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;border:1px solid #000;margin-right:6px;vertical-align:middle}
-table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #30363d;padding:3px 6px;text-align:left;font-size:13px}
+table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--az-line);padding:3px 6px;text-align:left;font-size:13px}
 </style></head><body><div class="wrap">
 <p class="muted"><a href="/">AZInterface</a> · <a href="__GLOBE__">runtime globe</a> · <a href="/v1/newsmap">/v1/newsmap</a> · <a href="/v1/map">/v1/map</a> · <a href="/openapi.json">openapi</a></p>
 <h1 id="title">AZNews + 4DMap</h1>
