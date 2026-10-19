@@ -131,9 +131,22 @@ export default {
     // AZ-LOCKSTEP-1.0: shared design + contract, pinned by hash; runtime optional (absent -> standalone, flags false).
     const lockstep = await handleLockstepRoute(request, env, { leg: "azinterface", local: lockstepLocal(env) });
     if (lockstep) return lockstep;
+    // A tether packet for the refusals chain itself is never re-sealed (no feedback loop), same rule as AZ-OS.
+    let tetherChain = null;
+    if (path === "/v1/tether/tip" && request.method === "POST" && Number(request.headers.get("content-length") || 0) <= 262144) {
+      try { const pk = await request.clone().json(); tetherChain = pk && typeof pk.chain === "string" ? pk.chain : null; } catch { tetherChain = null; }
+    }
     const { handleUnionRoute } = await import("./union.js");
     const union = await handleUnionRoute(request, env);
-    if (union) return union;
+    if (union) {
+      if (union.status < 400) return union;
+      // Union refusals (413/501/403/503) get the same peer refusal receipt as every other coded refusal here.
+      const { withPeerRefusalReceipt } = await import("./refusal-peer.js");
+      // When the runtime itself is absent or slow, the seal goes to the background (receipt_pending) so the
+      // refusal still returns within the proxy timeout.
+      const runtimeDown = union.headers.get("X-Leg-Runtime") === "down";
+      return withPeerRefusalReceipt(request, union, env, { surface: "azinterface", ctx, budgetMs: runtimeDown ? 0 : undefined, tetherChain });
+    }
     if (path === "/v1/refusals" && (request.method === "GET" || request.method === "HEAD")) {
       const { peerRefusals } = await import("./refusal-peer.js");
       // No ChainLock tips are stored on this tracker, so local_tip is null (read through the runtime).

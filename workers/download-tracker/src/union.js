@@ -12,6 +12,11 @@
  *   GET  /sigil.svg, /brand/sigil.svg   the sigil
  *   GET  /workspace, /v1/anchor/heads, receipts tip, memory, qns, uses, update manifest, catalog, about,
  *        4DMap globe, MCP install cards   read through the runtime over AZIEL_RUNTIME; absent -> 503 LEG-RUNTIME-ABSENT
+ * Proxy reads time out after LEG_RUNTIME_TIMEOUT_MS (default 4000) with 503 LEG-RUNTIME-TIMEOUT and abort the upstream
+ * request; the caller IP rides as X-Azrt-Client-IP (LEG-CLIENT-IP-1.0; the runtime trusts it over the binding only).
+ * Known limit (follow-up): the tether tip write is a KV read-modify-write, not compare-and-set. Concurrent valid
+ * packets or a stale KV read can store an older tip; the next push re-links from the runtime tip (TETHER-LINK on a
+ * fork). Same as AZ-OS src/tether.js, kept byte for byte.
  * Nothing here flips a live flag. Author: Aziel Eliab. SPDX-License-Identifier: Apache-2.0
  */
 import { receiveTether, tetherState } from "./lattice-tether.js";
@@ -20,7 +25,7 @@ import { runtimeBinding } from "./lockstep.js";
 
 const LEG = "azinterface";
 const H = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" };
-const j = (body, status = 200) => new Response(JSON.stringify(body, null, 2), { status, headers: H });
+const j = (body, status = 200) => new Response(JSON.stringify(body, null, 2), { status, headers: body && (body.code === "LEG-RUNTIME-ABSENT" || body.code === "LEG-RUNTIME-TIMEOUT") ? { ...H, "X-Leg-Runtime": "down" } : H });
 const honest = { live: false, alt_internet_live: false, packet_path_live: false, mesh_node_live: false, kernel_live: false, booted: false, installed: false, kernel_base: false, second_device: false };
 
 export const PREFAB_SLUGS = Object.freeze(["azos", "temporallock", "staticclock", "shadowlock", "foldlock", "azai", "godlock", "vibelock", "veillock", "spectrallock", "miragegrid", "codelock", "decisiongate", "chronolock", "azclce", "ark"]);
@@ -39,18 +44,39 @@ export function prefabCatalog() {
   };
 }
 
+/** Proxy timeout (ms). LEG_RUNTIME_TIMEOUT_MS clamps to 250..10000; default 4000. */
+export function runtimeTimeoutMs(env) {
+  const n = Number(env && env.LEG_RUNTIME_TIMEOUT_MS);
+  return Number.isFinite(n) && n > 0 ? Math.min(10000, Math.max(250, Math.floor(n))) : 4000;
+}
+
 async function viaRuntime(request, env, path) {
   const bind = runtimeBinding(env);
   const absent = { ok: false, code: "LEG-RUNTIME-ABSENT", leg: LEG, path, standalone: true, plain: "The runtime is not reachable from this leg right now. Nothing was shown as live.", ...honest };
   if (!bind) return j(absent, 503);
+  const ms = runtimeTimeoutMs(env);
+  const ctl = new AbortController();
+  let timer;
+  const late = new Promise((r) => { timer = setTimeout(() => { ctl.abort(); r(null); }, ms); });
   try {
     const u = new URL(request.url);
-    const r = await bind.fetch(new Request("https://aziel-runtime.internal" + path + u.search, { method: "GET", headers: { accept: request.headers.get("accept") || "*/*" } }));
-    const headers = new Headers(r.headers);
-    headers.set("X-Served-Through", "AZIEL_RUNTIME");
-    return new Response(request.method === "HEAD" ? null : r.body, { status: r.status, headers });
+    const headers = { accept: request.headers.get("accept") || "*/*" };
+    // LEG-CLIENT-IP-1.0: name the caller so the runtime keys its rate limits per client (trusted over the binding only).
+    const ip = request.headers.get("CF-Connecting-IP");
+    if (ip && ip.trim()) headers["X-Azrt-Client-IP"] = ip.trim();
+    const call = bind.fetch(new Request("https://aziel-runtime.internal" + path + u.search, { method: "GET", headers, signal: ctl.signal }));
+    const r = await Promise.race([call, late]);
+    if (!r) {
+      call.catch(() => null);
+      return j({ ...absent, code: "LEG-RUNTIME-TIMEOUT", timeout_ms: ms, plain: `The runtime did not answer within ${ms} ms. Nothing was shown as live.` }, 503);
+    }
+    const out = new Headers(r.headers);
+    out.set("X-Served-Through", "AZIEL_RUNTIME");
+    return new Response(request.method === "HEAD" ? null : r.body, { status: r.status, headers: out });
   } catch {
     return j(absent, 503);
+  } finally {
+    clearTimeout(timer);
   }
 }
 
