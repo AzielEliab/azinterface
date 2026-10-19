@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "test": "node scripts/verify-agents-view.mjs"
+  },
   "private": true,
   "type": "module",
   "description": "AZInterface isolated download tracker + hosted /v1 custody cycle",
