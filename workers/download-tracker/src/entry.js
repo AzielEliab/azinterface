@@ -73,8 +73,7 @@ class AddNewsLink {
   }
 }
 
-export default {
-  ...worker,
+const routed = {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
@@ -112,5 +111,24 @@ export default {
       return new HTMLRewriter().on("body", new AddNewsLink()).transform(res);
     }
     return res;
+  },
+};
+
+// AZRT-REFUSAL-RECEIPT-1.0 addendum (RIB-018 gaps): this tracker's coded non-auth refusals are sealed on the
+// runtime's shared refusals chain over the AZIEL_RUNTIME binding (src/refusal-peer.js). Additive; fail closed.
+export default {
+  ...worker,
+  async fetch(request, env, ctx) {
+    const path = new URL(request.url).pathname.replace(/\/+$/, "") || "/";
+    if (path === "/v1/refusals" && (request.method === "GET" || request.method === "HEAD")) {
+      const { peerRefusals } = await import("./refusal-peer.js");
+      // No ChainLock tips are stored on this tracker, so local_tip is null (read through the runtime).
+      const out = await peerRefusals(env, { surface: "azinterface", localTip: null });
+      return new Response(request.method === "HEAD" ? null : JSON.stringify(out.body, null, 2), { status: out.status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" } });
+    }
+    const res = await routed.fetch(request, env, ctx);
+    if (!res || res.status < 400) return res;
+    const { withPeerRefusalReceipt } = await import("./refusal-peer.js");
+    return withPeerRefusalReceipt(request, res, env, { surface: "azinterface", ctx });
   },
 };
