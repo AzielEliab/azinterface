@@ -126,6 +126,15 @@ export default {
       const out = await peerRefusals(env, { surface: "azinterface", localTip: null });
       return new Response(request.method === "HEAD" ? null : JSON.stringify(out.body, null, 2), { status: out.status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" } });
     }
+    if (path === "/v1/agents/receipts" && (request.method === "GET" || request.method === "HEAD" || request.method === "POST")) {
+      // AGENT-SUBNET-1.0 viewer (read-only). No ChainLock tips are stored here; the tip is read through the runtime.
+      const { agentsPublic, agentsScoped } = await import("./agents-view.js");
+      const out = request.method === "POST" ? await agentsScoped(env, request, { surface: "azinterface" }) : await agentsPublic(env, { surface: "azinterface", localTip: null });
+      const res = new Response(request.method === "HEAD" ? null : JSON.stringify(out.body, null, 2), { status: out.status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" } });
+      if (out.status < 400 || out.body.refusal_receipt) return res; // runtime refusals arrive already sealed
+      const { withPeerRefusalReceipt } = await import("./refusal-peer.js");
+      return withPeerRefusalReceipt(request, res, env, { surface: "azinterface", ctx });
+    }
     const res = await routed.fetch(request, env, ctx);
     if (!res || res.status < 400) return res;
     const { withPeerRefusalReceipt } = await import("./refusal-peer.js");
