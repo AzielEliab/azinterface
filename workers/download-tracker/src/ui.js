@@ -1,5 +1,6 @@
 import { DESIGN_CSS } from "./lockstep.js";
 import { HINTS_HTML } from "./hints.js";
+import { agentsPanelHtml } from "./agents-view.js";
 /** Hosted AZInterface homepage: counted download + pre-locked custody UI. */
 import { LIMITATION } from "./engine.js";
 import { HUMAN_LINES_SOURCE } from "./human.js";
@@ -209,6 +210,11 @@ GitHub stars ${gh.stars || 0} · forks ${gh.forks || 0} · watchers ${gh.watcher
     </div>
     <div class="out-panel" id="pair-out"></div>
   </div>
+</div>
+
+<div class="card" style="margin:0 18px 1rem;" id="agents">
+  <h2>Agents</h2>
+  ${agentsPanelHtml({ api: "/v1/agents/receipts", idPrefix: "ag" })}
 </div>
 
 <div class="card" style="margin:0 18px 1rem;">
