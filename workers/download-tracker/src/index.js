@@ -3,6 +3,7 @@ import { corsHeaders, htmlHeaders } from "./headers.js";
 import { COUNTED_TARBALL_SHA256 } from "./honesty.js";
 import { handleRuntimeApi } from "./runtime.js";
 import { handleNewsmap } from "./newsmap-door.js";
+import { handleArkAccount } from "./ark-door.js";
 import { homeHtml } from "./ui.js";
 import { classifyRequest, readBotManagement } from "./classify.js";
 import {
@@ -313,6 +314,9 @@ export default {
 
     // AZNews and 4DMap paths (joined, AZNews standalone, 4DMap standalone) read the
     // runtime 4DMap engine through FragGate. No second map, no engine copy here.
+    // USER-SIGNIN-ARK-1.0 §12.3: hashed/signed login only; plaintext refused here.
+    const ark = await handleArkAccount(request, url, env, "azinterface");
+    if (ark) return json(ark.body, ark.status);
     const newsmap = await handleNewsmap(request, url, env, "azinterface");
     if (newsmap) return json(newsmap.body, newsmap.status);
 
