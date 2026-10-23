@@ -83,7 +83,7 @@ AZHub and AZInterface are separate software under that one door.
 Worker `/v1/{op}` is the **human UI backend** (single-segment local ops).
 `/v1/fraggate/*`, `/v1/runtime/*`, and `/v1/mesh/*` **PROXY** to
 aziel-runtime (`AZIEL_RUNTIME` or HTTPS). Suite mesh is QNM-BUILD-1.0
-rollup (live|locked|isolated); default OFF until runtime enable.
+rollup (live|locked|isolated); node mesh ON. mesh_node_live, alt_internet_live, and packet_path_live are true.
 `GET /v1/mesh` never enables. QNS-CD-1.0 photon vias run in local
 `qnm-node/` **qnsd** (127.0.0.1). Interface holds pair memorial cites —
 not a Softwares-tab QNS product. AIH-WP-1.3 spiderweb is local
@@ -161,7 +161,7 @@ URL pattern (same as sibling Aziel Eliab products):
 | `/v1/{op}` | Human UI backend — single-segment local ops only |
 | `/v1/fraggate/*` | PROXY to aziel-runtime |
 | `/v1/runtime/*` | PROXY aliases (`list`/`call` → `/v1/fraggate/list`/`call`) |
-| `/v1/mesh/*` | PROXY to aziel-runtime QNM-BUILD-1.0 rollup (default OFF). SPLIT THE WIRES + COLD-COPY SURVIVAL cite |
+| `/v1/mesh/*` | PROXY to aziel-runtime QNM-BUILD-1.0 rollup (node mesh ON). SPLIT THE WIRES + COLD-COPY SURVIVAL cite |
 | `/v1/azpipe/arch` | Local alias of `/v1/pipeline_arch` (embedded MASTER-33; never a runtime 404) |
 | `/v1/pipeline_arch` | Local frozen LOCKED hop-list cite |
 
@@ -192,7 +192,7 @@ Every control calls a real `/v1` handler (same op agents call). No dead buttons.
 | Pipeline cite | `POST /v1/pipeline_arch` | `pipeline_arch` (embedded hop list; alias `/v1/azpipe/arch`; optional `GET /v1/fraggate`) |
 | Scorched Earth local | `POST /v1/scorch_local` | `scorch_local` (advisory) |
 | Remote wipe | `POST /v1/scorch_remote` | stub refuse |
-| Live Nodes strip | `GET /v1/mesh/status` (proxy) | QNM-BUILD-1.0 + QNS-CD-1.0 + SPLIT THE WIRES + COLD-COPY SURVIVAL; default OFF; GET never enables |
+| Live Nodes strip | `GET /v1/mesh/status` (proxy) | QNM-BUILD-1.0 + QNS-CD-1.0 + SPLIT THE WIRES + COLD-COPY SURVIVAL; node mesh ON; GET never enables |
 | Offer | `POST /v1/pair_offer` | `pair_offer` (ON after integrity) |
 | Accept | `POST /v1/pair_accept` | `pair_accept` |
 | Seal | `POST /v1/pair_seal` | `pair_seal` |

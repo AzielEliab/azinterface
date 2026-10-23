@@ -35,6 +35,7 @@ from .mail_send import mail_page_html, submit_smtp
 from .map_frame import lattice_path, map_view, place_card
 from .net_fetch import fetch_url, net_page_html
 from .packet_path import path_report as packet_report
+from .mesh_radios import mesh_radios_tile
 from .packet_path import path_sentence
 from .news_join import add_news, join_view, news_page_html, news_path, pin_news, unpin_news
 from .overlay_kernel import boot_session, kernel_page_html, run_command, sessions_root
@@ -289,6 +290,7 @@ class Suite:
                 url = None
                 mode = None
             outcome = None
+        tile = mesh_radios_tile({})
         return {
             "name": card["name"],
             "slug": slug,
@@ -312,6 +314,27 @@ class Suite:
             "map": slug == "4dmap",
             "desk": slug in {"azmail", "aznet", "azos"},
             "bucket": card.get("bucket"),
+            "node_mesh": {
+                "enabled": tile["enabled"],
+                "radios": tile["radios"],
+                "mesh_node_live": tile["mesh_node_live"],
+                "alt_internet_live": tile["alt_internet_live"],
+                "packet_path_live": tile["packet_path_live"],
+                "qns_cite_plane": False,
+            },
+            "mesh_radios": {
+                "status": tile["status"],
+                "radios": tile["radios"],
+                "enabled": tile["enabled"],
+                "confirm_enables": True,
+                "hardware_live": False,
+                "cap7_name_only": True,
+                "public_icann": False,
+                "cap7_registrar_live": False,
+            },
+            "mesh_node_live": tile["mesh_node_live"],
+            "alt_internet_live": tile["alt_internet_live"],
+            "packet_path_live": tile["packet_path_live"],
         }
 
     def _idle(self, card: dict[str, Any]) -> tuple[str, str, str]:
@@ -385,8 +408,8 @@ class Suite:
         if slug == "aznet":
             return (
                 "ready",
-                path_sentence() + " This desk can fetch one http or https URL. That fetch is not the packet path.",
-                "Open the desk. The sentence names what is still missing.",
+                path_sentence() + " This desk can fetch one http or https URL. That fetch is a desk read. QNM packet_path_live is on. It is not the QNS cite plane.",
+                "Open the desk. QNM membership is on. A carrier refuses only when its hardware is absent.",
             )
         if slug == "azos":
             return (
@@ -742,8 +765,8 @@ class Suite:
                 posture="ready",
                 mode="net",
                 url="/suite/aznet",
-                desk_reason=path_sentence() + " This desk can fetch one http or https URL. That fetch is not the packet path.",
-                nxt="Open the desk. The sentence names what is still missing.",
+                desk_reason=path_sentence() + " This desk can fetch one http or https URL. That fetch is a desk read. QNM packet_path_live is on. It is not the QNS cite plane.",
+                nxt="Open the desk. QNM membership is on. A carrier refuses only when its hardware is absent.",
             )
         if slug == "azos":
             return self._as_desk(

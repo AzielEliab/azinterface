@@ -37,8 +37,9 @@ def test_catalog_sentences_match_the_doors_and_omit_the_live_label() -> None:
     }
     net = cited["aznet"]
     assert net == not_live_sentence()
-    assert "alt_internet_live is false" in net
-    assert "packet_path_live is false" in net
+    assert "alt_internet_live is true" in net
+    assert "packet_path_live is true" in net
+    assert "mesh_node_live is true" in net
     assert "is true" not in net
     for slug, status in expected.items():
         assert cited[slug] == status
@@ -218,16 +219,18 @@ def test_http_doors_stay_json_and_leave_the_site_off(tmp_path: Path, monkeypatch
         assert sent["public_worker_mail_send"] is False
         assert STORY in box[-1].decode("utf-8", "replace")
         net_json = json.loads(urlopen(Request(base + "/suite/aznet", headers={"Accept": "application/json"})).read().decode())
-        assert net_json["packet_path"] is False
-        assert net_json["alt_internet"] is False
+        assert net_json["packet_path"] is True
+        assert net_json["alt_internet"] is True
         assert net_json["warn_5"] == "STANDS-until-demonstrated"
-        assert net_json["packet_path_live"] is False
-        assert net_json["alt_internet_live"] is False
+        assert net_json["packet_path_live"] is True
+        assert net_json["alt_internet_live"] is True
+        assert net_json["mesh_node_live"] is True
         assert net_json["second_device"] is False
+        assert net_json["public_icann"] is False
         assert not_live_sentence() in net_json["status"]
-        assert "An alternative internet is not live (alt_internet_live is false)." in net_json["status"]
-        assert "A packet path is not live (packet_path_live is false)." in net_json["status"]
-        assert "Still missing: a packet that leaves this machine and arrives on a different machine id." in net_json["status"]
+        assert "An alternative internet is live (alt_internet_live is true)." in net_json["status"]
+        assert "A packet path is live (packet_path_live is true)." in net_json["status"]
+        assert "QNM membership is on" in net_json["status"]
         booted = _post(base + "/suite/azos/boot", {})
         assert booted["booted"] is True
         assert booted["host_kernel"] is False

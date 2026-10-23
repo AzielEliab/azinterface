@@ -220,7 +220,14 @@ try {
   assert.match(mcp.message, /custody UI only/);
   assert.match(mcp.note, /Agents use aziel-runtime FragGate\/MCP/);
   assert.equal(mcp.mesh.path, "/v1/mesh");
-  assert.equal(mcp.mesh.enabled_default, false);
+  assert.equal(mcp.mesh.enabled_default, true);
+  assert.equal(mcp.mesh.mesh_default, "on");
+  assert.equal(mcp.mesh.mesh_node_live, true);
+  assert.equal(mcp.mesh.alt_internet_live, true);
+  assert.equal(mcp.mesh.packet_path_live, true);
+  assert.equal(mcp.mesh.qnm_membership, true);
+  assert.equal(mcp.mesh.qns_cite_plane, false);
+  assert.equal(mcp.mesh.public_icann, false);
   assert.equal(mcp.mesh.node_gate, false);
   assert.equal(mcp.mesh.auto_heal, false);
   assert.equal(mcp.mesh.anonymity, false);

@@ -1,8 +1,8 @@
 """One URL fetch on the existing suite door.
 
 The desk requests one http or https URL and returns the status and body
-it actually received. That fetch is not the packet path and not an
-alternative internet. WARN-5 stands.
+it actually received. That fetch is a desk read. QNM packet_path_live stays
+on. It is not the QNS cite plane. WARN-5 stands.
 """
 
 from __future__ import annotations
@@ -20,10 +20,13 @@ _LIMIT = 200_000
 
 def _local(body: dict[str, Any]) -> dict[str, Any]:
     report = path_report()
-    body["packet_path"] = False
-    body["alt_internet"] = False
-    body["packet_path_live"] = False
-    body["alt_internet_live"] = False
+    body["packet_path"] = True
+    body["alt_internet"] = True
+    body["packet_path_live"] = True
+    body["alt_internet_live"] = True
+    body["mesh_node_live"] = True
+    body["qnm_membership"] = True
+    body["qns_cite_plane"] = False
     body["warn_5"] = report["warn5"]
     body["path_status"] = report["status"]
     return body

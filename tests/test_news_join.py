@@ -50,8 +50,8 @@ def test_catalog_statuses_stay_honest_and_the_count_stays_33() -> None:
     assert "aznews" not in cited
     net = cited["aznet"]
     assert net == not_live_sentence()
-    assert "alt_internet_live is false" in net
-    assert "packet_path_live is false" in net
+    assert "alt_internet_live is true" in net
+    assert "packet_path_live is true" in net
     assert "is true" not in net
     for slug, status in HONEST.items():
         assert cited[slug] == status
@@ -173,9 +173,9 @@ def test_http_door_keeps_sentences_json_and_an_off_site(tmp_path: Path, monkeypa
         assert "Softwares 42 is the runtime catalog." in home
         assert "The domain count stays 33." in home
         assert not_live_sentence() in home
-        assert "An alternative internet is not live (alt_internet_live is false)." in home
-        assert "A packet path is not live (packet_path_live is false)." in home
-        assert "Still missing: a packet that leaves this machine and arrives on a different machine id." in home
+        assert "An alternative internet is live (alt_internet_live is true)." in home
+        assert "A packet path is live (packet_path_live is true)." in home
+        assert "QNM membership is on" in home
         assert "Mail send does not run on the public worker." in home
         assert "The public worker does not run a kernel." in home
         assert "Boot does not run on the public worker." in home

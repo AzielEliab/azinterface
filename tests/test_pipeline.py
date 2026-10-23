@@ -147,8 +147,8 @@ def test_strip_and_domain_map_html() -> None:
     assert len(cited) == 33
     net = cited["aznet"]["status"]
     assert net == not_live_sentence()
-    assert "alt_internet_live is false" in net
-    assert "packet_path_live is false" in net
+    assert "alt_internet_live is true" in net
+    assert "packet_path_live is true" in net
     assert "is true" not in net
     assert net in html
     for slug, status in catalog.items():

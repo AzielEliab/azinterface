@@ -56,7 +56,10 @@ async function signWithTestSeed(packet) {
   assert.equal(st.body.stored_chains, 0);
   assert.equal(st.body.azos_updated, false);
   assert.equal(st.body.key_pinned, true);
-  assert.equal(st.body.mesh_node_live, false);
+  assert.equal(st.body.mesh_node_live, true);
+  assert.equal(st.body.alt_internet_live, true);
+  assert.equal(st.body.packet_path_live, true);
+  assert.equal(st.body.public_icann, false);
   assert.equal(st.body.second_device, false);
   assert.equal(st.body.booted, false);
 }

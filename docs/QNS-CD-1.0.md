@@ -32,7 +32,7 @@ and the suite mesh rollup (`slug=mesh`). It does not invent a QNS catalog card.
 | Walker-restricted via cite | Interface-run lan/plc/bt/rf/light/qns hops |
 | Living-presence ops at ON after integrity | Pair mutate in OFF / FULL SHUTDOWN / MEMORIAL |
 | `pair_cut` as a clean dissolve | Remote wipe / Scorched Earth |
-| Default mesh OFF (QNM-BUILD-1.0) | Node Gate, GET-enable, untraceable origin |
+| QNS cite plane (pair memorial). QNM membership is a separate plane and is ON | Node Gate, GET-enable, untraceable origin, Cap-7 as ICANN |
 
 ## Photon QNS1 (via plane)
 

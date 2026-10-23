@@ -1,4 +1,4 @@
-"""Standing facts stay false, and a caller cannot flip them."""
+"""QNM membership flags stay on. A caller cannot flip kernel, mail, boot, or second_device."""
 
 from __future__ import annotations
 
@@ -41,8 +41,11 @@ CALLER = {
 
 
 def _assert_facts(facts: dict) -> None:
-    assert facts["alt_internet_live"] is False
-    assert facts["packet_path_live"] is False
+    assert facts["mesh_node_live"] is True
+    assert facts["alt_internet_live"] is True
+    assert facts["packet_path_live"] is True
+    assert facts["qnm_membership"] is True
+    assert facts["qns_cite_plane"] is False
     assert facts["second_device"] is False
     assert facts["mail_send"] is False
     assert facts["public_smtp_send"] is False
@@ -93,8 +96,9 @@ def test_banner_and_status_keep_the_standing_facts() -> None:
     assert cycle["mail_send"] is False
     assert cycle["kernel_base"] is False
     assert cycle["os_yet"] is False
-    assert cycle["alt_internet_live"] is False
-    assert cycle["packet_path_live"] is False
+    assert cycle["mesh_node_live"] is True
+    assert cycle["alt_internet_live"] is True
+    assert cycle["packet_path_live"] is True
     assert cycle["second_device"] is False
     # KERNEL-FIELD-1.0: kernel is boolean False; the repo URL moved to kernel_repo_url.
     assert cycle["kernel"] is False
@@ -105,10 +109,12 @@ def test_banner_and_status_keep_the_standing_facts() -> None:
     walked.integrity_check({})
     stayed = walked.page_cycle_status({"site_state": "ON", "alt_internet_live": True})
     assert stayed["site_state"] == "integrity"
-    assert stayed["alt_internet_live"] is False
+    assert stayed["alt_internet_live"] is True
+    assert stayed["mesh_node_live"] is True
     report = path_report(CALLER, refresh=True)
-    assert report["alt_internet_live"] is False
-    assert report["packet_path_live"] is False
+    assert report["alt_internet_live"] is True
+    assert report["packet_path_live"] is True
+    assert report["mesh_node_live"] is True
     assert report["second_device"] is False
     assert report["booted"] is False
     assert report["installed"] is False

@@ -34,7 +34,10 @@ import {
   rehealSurfaceAllows,
   mayPushPayload,
   meshClientScript,
+  MESH_DEFAULT,
+  QNM_LIVE_FLAGS,
   meshLaw,
+  meshRadios,
   meshStripHtml,
   multiplyColdCopies,
   payloadPlane,
@@ -161,6 +164,64 @@ assert.equal(card.reheal.law, REHEAL);
 assert.equal(card.reheal.refuse, true);
 assert.equal(card.sockets.ok, true);
 assert.equal(card.author, "Aziel Eliab only");
+assert.equal(card.node_mesh_enabled, true);
+assert.equal(card.mesh_default, "on");
+assert.equal(MESH_DEFAULT, "on");
+assert.equal(card.mesh_node_live, true);
+assert.equal(card.alt_internet_live, true);
+assert.equal(card.packet_path_live, true);
+assert.equal(QNM_LIVE_FLAGS.mesh_node_live, true);
+assert.equal(card.qns_cite_plane, false);
+assert.equal(card.public_icann, false);
+assert.equal(card.cap7_registrar_live, false);
+assert.equal(card.get_enables_mesh, false);
+
+const status = meshRadios({});
+assert.equal(status.ok, true);
+assert.equal(status.status, "OK");
+assert.equal(status.radios, "on");
+assert.equal(status.enabled, true);
+assert.equal(status.action, "status");
+assert.equal(status.mesh_node_live, true);
+assert.equal(status.alt_internet_live, true);
+assert.equal(status.packet_path_live, true);
+assert.equal(status.qns_cite_plane, false);
+assert.equal(status.hardware_live, false);
+assert.equal(status.cap7_registrar_live, false);
+assert.equal(status.public_icann, false);
+assert.deepEqual(status.locks, { softwares: 42, mcp_tools: 36 });
+const enabled = meshRadios({ confirm: true });
+assert.equal(enabled.ok, true);
+assert.equal(enabled.code, "AZI-MESH-RADIOS");
+assert.equal(enabled.radios, "on");
+assert.equal(enabled.mutated, true);
+assert.equal(enabled.hardware_live, false);
+const forcedOff = meshRadios({ confirm: true }, { MESH_RADIOS: "off" });
+assert.equal(forcedOff.ok, false);
+assert.equal(forcedOff.code, "MESH-OFF");
+assert.equal(forcedOff.radios, "off");
+assert.equal(forcedOff.enabled, false);
+assert.equal(forcedOff.mesh_node_live, true);
+assert.equal(forcedOff.alt_internet_live, true);
+assert.equal(forcedOff.packet_path_live, true);
+const cap7 = meshRadios({ carrier: "cap7", confirm: true });
+assert.equal(cap7.ok, false);
+assert.equal(cap7.code, "MG-NO-IP-EXIT");
+assert.equal(cap7.public_icann, false);
+assert.equal(cap7.cap7_registrar_live, false);
+const photon = meshRadios({ carrier: "photon" });
+assert.equal(photon.mock, false);
+assert.equal(photon.hardware_live, false);
+assert.equal(photon.public_icann, false);
+assert.equal(photon.mesh_node_live, true);
+if (photon.ok === false) {
+  assert.equal(photon.code, "QNM-RADIO-ABSENT");
+  assert.equal(photon.carrier_live, false);
+} else {
+  assert.equal(photon.status, "OK");
+  assert.equal(photon.carrier_state, "HW-PRESENT");
+  assert.equal(photon.carrier_live, false);
+}
 
 assert.match(LIVE_NODES_COPY, /SPLIT THE WIRES/);
 assert.match(LIVE_NODES_COPY, /COLD-COPY SURVIVAL/);

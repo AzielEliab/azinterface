@@ -17,7 +17,7 @@
  * Known limit (follow-up): the tether tip write is a KV read-modify-write, not compare-and-set. Concurrent valid
  * packets or a stale KV read can store an older tip; the next push re-links from the runtime tip (TETHER-LINK on a
  * fork). Same as AZ-OS src/tether.js, kept byte for byte.
- * Nothing here flips a live flag. Author: Aziel Eliab. SPDX-License-Identifier: Apache-2.0
+ * QNM membership flags are on. Kernel, boot, and install stay false. Author: Aziel Eliab. SPDX-License-Identifier: Apache-2.0
  */
 import { receiveTether, tetherState } from "./lattice-tether.js";
 import { sigilSvg } from "./sigil.js";
@@ -26,7 +26,7 @@ import { runtimeBinding } from "./lockstep.js";
 const LEG = "azinterface";
 const H = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" };
 const j = (body, status = 200) => new Response(JSON.stringify(body, null, 2), { status, headers: body && (body.code === "LEG-RUNTIME-ABSENT" || body.code === "LEG-RUNTIME-TIMEOUT") ? { ...H, "X-Leg-Runtime": "down" } : H });
-const honest = { live: false, alt_internet_live: false, packet_path_live: false, mesh_node_live: false, kernel_live: false, booted: false, installed: false, kernel_base: false, second_device: false };
+const honest = { live: false, alt_internet_live: true, packet_path_live: true, mesh_node_live: true, qnm_membership: true, qns_cite_plane: false, kernel_live: false, booted: false, installed: false, kernel_base: false, second_device: false, public_icann: false, cap7_registrar_live: false };
 
 export const PREFAB_SLUGS = Object.freeze(["azos", "temporallock", "staticclock", "shadowlock", "foldlock", "azai", "godlock", "vibelock", "veillock", "spectrallock", "miragegrid", "codelock", "decisiongate", "chronolock", "azclce", "ark"]);
 export const ARC_PATHS = Object.freeze(["/v1/session", "/v1/exec", "/v1/halt", "/v1/close", "/v1/invite", "/v1/revoke", "/v1/status"]);
