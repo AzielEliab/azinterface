@@ -103,6 +103,12 @@ custody UI only.
 Agents display `display.title`, `display.summary`, and `display.fields`
 in chat, then take the next input.
 
+## AZBot node tether (Design 1.0)
+
+AZInterface keeps the local desk and the sealed page cycles. AZBot at `127.0.0.1` packages FragGate calls. This repo does not open that socket and does not add a door. Session tips are hashes on the loopback desk; the public worker stores none. AzielTether is a cite under an operator bearer. Cap-7 and `.aziel` stay names, not ICANN. See [docs/designs/AZBOT-NODE-COLLABORATIVE-FORENSIC-1.0.md](docs/designs/AZBOT-NODE-COLLABORATIVE-FORENSIC-1.0.md).
+
+
+
 Works with ChatGPT (GPT Actions / OpenAI), Grok (xAI), Venice, Claude
 (Anthropic), Cursor (MCP), Glama (MCP), Perplexity, Microsoft Copilot /
 Bing, Google Gemini / Vertex, Mistral, Meta AI, Apple Intelligence

@@ -10,6 +10,9 @@
  * The newsmap door (used by index.js) gets this host's copy reader, so AZNews reads answer
  * from the copy when the runtime is unreachable (standalone:true only when it re-verifies),
  * and GET /v1/map serves 4DMap from the 4DMap copy with no AZNews.
+ *   GET|POST /v1/forensic/* and /v1/azieltether
+ *                           Design 1.0 cite (src/forensic-tether.js). No session store.
+ *                           Not a FragGate door.
  * Everything else goes to index.js as before. Author: Aziel Eliab.
  */
 import worker from "./index.js";
@@ -136,6 +139,9 @@ export default {
     if (path === "/v1/tether/tip" && request.method === "POST" && Number(request.headers.get("content-length") || 0) <= 262144) {
       try { const pk = await request.clone().json(); tetherChain = pk && typeof pk.chain === "string" ? pk.chain : null; } catch { tetherChain = null; }
     }
+    const { handleForensicRoute } = await import("./forensic-tether.js");
+    const forensic = await handleForensicRoute(request);
+    if (forensic) return forensic;
     const { handleUnionRoute } = await import("./union.js");
     const union = await handleUnionRoute(request, env);
     if (union) {

@@ -110,6 +110,17 @@ runtime path.
 `genesis_boot` · `hold` · `withdraw` · `scorch_local` · `pipeline_arch` ·
 `pair_offer` · `pair_accept` · `pair_seal` · `pair_cut` · `pair_status`
 
+## AZBot node tether (Design 1.0)
+
+Interface side only. AZBot owns the azbot repository. Softwares OVERRIDE is separate.
+Design: `docs/designs/AZBOT-NODE-COLLABORATIVE-FORENSIC-1.0.md`.
+
+The local desk at `http://127.0.0.1:8880` keeps the sealed page cycles. `POST /v1/forensic/handoff` packages `{slug, op, payload}` for AZBot at `127.0.0.1` and does not send it. Admission is ON after integrity. One step. No skip.
+
+`GET /v1/forensic/tip` shares the tip hash. A later tip must link `prev` to the current tip. `TIP-REWRITE-REFUSED` otherwise. The public worker stores no session (`LOCAL-DESK-ONLY` on append).
+
+`GET|POST /v1/azieltether` cites AzielTether (`slug=azieltether`, door `fraggate`) only with an operator bearer. Missing bearer is `MESH-NEED-BEARER`. The bearer is not stored. Mesh radios stay off. These paths are not a second door. Cap-7 and `.aziel` stay names (`MG-NO-IP-EXIT`), not ICANN.
+
 ## QNS-CD-1.0 cross-map
 
 Canonical qnsd: https://github.com/AzielEliab/aziel-runtime/tree/main/qnm-node

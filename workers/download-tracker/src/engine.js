@@ -437,6 +437,19 @@ export function resetEngine() {
   Object.assign(STATE, next);
 }
 
+/** Read the sealed cycle. Does not append a receipt and does not advance the cycle. */
+export function custodyCycle() {
+  return {
+    current: currentCycle(STATE),
+    living_presence: livingPresence(STATE),
+    integrity_ok: STATE.integrity_ok === true,
+    cycles: PAGE_CYCLES.slice(),
+    pre_locked: true,
+    skip_forbidden: true,
+    cloud_asleep: false,
+  };
+}
+
 function currentCycle(s) {
   return PAGE_CYCLES[s.cycle_index] || "OFF";
 }

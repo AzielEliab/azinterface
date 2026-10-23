@@ -5,10 +5,11 @@ from __future__ import annotations
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from .cite import cite_document
 from .engine import Engine
+from .forensic_session import ForensicDesk
 from .pipeline import pipeline_arch
 from .local_page import operator_html
 from .meta import IDENTITY, LIMITATION, LOOPBACK, NAME, PORT, SPEC, VERSION
@@ -17,7 +18,9 @@ from .suite import SLUG_RE, Suite
 from .suite_page import suite_html
 
 _ENGINE = Engine(Ledger())
+FORENSIC = ForensicDesk()
 SUITE = Suite()
+_FORENSIC_PATHS = {"/v1/forensic/tip", "/v1/forensic/session", "/v1/forensic/handoff", "/v1/azieltether"}
 
 
 def wants_json(accept: str | None) -> bool:
@@ -195,6 +198,9 @@ class Handler(BaseHTTPRequestHandler):
             op = path.rsplit("/", 1)[-1]
             self._json(_ENGINE.dispatch(op, {}))
             return
+        if path in _FORENSIC_PATHS:
+            self._forensic_get(path)
+            return
         if path == "/v1/skill":
             body = _ENGINE.skill({})
             text = str(body.get("markdown") or LIMITATION)
@@ -289,6 +295,12 @@ class Handler(BaseHTTPRequestHandler):
             body = payload.get("payload") if isinstance(payload.get("payload"), dict) else {}
             self._json(SUITE.fraggate_call(str(payload.get("slug") or ""), str(payload.get("op") or ""), body))
             return
+        if path in _FORENSIC_PATHS:
+            if length > 65536:
+                self._json({"ok": False, "code": "BODY-TOO-LARGE", "written": False, "spec": "AZBOT-NODE-COLLABORATIVE-FORENSIC-1.0"}, 413)
+                return
+            self._forensic_post(path, payload if isinstance(payload, dict) else {})
+            return
         if not path.startswith("/v1/"):
             self._json({"error": "not found"}, 404)
             return
@@ -301,6 +313,39 @@ class Handler(BaseHTTPRequestHandler):
         if out.get("code") == "FG-HALLUC-TOOL":
             status = 404
         self._json(out, status)
+
+
+    def _cycle(self) -> dict[str, Any]:
+        return _ENGINE.page_cycle_snapshot()
+
+    def _forensic_get(self, path: str) -> None:
+        query = parse_qs(urlparse(self.path).query)
+        session_id = (query.get("session_id") or [None])[0]
+        if path in {"/v1/forensic/tip", "/v1/forensic/session"}:
+            self._emit(FORENSIC.read_tip(session_id))
+            return
+        if path == "/v1/forensic/handoff":
+            self._emit(FORENSIC.handoff_cite(self._cycle()))
+            return
+        self._emit(FORENSIC.expose_tether(self.headers.get("Authorization"), {}))
+
+    def _forensic_post(self, path: str, payload: dict[str, Any]) -> None:
+        cycle = self._cycle()
+        if path == "/v1/forensic/tip":
+            body, _status = FORENSIC._refuse("TIP-REWRITE-REFUSED", 409, "The tip path is read-only.")
+            self._json(body, 409)
+            return
+        if path == "/v1/forensic/session":
+            self._emit(FORENSIC.append_tip(payload, cycle))
+            return
+        if path == "/v1/forensic/handoff":
+            self._emit(FORENSIC.package_handoff(payload, cycle))
+            return
+        self._emit(FORENSIC.expose_tether(self.headers.get("Authorization"), payload))
+
+    def _emit(self, result: tuple[dict[str, Any], int]) -> None:
+        body, status = result
+        self._json(body, status)
 
 
 def make_server(host: str, port: int) -> ThreadingHTTPServer:
