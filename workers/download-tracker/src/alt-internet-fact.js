@@ -1,7 +1,9 @@
 /**
- * The not-live sentence aziel-runtime currentAltInternetFact computes.
- * alt_internet_live and packet_path_live stay false. A same-machine frame
- * is not a second device. Cap-7 and .aziel stay names.
+ * QNM sentence. Softwares membership is on: mesh_node_live, alt_internet_live,
+ * and packet_path_live are true. That membership is not the QNS cite plane.
+ * A named carrier refuses only when QNM says the hardware is absent.
+ * A same-machine frame is not a second device. Cap-7 and .aziel stay names,
+ * not a public registrar and not ICANN.
  * Author: Aziel Eliab. Identity is Aziel Eliab only.
  */
 
@@ -10,10 +12,10 @@ const ORDER = ["lan", "wifi", "bluetooth", "rf", "photon"];
 const NET = "/sys/class/net";
 
 export const HEAD =
-  "An alternative internet is not live (alt_internet_live is false). A packet path is not live (packet_path_live is false).";
+  "An alternative internet is live (alt_internet_live is true). A packet path is live (packet_path_live is true). The node mesh is live (mesh_node_live is true).";
 
 export const TAIL = [
-  "Still missing: a packet that leaves this machine and arrives on a different machine id.",
+  "QNM membership is on (mesh_node_live, alt_internet_live, and packet_path_live). That membership is not the QNS cite plane.",
   "A same-machine mesh frame does not count.",
   "Cap-7 and .aziel stay names, not a public registrar and not ICANN or BGP.",
   "WireGuard, OpenVPN, an L3 exit pool, kernel UDP, and TUN/TAP stay SLOT.",
@@ -278,7 +280,23 @@ function track2CarrierProbe(fs, os, pathMod) {
   return { carriers };
 }
 
-/** The sentence this process can actually compute. No caller watch. Flags stay false. */
+/** QNM carrier probe. visible false does not invent a radio. */
+export function qnmCarrierProbe() {
+  const fs = builtin("node:fs");
+  const os = builtin("node:os");
+  const pathMod = builtin("node:path");
+  if (!fs || !os || !pathMod || !hostHardwareVisible(fs)) {
+    return { visible: false, worker_hardware: false, carriers: null };
+  }
+  try {
+    const probe = track2CarrierProbe(fs, os, pathMod);
+    return { visible: true, worker_hardware: true, carriers: probe.carriers };
+  } catch {
+    return { visible: true, worker_hardware: true, carriers: {} };
+  }
+}
+
+/** The sentence this process can actually compute. QNM membership flags stay on. */
 export function notLiveSentence() {
   const fs = builtin("node:fs");
   const os = builtin("node:os");

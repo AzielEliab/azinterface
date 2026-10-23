@@ -11,6 +11,8 @@
  * Author: Aziel Eliab only.
  */
 
+import { qnmCarrierProbe } from "./alt-internet-fact.js";
+
 export const QNS_CD = "QNS-CD-1.0";
 export const QNM_BUILD = "QNM-BUILD-1.0";
 export const QNSD_BIND = "127.0.0.1";
@@ -323,6 +325,195 @@ export function dataOutlivesCreators(input) {
   };
 }
 
+export const MESH_DEFAULT = "on";
+export const MESH_DEFAULT_ENABLED = true;
+export const NODE_MESH_ENABLED = true;
+export const SUITE_PRESENCE = "on";
+export const QNM_LIVE_FLAGS = Object.freeze({
+  mesh_node_live: true,
+  alt_internet_live: true,
+  packet_path_live: true,
+});
+
+const MESH_STAY_OFF = Object.freeze([
+  "public_egress_ip",
+  "residential",
+  "cf_geo_exit",
+  "cf_geo_exit_pool",
+  "sticky_public_ip",
+  "packet_forward",
+  "packet_forwarding",
+  "packet_egress",
+  "hosted_vpn",
+  "vpn_hop",
+  "wireguard",
+  "openvpn",
+  "l3_exit",
+  "payload_host",
+  "origin_hiding",
+  "public_icann",
+  "icann_tld_az",
+  "standard_internet_reaches_cap7",
+  "resolves_to_hub",
+  "dns_publish",
+  "register",
+  "forced_loopback",
+  "loopback_isolation",
+  "loopback_fence",
+  "cap7_registrar_live",
+  "public_registrar",
+]);
+const NAMED_CARRIERS = Object.freeze({ lan: "lan", wifi: "wifi", "wi-fi": "wifi", bluetooth: "bluetooth", bt: "bluetooth", rf: "rf", photon: "photon" });
+const MESH_RADIOS_NOTE =
+  "Softwares membership is MESH_RADIOS=on. QNM mesh_node_live, alt_internet_live, and packet_path_live are on. That membership is not the QNS cite plane. Cap-7 and .aziel stay names, not a public registrar and not ICANN. A named carrier refuses only when QNM says the hardware is absent. GET never enables.";
+
+export function readMeshRadioEnv(env) {
+  if (!env || typeof env !== "object") return null;
+  const raw = env.MESH_RADIOS != null && env.MESH_RADIOS !== "" ? env.MESH_RADIOS : env.QNM_RADIOS;
+  if (raw == null || raw === "") return null;
+  const s = String(raw).trim().toLowerCase();
+  if (s === "off" || s === "0" || s === "false" || s === "disabled") return false;
+  if (s === "on" || s === "1" || s === "true" || s === "enabled") return true;
+  return null;
+}
+
+function meshStayOffHit(src) {
+  if (!src || typeof src !== "object" || Array.isArray(src)) return null;
+  if (src.not_a_second_internet === false || src.aznet_replaces_internet === true) return "not_a_second_internet";
+  const bearer = String(src.carrier || src.bearer || src.name || "").trim().toLowerCase();
+  if (bearer === "cap7" || bearer === "cap-7" || bearer === "icann" || bearer.endsWith(".aziel")) return "cap7-name";
+  for (const key of MESH_STAY_OFF) {
+    if (src[key] === true) return key;
+  }
+  return null;
+}
+
+function namedCarrier(src) {
+  const raw = String((src && src.carrier) || "").trim().toLowerCase();
+  return NAMED_CARRIERS[raw] || null;
+}
+
+function qnmFlags() {
+  return { mesh_node_live: true, alt_internet_live: true, packet_path_live: true };
+}
+
+/** Softwares mesh_radios tile. Status OK by default. confirm keeps MESH_RADIOS=on. */
+export function meshRadios(payload, env) {
+  const src = payload && typeof payload === "object" && !Array.isArray(payload) ? payload : {};
+  const envRadios = readMeshRadioEnv(env);
+  const radiosOn = envRadios !== false;
+  const tile = {
+    ok: true,
+    status: "OK",
+    product: "azinterface",
+    op: "mesh_radios",
+    radios: radiosOn ? "on" : "off",
+    enabled: radiosOn,
+    node_mesh: radiosOn,
+    node_mesh_enabled: radiosOn,
+    suite_presence: radiosOn ? "on" : "off",
+    mesh_default: MESH_DEFAULT,
+    ...qnmFlags(),
+    qnm_membership: true,
+    qns_cite_plane: false,
+    qns_is_membership: false,
+    softwares_membership: radiosOn,
+    hardware_live: false,
+    worker_hardware: false,
+    mock: false,
+    carrier_live: false,
+    second_device: false,
+    get_never_enables: true,
+    public_icann: false,
+    cap7_is_icann: false,
+    cap7_name_only: true,
+    dot_aziel_name_only: true,
+    cap7_registrar_live: false,
+    not_a_second_internet: true,
+    bearers: radiosOn ? ["suite-presence"] : [],
+    env_radios: envRadios,
+    locks: { softwares: 42, mcp_tools: 36 },
+    note: MESH_RADIOS_NOTE,
+  };
+  const stayed = meshStayOffHit(src);
+  if (stayed) {
+    return {
+      ...tile,
+      ok: false,
+      status: "REFUSED",
+      code: stayed === "cap7-name" ? "MG-NO-IP-EXIT" : "MESH-STAY-OFF",
+      stayed,
+      mutated: false,
+      public_icann: false,
+      cap7_registrar_live: false,
+      message: "Cap-7 and .aziel stay names. They are not ICANN and not a public registrar. Mesh radios do not arm Cap-7 egress, a public registrar, or a loopback fence.",
+    };
+  }
+  const carrier = namedCarrier(src);
+  if (carrier) {
+    const probe = qnmCarrierProbe();
+    const row = probe.carriers ? probe.carriers[carrier] : null;
+    if (!probe.visible || !row || row.state !== "HW-PRESENT") {
+      return {
+        ...tile,
+        ok: false,
+        status: "REFUSED",
+        code: (row && row.code) || "QNM-RADIO-ABSENT",
+        carrier,
+        mock: false,
+        hardware_live: false,
+        carrier_live: false,
+        worker_hardware: probe.visible === true,
+        message: "That carrier is refused. QNM says the hardware is absent. This does not invent a live radio.",
+      };
+    }
+    tile.worker_hardware = true;
+    tile.carrier = carrier;
+    tile.carrier_state = "HW-PRESENT";
+    tile.hardware_live = false;
+    tile.note = tile.note + " The named carrier is present on this machine and is not a second device.";
+  }
+  if (src.confirm !== true || src.dry_run === true) {
+    return {
+      ...tile,
+      action: "status",
+      mutated: false,
+      needs_confirm: true,
+      dry_run: src.dry_run === true,
+      message: radiosOn
+        ? "Status only. Softwares mesh radios are ON. confirm true keeps MESH_RADIOS=on. Hardware is not claimed live. GET never enables."
+        : "Status only. MESH_RADIOS=off keeps transmission radios off.",
+    };
+  }
+  if (envRadios === false) {
+    return {
+      ...tile,
+      ok: false,
+      status: "REFUSED",
+      code: "MESH-OFF",
+      action: "enable",
+      mutated: false,
+      radios: "off",
+      enabled: false,
+      message: "MESH_RADIOS=off keeps transmission radios off. Confirm does not override that env.",
+    };
+  }
+  return {
+    ...tile,
+    ok: true,
+    status: "OK",
+    code: "AZI-MESH-RADIOS",
+    action: "enable",
+    mutated: true,
+    confirm: true,
+    radios: "on",
+    enabled: true,
+    ...QNM_LIVE_FLAGS,
+    hardware_live: false,
+    message: "MESH_RADIOS=on. Suite-presence membership is on. QNM mesh_node_live, alt_internet_live, and packet_path_live are true. That is not the QNS cite plane and not a Cap-7 registrar. GET still never enables.",
+  };
+}
+
 export function meshLaw() {
   return Object.freeze({
     split_the_wires: SPLIT_THE_WIRES_LAW,
@@ -331,6 +522,18 @@ export function meshLaw() {
     sockets: socketsMustSplit(TIP_SOCKET, GATE_SOCKET),
     doc: STW_DOC,
     author: MESH_LAW_AUTHOR,
+    node_mesh: true,
+    node_mesh_enabled: NODE_MESH_ENABLED,
+    mesh_default: MESH_DEFAULT,
+    enabled: MESH_DEFAULT_ENABLED,
+    suite_presence: SUITE_PRESENCE,
+    ...QNM_LIVE_FLAGS,
+    qnm_membership: true,
+    qns_cite_plane: false,
+    get_enables_mesh: false,
+    public_icann: false,
+    cap7_name_only: true,
+    cap7_registrar_live: false,
   });
 }
 
@@ -347,6 +550,9 @@ export const LIVE_NODES_COPY =
   "QNS-CD-1.0 photon vias run in local qnsd (127.0.0.1). " +
   "AIH-WP-1.3 spiderweb is local qnm-node — not a public Node Gate. " +
   "Presence only — not anonymity. Anon-broadcast is not a publish path. " +
+  "Node mesh ON. mesh_node_live, alt_internet_live, and packet_path_live are true. " +
+  "Softwares membership is MESH_RADIOS=on. That membership is not the QNS cite plane. " +
+  "Cap-7 and .aziel stay names, not a public registrar and not ICANN. " +
   "GET never enables.";
 
 export function meshStripHtml() {

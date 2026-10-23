@@ -8,7 +8,7 @@
  */
 import { sealStanding } from "./honesty.js";
 import { FOURDMAP_FRAME, pipelineArch } from "./pipeline.js";
-import { COLD_COPY_SURVIVAL, REHEAL, SPLIT_THE_WIRES, STW_DOC } from "./mesh.js";
+import { COLD_COPY_SURVIVAL, MESH_DEFAULT, QNM_LIVE_FLAGS, REHEAL, SPLIT_THE_WIRES, STW_DOC, meshRadios } from "./mesh.js";
 
 export const VERSION = "0.1.0";
 export const SPEC = "AIH-WP-1.0";
@@ -55,6 +55,7 @@ export const LIVE_OPS = [
   "integrity_check",
   "witness_list",
   "page_cycle_status",
+  "mesh_radios",
   "pipeline_arch",
   "hold",
   "withdraw",
@@ -159,7 +160,12 @@ export function qnsCrossMap() {
     catalog: "azinterface",
     softwares_tab_qns: false,
     mesh: QNM_BUILD,
-    mesh_default: "OFF",
+    mesh_default: MESH_DEFAULT,
+    node_mesh_enabled: true,
+    ...QNM_LIVE_FLAGS,
+    qnm_membership: true,
+    qns_cite_plane: true,
+    qns_is_membership: false,
     get_enables_mesh: false,
     split_the_wires: SPLIT_THE_WIRES,
     cold_copy_survival: COLD_COPY_SURVIVAL,
@@ -174,7 +180,7 @@ export function qnsCrossMap() {
     remote_wipe: false,
     vault_contents: false,
     pair_memorial: "azinterface custody",
-    note: "Vias run in local qnsd (127.0.0.1). Interface holds pair memorial cites only.",
+    note: "QNS is the cite plane (pair memorial on local qnsd). It is not Softwares membership. QNM membership is on: mesh_node_live, alt_internet_live, and packet_path_live. GET never enables. Cap-7 and .aziel stay names.",
   };
 }
 const GENESIS_DOMAIN = "azinterface|genesis|AIH-WP-1.0";
@@ -230,7 +236,7 @@ https://github.com/AzielEliab/fraggate. Catalog is live. Human chrome uses
 this Worker \`/v1/{op}\` (single-segment local ops only). \`/v1/fraggate/*\`,
 \`/v1/runtime/*\`, and \`/v1/mesh/*\` PROXY to aziel-runtime (\`AZIEL_RUNTIME\`
 or HTTPS). Suite mesh is QNM-BUILD-1.0 rollup (live|locked|isolated);
-default OFF until runtime enable. \`GET /v1/mesh\` never enables.
+node mesh ON. mesh_node_live, alt_internet_live, and packet_path_live are true. Softwares membership is MESH_RADIOS=on. That membership is not the QNS cite plane. \`GET /v1/mesh\` never enables.
 SPLIT THE WIRES: 0.5–1s tip tick is presence+tip hash only (fixed-size);
 payload is pull-only on a second plane; update is proof, not a timer
 (cite prev+lockset fail-closed; 777s dwell; clock desync ≠ yes;
@@ -749,7 +755,7 @@ function pushPairWitness(s, rec, kind, pairId, photonId) {
   return witness;
 }
 
-export async function dispatch(op, payload, _sessionId) {
+export async function dispatch(op, payload, _sessionId, env) {
   payload = payload || {};
   const hit = detectForbiddenEvent(payload);
   if (hit) {
@@ -786,6 +792,10 @@ export async function dispatch(op, payload, _sessionId) {
     };
   }
   const s = STATE;
+
+  if (name === "mesh_radios") {
+    return meshRadios(payload, env);
+  }
 
   if (name === "health") {
     const rec = await appendReceipt(s, "health", { site_state: currentCycle(s) });

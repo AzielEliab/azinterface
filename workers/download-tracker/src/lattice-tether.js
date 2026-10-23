@@ -17,7 +17,7 @@
  *   secondary = online:  H({offline: false, prev: secondary_prev, primary})
  *               offline: H({primary: document_hash, username})
  *
- * Not mesh membership. Not a second device. Not a public ledger. Not courtroom proof.
+ * QNM mesh_node_live is on. This tether is not a second device, not a public ledger, and not courtroom proof. It is not the QNS cite plane.
  * Author: Aziel Eliab. Identity is Aziel Eliab only.
  */
 
@@ -36,7 +36,13 @@ export const TETHER_FACTS = Object.freeze({
   runtime_exec_into_azos: false,
   azos_lattice_refusal_stays: true,
   remain_off_item: 8,
-  mesh_node_live: false,
+  mesh_node_live: true,
+  alt_internet_live: true,
+  packet_path_live: true,
+  qnm_membership: true,
+  qns_cite_plane: false,
+  public_icann: false,
+  cap7_registrar_live: false,
   second_device: false,
   internet_live: false,
   public_ledger: false,

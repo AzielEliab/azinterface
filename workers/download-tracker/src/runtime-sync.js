@@ -5,7 +5,7 @@
  * install (MESH-BOOTSTRAP-1.0 / MESH-ONBOARD-1.0), and lattice-learn (LATTICE-LEARN-1.0, runtime-side).
  * Where this tracker stores verified tips of its own, each one is compared with the runtime tip:
  * "agree" (same primary), "lagging" (the runtime has moved on; the next tether push catches up),
- * or "unknown". Nothing here writes, signs, or flips a flag; every live flag stays false.
+ * or "unknown". Nothing here writes or signs. QNM mesh_node_live, alt_internet_live, and packet_path_live stay on. Kernel and mail stay false.
  * Fails closed: an unreachable runtime gives ok:false and no claims.
  * Author: Aziel Eliab. SPDX-License-Identifier: Apache-2.0
  */
@@ -27,7 +27,7 @@ async function getJson(fetchImpl, url, ms) {
 }
 
 export async function runtimeSync({ side, localChains = [], fetchImpl = fetch, origin = RUNTIME_ORIGIN, timeoutMs = 4000 } = {}) {
-  const honest = { live: false, alt_internet_live: false, packet_path_live: false, second_device: false, public_mail_send_live: false, kernel_live: false, writes: false };
+  const honest = { live: false, alt_internet_live: true, packet_path_live: true, mesh_node_live: true, qnm_membership: true, qns_cite_plane: false, second_device: false, public_mail_send_live: false, public_icann: false, cap7_registrar_live: false, kernel_live: false, writes: false };
   const [tip, tether, boot] = await Promise.all([
     getJson(fetchImpl, `${origin}/v1/receipts/tip`, timeoutMs),
     getJson(fetchImpl, `${origin}/v1/tether`, timeoutMs),

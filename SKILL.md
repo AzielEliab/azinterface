@@ -50,7 +50,7 @@ https://github.com/AzielEliab/fraggate. Catalog is live. Human chrome uses
 this Worker `/v1/{op}` (single-segment local ops only). `/v1/fraggate/*`,
 `/v1/runtime/*`, and `/v1/mesh/*` PROXY to aziel-runtime (`AZIEL_RUNTIME`
 or HTTPS). Suite mesh is QNM-BUILD-1.0 rollup (live|locked|isolated);
-default OFF until runtime enable. `GET /v1/mesh` never enables.
+node mesh ON. mesh_node_live, alt_internet_live, and packet_path_live are true. Softwares membership is MESH_RADIOS=on. That membership is not the QNS cite plane. `GET /v1/mesh` never enables.
 SPLIT THE WIRES: 0.5–1s tip tick is presence+tip hash only (fixed-size);
 payload is pull-only on a second plane; update is proof, not a timer
 (cite prev+lockset fail-closed; 777s dwell; clock desync ≠ yes;

@@ -54,10 +54,11 @@ def test_suite_page_leads_with_start() -> None:
     assert "The domain count stays 33." in html
     assert "This desk places a card on the clock and reads that card back." in html
     assert "Mail send does not run on the public worker." in html
-    assert "That fetch is not the packet path." in html
+    assert "That fetch is a desk read. QNM packet_path_live is on. It is not the QNS cite plane." in html
     assert not_live_sentence() in html
-    assert "An alternative internet is not live (alt_internet_live is false)." in html
-    assert "A packet path is not live (packet_path_live is false)." in html
+    assert "An alternative internet is live (alt_internet_live is true)." in html
+    assert "A packet path is live (packet_path_live is true)." in html
+    assert "The node mesh is live (mesh_node_live is true)." in html
     assert "AZNews can stand alone." in html
     assert "4DMap can stand alone." in html
     assert "The public worker does not run a kernel." in html

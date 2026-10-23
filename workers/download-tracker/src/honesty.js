@@ -1,7 +1,10 @@
 /**
- * Standing facts shared with aziel-runtime and AZ-OS.
- * A caller who posts a live flag does not change these facts.
- * software_count stays 33. The runtime Softwares catalog stays a different list.
+ * Standing facts for AZInterface.
+ * AZIEL OVERRIDE 2026-10-23: the stay-false hold on the three QNM flags is
+ * cancelled. mesh_node_live, alt_internet_live, and packet_path_live stay on.
+ * A caller cannot turn them off, and cannot turn kernel, mail, boot, or
+ * second_device on. software_count stays 33. Cap-7 and .aziel stay names.
+ * The runtime Softwares catalog stays a different list (locks 42 / 36).
  * Author: Aziel Eliab. Identity is Aziel Eliab only.
  */
 
@@ -22,8 +25,6 @@ export const STANDING_SENTENCES = Object.freeze([
 ]);
 
 const FALSE_FLAGS = Object.freeze([
-  "alt_internet_live",
-  "packet_path_live",
   "second_device",
   "mail_send",
   "public_smtp_send",
@@ -45,8 +46,11 @@ export function standingText() {
 export function standingFacts(caller) {
   void caller;
   return {
-    alt_internet_live: false,
-    packet_path_live: false,
+    mesh_node_live: true,
+    alt_internet_live: true,
+    packet_path_live: true,
+    qnm_membership: true,
+    qns_cite_plane: false,
     second_device: false,
     mail_send: false,
     public_smtp_send: false,
@@ -87,10 +91,19 @@ export function standingFacts(caller) {
   };
 }
 
+const ON_FLAGS = Object.freeze([
+  "mesh_node_live",
+  "alt_internet_live",
+  "packet_path_live",
+  "qnm_membership",
+]);
+
 /** Write the standing facts onto a status object. Caller flags are not copied. */
 export function sealStanding(body, caller) {
   const facts = standingFacts(caller);
   body.honesty = facts;
   for (const key of FALSE_FLAGS) body[key] = false;
+  for (const key of ON_FLAGS) body[key] = true;
+  body.qns_cite_plane = false;
   return body;
 }
