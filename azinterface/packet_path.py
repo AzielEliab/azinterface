@@ -161,6 +161,7 @@ def _assemble(carriers: list[dict[str, Any]], carry: dict[str, Any] | None, *, n
         "packet_path_earned": False,
         "second_device": False,
         "public_icann": False,
+        "cap7_registrar_live": False,
         "bgp": False,
         "cap7_name_only": True,
         "dot_aziel_name_only": True,

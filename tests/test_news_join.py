@@ -52,7 +52,9 @@ def test_catalog_statuses_stay_honest_and_the_count_stays_33() -> None:
     assert net == not_live_sentence()
     assert "alt_internet_live is true" in net
     assert "packet_path_live is true" in net
-    assert "is true" not in net
+    assert "alt_internet_live is false" not in net
+    assert "packet_path_live is false" not in net
+    assert "mesh_node_live is false" not in net
     for slug, status in HONEST.items():
         assert cited[slug] == status
         assert "live" not in status.lower().replace("not live", "")

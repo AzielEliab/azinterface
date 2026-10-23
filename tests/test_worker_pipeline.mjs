@@ -91,7 +91,9 @@ assert.equal(net, notLiveSentence());
 assert.equal(net.includes("alt_internet_live is true"), true);
 assert.equal(net.includes("packet_path_live is true"), true);
 assert.equal(net.includes("mesh_node_live is true"), true);
-assert.equal(net.includes("is true"), false);
+assert.equal(net.includes("alt_internet_live is false"), false);
+assert.equal(net.includes("packet_path_live is false"), false);
+assert.equal(net.includes("mesh_node_live is false"), false);
 assert.equal(html.includes(net), true);
 for (const [slug, status] of Object.entries(catalogStatus)) {
   assert.equal(citedRows[slug].status, status);

@@ -71,4 +71,5 @@ design tokens, contract, and consumer check, pinned by SHA-256 in `LOCKSTEP.pin.
 - `GET /design/tokens.css`, `/design/tokens.json`: the shared design source, the same bytes as the runtime's.
 - `npm test` fails if a vendored file changed, a lock moved, a flag is true, the tether key, chains, or mesh differ from the contract, or a feature this leg claims in the contract's union stops answering. `npm run lockstep:remote` also compares the pin with runtime `main`.
 - To re-vendor after a runtime contract change, run `node scripts/lockstep-vendor.mjs <this checkout>` from an aziel-runtime checkout.
+- Softwares tip `fc6875662ec086cc5a7a301f5b127acd03da764b` is [aziel-runtime #365](https://github.com/AzielEliab/aziel-runtime/pull/365), open and unmerged. That SHA is pinned in `LOCKSTEP.pin.json` (`softwares_tip`). Re-vendor when it merges. The vendored contract stays `d247d2f084d077103e4b918479e90f1148d28afbbdc721e9b75a5ceaa8a0a8a8` on `runtime_commit` `343c2d60b829258be8b5c57f15ba053d74abecc1`. Cap-7 and `.aziel` stay names.
 - There is no GitHub workflow here. Adding one that runs `npm test` needs a token with `workflow` scope.

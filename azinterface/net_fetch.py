@@ -99,7 +99,7 @@ button { font:inherit; min-height:44px; border-radius:10px; background:#c9a227; 
 <body>
 <main>
   <h1>AZNet</h1>
-  <p>__PATH_SENTENCE__ This desk fetches one http or https URL and shows the body. That fetch is not the packet path.</p>
+  <p>__PATH_SENTENCE__ This desk fetches one http or https URL and shows the body. That fetch is a desk read. QNM packet_path_live is on. It is not the QNS cite plane.</p>
   <label for="url">URL</label>
   <input id="url" autocomplete="off" placeholder="https://">
   <p><button id="fetch" type="button">Fetch</button></p>

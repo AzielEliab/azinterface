@@ -88,6 +88,8 @@ def test_home_html_wires_buttons() -> None:
     assert "COLD-COPY SURVIVAL" in html
     assert "REHEAL refuse" in html
     assert "Mesh ON" in html
+    assert "Node mesh ON" in html
+    assert "That membership is not the QNS cite plane." in html
     assert "Mesh OFF" not in html
     assert "mesh/disable" not in html
     assert "Default off" not in html

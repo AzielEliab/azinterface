@@ -40,7 +40,9 @@ def test_catalog_sentences_match_the_doors_and_omit_the_live_label() -> None:
     assert "alt_internet_live is true" in net
     assert "packet_path_live is true" in net
     assert "mesh_node_live is true" in net
-    assert "is true" not in net
+    assert "alt_internet_live is false" not in net
+    assert "packet_path_live is false" not in net
+    assert "mesh_node_live is false" not in net
     for slug, status in expected.items():
         assert cited[slug] == status
         assert "live" not in status.lower().replace("not live", "")
@@ -133,8 +135,12 @@ def test_internet_door_returns_the_body_the_server_sent(tmp_path: Path) -> None:
         assert refused["fetched"] is False
         fetched = suite.fetch_internet({"url": f"http://127.0.0.1:{port}/marker"})
         assert fetched["fetched"] is True
-        assert fetched["packet_path"] is False
-        assert fetched["alt_internet"] is False
+        assert fetched["packet_path"] is True
+        assert fetched["alt_internet"] is True
+        assert fetched["packet_path_live"] is True
+        assert fetched["alt_internet_live"] is True
+        assert fetched["mesh_node_live"] is True
+        assert fetched["qns_cite_plane"] is False
         assert fetched["warn_5"] == "STANDS-until-demonstrated"
         assert fetched["http_status"] == 200
         assert fetched["body"] == "tide-marker"
@@ -149,8 +155,10 @@ def test_internet_door_fetches_a_public_page() -> None:
 
     fetched = fetch_url({"url": "https://example.com/"})
     assert fetched["fetched"] is True
-    assert fetched["packet_path"] is False
-    assert fetched["alt_internet"] is False
+    assert fetched["packet_path"] is True
+    assert fetched["alt_internet"] is True
+    assert fetched["packet_path_live"] is True
+    assert fetched["qns_cite_plane"] is False
     assert fetched["http_status"] == 200
     assert "Example Domain" in fetched["body"]
 
