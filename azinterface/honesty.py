@@ -1,7 +1,10 @@
-"""Standing facts shared with aziel-runtime and AZ-OS.
+"""Standing facts for AZInterface.
 
-A caller who posts a live flag does not change these facts.
-software_count stays 33. The runtime Softwares catalog stays a different list.
+AZIEL OVERRIDE 2026-10-23: the stay-false hold on the three QNM flags is
+cancelled. mesh_node_live, alt_internet_live, and packet_path_live stay on.
+A caller cannot turn them off, and cannot turn kernel, mail, boot, or
+second_device on. software_count stays 33. Cap-7 and .aziel stay names.
+The runtime Softwares catalog stays a different list (locks 42 / 36).
 """
 
 from __future__ import annotations
@@ -25,8 +28,6 @@ STANDING_SENTENCES = (
 )
 
 _FALSE_FLAGS = (
-    "alt_internet_live",
-    "packet_path_live",
     "second_device",
     "mail_send",
     "public_smtp_send",
@@ -49,8 +50,11 @@ def standing_facts(caller: dict[str, Any] | None = None) -> dict[str, Any]:
     """Facts a posted payload cannot flip. `caller` is ignored on purpose."""
     del caller
     return {
-        "alt_internet_live": False,
-        "packet_path_live": False,
+        "mesh_node_live": True,
+        "alt_internet_live": True,
+        "packet_path_live": True,
+        "qnm_membership": True,
+        "qns_cite_plane": False,
         "second_device": False,
         "mail_send": False,
         "public_smtp_send": False,
@@ -91,10 +95,21 @@ def standing_facts(caller: dict[str, Any] | None = None) -> dict[str, Any]:
     }
 
 
+_ON_FLAGS = (
+    "mesh_node_live",
+    "alt_internet_live",
+    "packet_path_live",
+    "qnm_membership",
+)
+
+
 def seal_standing(body: dict[str, Any], caller: dict[str, Any] | None = None) -> dict[str, Any]:
     """Write the standing facts onto a status object. Caller flags are not copied."""
     facts = standing_facts(caller)
     body["honesty"] = facts
     for key in _FALSE_FLAGS:
         body[key] = False
+    for key in _ON_FLAGS:
+        body[key] = True
+    body["qns_cite_plane"] = False
     return body

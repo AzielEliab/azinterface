@@ -134,7 +134,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/suite/aznet":
             if wants_json(self.headers.get("Accept")):
                 report = SUITE.path_report()
-                report["status"] = report["status"] + " This desk can fetch one http or https URL. That fetch is not the packet path."
+                report["status"] = report["status"] + " This desk can fetch one http or https URL. That fetch is a desk read. QNM packet_path_live is on. It is not the QNS cite plane."
                 self._json(report)
                 return
             self._html(SUITE.net_html())

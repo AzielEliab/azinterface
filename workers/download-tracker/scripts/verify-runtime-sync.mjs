@@ -10,7 +10,7 @@ const good = {
 const r = await runtimeSync({ side: "t", localChains: [{ chain: "acts", primary: P, verified: true }, { chain: "session", primary: "c".repeat(64) }], fetchImpl: fake(good) });
 assert.equal(r.ok, true); assert.equal(r.compare[0].state, "agree"); assert.equal(r.compare[1].state, "lagging");
 assert.equal(r.tether_bases[0].live, false); assert.equal(r.tether_bases[0].runtime_says_live, true);
-assert.equal(r.alt_internet_live, false); assert.equal(r.writes, false);
+assert.equal(r.alt_internet_live, true); assert.equal(r.packet_path_live, true); assert.equal(r.mesh_node_live, true); assert.equal(r.writes, false); assert.equal(r.public_icann, false);
 const bad = await runtimeSync({ side: "t", fetchImpl: async () => { throw new Error("down"); } });
 assert.equal(bad.ok, false); assert.equal(bad.code, "RUNTIME-SYNC-UNREACHABLE");
 console.log("verify-runtime-sync: ok");

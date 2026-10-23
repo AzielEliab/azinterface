@@ -46,9 +46,11 @@ def test_home_html_wires_buttons() -> None:
     assert "Softwares 42 is the runtime catalog." in html
     assert "The domain count stays 33." in html
     assert not_live_sentence() in html
-    assert "An alternative internet is not live (alt_internet_live is false)." in html
-    assert "A packet path is not live (packet_path_live is false)." in html
-    assert "Still missing: a packet that leaves this machine and arrives on a different machine id." in html
+    assert "An alternative internet is live (alt_internet_live is true)." in html
+    assert "A packet path is live (packet_path_live is true)." in html
+    assert "The node mesh is live (mesh_node_live is true)." in html
+    assert "QNM membership is on" in html
+    assert "That membership is not the QNS cite plane." in html
     assert "A same-machine mesh frame does not count." in html
     assert "Cap-7 and .aziel stay names, not a public registrar and not ICANN or BGP." in html
     assert "Mail send does not run on the public worker." in html
@@ -86,6 +88,8 @@ def test_home_html_wires_buttons() -> None:
     assert "COLD-COPY SURVIVAL" in html
     assert "REHEAL refuse" in html
     assert "Mesh ON" in html
+    assert "Node mesh ON" in html
+    assert "That membership is not the QNS cite plane." in html
     assert "Mesh OFF" not in html
     assert "mesh/disable" not in html
     assert "Default off" not in html

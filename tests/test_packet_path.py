@@ -1,4 +1,4 @@
-"""The packet path stays refused, and the human sentence is the runtime fact."""
+"""QNM membership is on, and a named carrier still refuses when hardware is absent."""
 
 from __future__ import annotations
 
@@ -20,9 +20,10 @@ from azinterface.web_page import home_html
 
 ROOT = Path(__file__).resolve().parents[1]
 FACT = (
-    "An alternative internet is not live (alt_internet_live is false).",
-    "A packet path is not live (packet_path_live is false).",
-    "Still missing: a packet that leaves this machine and arrives on a different machine id.",
+    "An alternative internet is live (alt_internet_live is true).",
+    "A packet path is live (packet_path_live is true).",
+    "The node mesh is live (mesh_node_live is true).",
+    "QNM membership is on (mesh_node_live, alt_internet_live, and packet_path_live). That membership is not the QNS cite plane.",
     "A same-machine mesh frame does not count.",
     "Cap-7 and .aziel stay names, not a public registrar and not ICANN or BGP.",
     "Public mail send, the kernel, and boot stay not live.",
@@ -42,7 +43,8 @@ PUBLIC_SOURCES = (
 def _fact(text: str) -> None:
     for line in FACT:
         assert line in text
-    assert "is true" not in text
+    assert "alt_internet_live is false" not in text
+    assert "packet_path_live is false" not in text
     assert "Internet is not live." not in text
 
 
@@ -84,10 +86,12 @@ def test_same_machine_frame_is_not_a_live_public_path() -> None:
         assert f"LAN hardware is absent ({RADIO_ABSENT})." in report["status"]
     assert report["second_device"] is False
     assert report["off_machine"] is False
-    assert report["packet_path"] is False
-    assert report["alt_internet"] is False
-    assert report["packet_path_live"] is False
-    assert report["alt_internet_live"] is False
+    assert report["packet_path"] is True
+    assert report["alt_internet"] is True
+    assert report["packet_path_live"] is True
+    assert report["alt_internet_live"] is True
+    assert report["mesh_node_live"] is True
+    assert report["qns_cite_plane"] is False
     for row in report["carriers"]:
         assert row["packet_live"] is False
         assert row["alt_internet_live"] is False
@@ -113,8 +117,11 @@ def test_absent_radio_and_name_plane_do_not_become_a_path() -> None:
     wifi = path_report({"carrier": "wifi", "alt_internet_live": True, "packet_path_live": True})
     wifi_row = next(row for row in wifi["carriers"] if row["id"] == "wifi")
     assert wifi["status"] == not_live_sentence()
-    assert wifi["packet_path_live"] is False
-    assert wifi["alt_internet_live"] is False
+    assert wifi["packet_path_live"] is True
+    assert wifi["alt_internet_live"] is True
+    assert wifi["mesh_node_live"] is True
+    assert wifi["public_icann"] is False
+    assert wifi["cap7_name_only"] is True
     assert wifi["second_device"] is False
     if wifi_row["state"] != "HW-PRESENT":
         assert wifi["code"] == RADIO_ABSENT
@@ -127,16 +134,20 @@ def test_absent_radio_and_name_plane_do_not_become_a_path() -> None:
         assert refused["ok"] is False
         assert refused["code"] == "MG-NO-IP-EXIT"
         assert refused["status"] == not_live_sentence()
-        assert refused["packet_path_live"] is False
-        assert refused["alt_internet_live"] is False
+        assert refused["packet_path_live"] is True
+        assert refused["alt_internet_live"] is True
+        assert refused["mesh_node_live"] is True
+        assert refused["public_icann"] is False
+        assert refused["cap7_registrar_live"] is False
         assert refused["cap7_name_only"] is True
         assert "Cap-7 and .aziel stay names, not a public registrar and not ICANN or BGP." in refused["status"]
         assert f"{name} is a name only." not in refused["status"]
     assert second_device("a" * 32, "a" * 32) is False
     assert second_device("a" * 32, "b" * 32) is True
     ignored = path_report({"alt_internet_live": True, "packet_path_live": True, "remote_host": "b" * 32}, refresh=True)
-    assert ignored["alt_internet_live"] is False
-    assert ignored["packet_path_live"] is False
+    assert ignored["alt_internet_live"] is True
+    assert ignored["packet_path_live"] is True
+    assert ignored["mesh_node_live"] is True
     assert ignored["second_device"] is False
 
 

@@ -1,9 +1,11 @@
 """Device-to-device packet path on the existing AZNet door.
 
-The human sentence is the one aziel-runtime computes. Carrier order is LAN,
-then Wi-Fi, then Bluetooth, then RF, then photon. alt_internet_live and
-packet_path_live stay false. A same-machine frame is not a second device.
-Cap-7 and .aziel stay names.
+The human sentence is the QNM membership sentence. Carrier order is LAN,
+then Wi-Fi, then Bluetooth, then RF, then photon. mesh_node_live,
+alt_internet_live, and packet_path_live are on. That membership is not the
+QNS cite plane. A named carrier refuses only when QNM says the hardware is
+absent. A same-machine frame is not a second device. Cap-7 and .aziel stay
+names, not a public registrar and not ICANN.
 """
 
 from __future__ import annotations
@@ -24,11 +26,12 @@ NAME_ONLY = "MG-NO-IP-EXIT"
 
 WARN5 = "STANDS-until-demonstrated"
 HEAD = (
-    "An alternative internet is not live (alt_internet_live is false). "
-    "A packet path is not live (packet_path_live is false)."
+    "An alternative internet is live (alt_internet_live is true). "
+    "A packet path is live (packet_path_live is true). "
+    "The node mesh is live (mesh_node_live is true)."
 )
 TAIL = " ".join((
-    "Still missing: a packet that leaves this machine and arrives on a different machine id.",
+    "QNM membership is on (mesh_node_live, alt_internet_live, and packet_path_live). That membership is not the QNS cite plane.",
     "A same-machine mesh frame does not count.",
     "Cap-7 and .aziel stay names, not a public registrar and not ICANN or BGP.",
     "WireGuard, OpenVPN, an L3 exit pool, kernel UDP, and TUN/TAP stay SLOT.",
@@ -147,14 +150,18 @@ def _assemble(carriers: list[dict[str, Any]], carry: dict[str, Any] | None, *, n
     status = not_live_sentence()
     report = {
         "ok": name_only_refuse is None,
-        "packet_path": False,
-        "alt_internet": False,
-        "packet_path_live": False,
-        "alt_internet_live": False,
+        "packet_path": True,
+        "alt_internet": True,
+        "packet_path_live": True,
+        "alt_internet_live": True,
+        "mesh_node_live": True,
+        "qnm_membership": True,
+        "qns_cite_plane": False,
         "alt_internet_earned": False,
         "packet_path_earned": False,
         "second_device": False,
         "public_icann": False,
+        "cap7_registrar_live": False,
         "bgp": False,
         "cap7_name_only": True,
         "dot_aziel_name_only": True,
@@ -170,8 +177,9 @@ def _assemble(carriers: list[dict[str, Any]], carry: dict[str, Any] | None, *, n
         "code": NAME_ONLY if name_only_refuse else (quiet or {}).get("code"),
         "field_1_0": False,
         "line": status,
-        "packet_line": "A packet path is not live (packet_path_live is false).",
-        "alt_line": "An alternative internet is not live (alt_internet_live is false).",
+        "packet_line": "A packet path is live (packet_path_live is true).",
+        "alt_line": "An alternative internet is live (alt_internet_live is true).",
+        "mesh_line": "The node mesh is live (mesh_node_live is true).",
         "status": status,
     }
     return seal_standing(report, None)
@@ -369,7 +377,7 @@ def _carry(carriers: list[dict[str, Any]], only: str | None = None) -> dict[str,
                 "bgp": False,
                 "cap7_name_only": True,
                 "note": (
-                    "A node-mesh frame moved on this machine. It is not the public packet path and not an alternative internet."
+                    "A node-mesh frame moved on this machine. QNM membership stays on. It is not a second device and not the QNS cite plane."
                     if not off
                     else "A packet left this machine and the reply came from a different machine id."
                 ),

@@ -48,6 +48,7 @@ from .meta import (
     VERSION,
 )
 from .honesty import seal_standing
+from .mesh_radios import mesh_radios_tile
 from .pipeline import FOURDMAP_FRAME, PIPELINE_PATH, pipeline_arch
 from .receipts import Ledger, sha256_text
 
@@ -70,6 +71,7 @@ LIVE_OPS = (
     "integrity_check",
     "witness_list",
     "page_cycle_status",
+    "mesh_radios",
     "pipeline_arch",
     "hold",
     "withdraw",
@@ -177,7 +179,14 @@ def qns_cross_map() -> dict[str, Any]:
         "catalog": "azinterface",
         "softwares_tab_qns": False,
         "mesh": QNM_BUILD,
-        "mesh_default": "OFF",
+        "mesh_default": "on",
+        "node_mesh_enabled": True,
+        "mesh_node_live": True,
+        "alt_internet_live": True,
+        "packet_path_live": True,
+        "qnm_membership": True,
+        "qns_cite_plane": True,
+        "qns_is_membership": False,
         "get_enables_mesh": False,
         "split_the_wires": SPLIT_THE_WIRES,
         "cold_copy_survival": COLD_COPY_SURVIVAL,
@@ -192,7 +201,7 @@ def qns_cross_map() -> dict[str, Any]:
         "remote_wipe": False,
         "vault_contents": False,
         "pair_memorial": "azinterface custody",
-        "note": "Vias run in local qnsd (127.0.0.1). Interface holds pair memorial cites only.",
+        "note": "QNS is the cite plane (pair memorial on local qnsd). It is not Softwares membership. QNM membership is on: mesh_node_live, alt_internet_live, and packet_path_live. GET never enables. Cap-7 and .aziel stay names.",
     }
 
 GENESIS_DOMAIN = "azinterface|genesis|AIH-WP-1.0"
@@ -513,6 +522,10 @@ class Engine:
                 ],
             ),
         )
+
+    def mesh_radios(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        tile = mesh_radios_tile(payload)
+        return self._base(**tile)
 
     def skill(self, _payload: dict[str, Any] | None = None) -> dict[str, Any]:
         from pathlib import Path

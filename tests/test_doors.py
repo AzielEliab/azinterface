@@ -37,9 +37,12 @@ def test_catalog_sentences_match_the_doors_and_omit_the_live_label() -> None:
     }
     net = cited["aznet"]
     assert net == not_live_sentence()
-    assert "alt_internet_live is false" in net
-    assert "packet_path_live is false" in net
-    assert "is true" not in net
+    assert "alt_internet_live is true" in net
+    assert "packet_path_live is true" in net
+    assert "mesh_node_live is true" in net
+    assert "alt_internet_live is false" not in net
+    assert "packet_path_live is false" not in net
+    assert "mesh_node_live is false" not in net
     for slug, status in expected.items():
         assert cited[slug] == status
         assert "live" not in status.lower().replace("not live", "")
@@ -132,8 +135,12 @@ def test_internet_door_returns_the_body_the_server_sent(tmp_path: Path) -> None:
         assert refused["fetched"] is False
         fetched = suite.fetch_internet({"url": f"http://127.0.0.1:{port}/marker"})
         assert fetched["fetched"] is True
-        assert fetched["packet_path"] is False
-        assert fetched["alt_internet"] is False
+        assert fetched["packet_path"] is True
+        assert fetched["alt_internet"] is True
+        assert fetched["packet_path_live"] is True
+        assert fetched["alt_internet_live"] is True
+        assert fetched["mesh_node_live"] is True
+        assert fetched["qns_cite_plane"] is False
         assert fetched["warn_5"] == "STANDS-until-demonstrated"
         assert fetched["http_status"] == 200
         assert fetched["body"] == "tide-marker"
@@ -148,8 +155,10 @@ def test_internet_door_fetches_a_public_page() -> None:
 
     fetched = fetch_url({"url": "https://example.com/"})
     assert fetched["fetched"] is True
-    assert fetched["packet_path"] is False
-    assert fetched["alt_internet"] is False
+    assert fetched["packet_path"] is True
+    assert fetched["alt_internet"] is True
+    assert fetched["packet_path_live"] is True
+    assert fetched["qns_cite_plane"] is False
     assert fetched["http_status"] == 200
     assert "Example Domain" in fetched["body"]
 
@@ -218,16 +227,18 @@ def test_http_doors_stay_json_and_leave_the_site_off(tmp_path: Path, monkeypatch
         assert sent["public_worker_mail_send"] is False
         assert STORY in box[-1].decode("utf-8", "replace")
         net_json = json.loads(urlopen(Request(base + "/suite/aznet", headers={"Accept": "application/json"})).read().decode())
-        assert net_json["packet_path"] is False
-        assert net_json["alt_internet"] is False
+        assert net_json["packet_path"] is True
+        assert net_json["alt_internet"] is True
         assert net_json["warn_5"] == "STANDS-until-demonstrated"
-        assert net_json["packet_path_live"] is False
-        assert net_json["alt_internet_live"] is False
+        assert net_json["packet_path_live"] is True
+        assert net_json["alt_internet_live"] is True
+        assert net_json["mesh_node_live"] is True
         assert net_json["second_device"] is False
+        assert net_json["public_icann"] is False
         assert not_live_sentence() in net_json["status"]
-        assert "An alternative internet is not live (alt_internet_live is false)." in net_json["status"]
-        assert "A packet path is not live (packet_path_live is false)." in net_json["status"]
-        assert "Still missing: a packet that leaves this machine and arrives on a different machine id." in net_json["status"]
+        assert "An alternative internet is live (alt_internet_live is true)." in net_json["status"]
+        assert "A packet path is live (packet_path_live is true)." in net_json["status"]
+        assert "QNM membership is on" in net_json["status"]
         booted = _post(base + "/suite/azos/boot", {})
         assert booted["booted"] is True
         assert booted["host_kernel"] is False

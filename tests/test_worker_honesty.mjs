@@ -1,5 +1,5 @@
 /**
- * Public banner and page-cycle JSON keep the standing facts false.
+ * QNM membership flags stay on. Kernel, mail, boot, and second_device stay false.
  */
 import assert from "node:assert/strict";
 import { dispatch, resetEngine } from "../workers/download-tracker/src/engine.js";
@@ -22,8 +22,11 @@ const TAIL = [
 ];
 
 function assertFacts(facts) {
-  assert.equal(facts.alt_internet_live, false);
-  assert.equal(facts.packet_path_live, false);
+  assert.equal(facts.mesh_node_live, true);
+  assert.equal(facts.alt_internet_live, true);
+  assert.equal(facts.packet_path_live, true);
+  assert.equal(facts.qnm_membership, true);
+  assert.equal(facts.qns_cite_plane, false);
   assert.equal(facts.second_device, false);
   assert.equal(facts.mail_send, false);
   assert.equal(facts.kernel, false);
@@ -79,8 +82,9 @@ assert.equal(cycle.installed, false);
 assert.equal(cycle.mail_send, false);
 assert.equal(cycle.kernel_base, false);
 assert.equal(cycle.os_yet, false);
-assert.equal(cycle.alt_internet_live, false);
-assert.equal(cycle.packet_path_live, false);
+assert.equal(cycle.mesh_node_live, true);
+assert.equal(cycle.alt_internet_live, true);
+assert.equal(cycle.packet_path_live, true);
 assert.equal(cycle.second_device, false);
 // KERNEL-FIELD-1.0: kernel is boolean false; the repo URL moved to kernel_repo_url.
 assert.equal(cycle.kernel, false);
