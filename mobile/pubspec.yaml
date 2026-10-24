@@ -1,5 +1,5 @@
 name: azinterface
-description: On-device AZInterface custody cycle. Not AZHub. Author Aziel Eliab.
+description: AZInterface sentences for Android, iPhone, and desktop. Author Aziel Eliab.
 publish_to: "none"
 version: 0.1.0+1
 
@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
