@@ -260,8 +260,9 @@ azinterface doctor
 
 Flutter app: [`mobile/`](mobile/). Application id `com.azieeliab.azinterface`.
 Projects: `android/`, `ios/`, `linux/`, `macos/`, and `windows/`.
-The page stays OFF. software_count stays 33. An alternative internet is not live. A packet path is not live. The public door stays FG-STUB. Phoenix is a local wait and re-seal. That is not a loopback fence.
-The iPhone project is the Xcode project under `mobile/ios/`. A Linux machine does not build it.
+The page stays OFF. software_count stays 33. Softwares-tab placements stay 42 and are not software_count. Softwares membership is on (`mesh_node_live`, `alt_internet_live`, and `packet_path_live` are true). That membership is not the QNS cite plane. GET /v1/mesh never enables. Cap-7 stays names-only. The public door stays FG-STUB. Phoenix is a local wait and re-seal. That is not a loopback fence. Public mail send, the kernel, and boot stay not live.
+Snapshot label `50ac22bf51fde35d05251038dfefb5b3a4fda329` from tracker GET /v1/health.
+Linux desktop opened only; iOS/macOS/Windows unbuilt; no store/installer.
 
 ```bash
 cd mobile

@@ -14,8 +14,6 @@ void main() {
   test('checker flags each refused door when a sentence calls it live', () {
     const samples = {
       'public mail send': 'Public mail send is live.',
-      'packet path': 'The packet path is live.',
-      'alternative internet': 'An alternative internet is live.',
       'kernel': 'The kernel is live.',
       'boot': 'Boot is live.',
       'second device': 'A second device is live.',
@@ -31,10 +29,11 @@ void main() {
 
     const honest = [
       'Mail send does not run on the public worker.',
-      'The packet path does not run.',
-      'An alternative internet does not run.',
-      'An alternative internet is not live (alt_internet_live is false).',
-      'A packet path is not live (packet_path_live is false).',
+      'An alternative internet is live (alt_internet_live is true).',
+      'A packet path is live (packet_path_live is true).',
+      'The node mesh is live (mesh_node_live is true).',
+      'Softwares membership is on: mesh_node_live, alt_internet_live, and packet_path_live are true.',
+      'That membership is not the QNS cite plane.',
       'Public mail send, the kernel, and boot stay not live.',
       'The public door stays FG-STUB.',
       'A second device stays false while both ends share that id.',
@@ -55,6 +54,7 @@ void main() {
   test('library copy keeps software_count at 33 and site_state OFF', () {
     expect(softwareCount, 33);
     expect(siteState, 'OFF');
+    expect(snapshotLabel.contains(trackerSnapshotSha), isTrue);
     final source = _spokenSource();
     expect(liveClaims(source), isEmpty);
     expect(liveClaims(visibleCopy()), isEmpty);
@@ -63,8 +63,19 @@ void main() {
     for (final sentence in [
       'The domain count stays 33.',
       'software_count stays 33.',
-      'An alternative internet is not live (alt_internet_live is false).',
-      'A packet path is not live (packet_path_live is false).',
+      'Softwares-tab placements stay 42. That count is the runtime catalog. It is not software_count.',
+      'An alternative internet is live (alt_internet_live is true).',
+      'A packet path is live (packet_path_live is true).',
+      'The node mesh is live (mesh_node_live is true).',
+      'Softwares membership is on: mesh_node_live, alt_internet_live, and packet_path_live are true.',
+      'That membership is not the QNS cite plane.',
+      'QNM membership is on (mesh_node_live, alt_internet_live, and packet_path_live).',
+      'GET /v1/mesh never enables.',
+      'Cap-7 stays names-only.',
+      'auto_update stays off.',
+      'RF stays off.',
+      'Satellite stays off.',
+      'Snapshot label $trackerSnapshotSha from tracker GET /v1/health.',
       'This isolate cannot see host hardware (worker_hardware is false).',
       'A second device stays false while both ends share that id.',
       'A same-machine mesh frame does not count.',
@@ -86,10 +97,12 @@ void main() {
     ]) {
       expect(source.contains(sentence), isTrue, reason: sentence);
     }
-    expect(source.contains('42'), isFalse);
-    expect(visibleCopy().contains('42'), isFalse);
-    expect(source.contains('alt_internet_live is true'), isFalse);
-    expect(source.contains('packet_path_live is true'), isFalse);
+    expect(source.contains('software_count stays 42'), isFalse);
+    expect(source.contains('const int softwareCount = 42'), isFalse);
+    expect(visibleCopy().contains('software_count stays 42'), isFalse);
+    expect(source.contains('alt_internet_live is true'), isTrue);
+    expect(source.contains('packet_path_live is true'), isTrue);
+    expect(source.contains('mesh_node_live is true'), isTrue);
     expect(source.contains('Internet is not live.'), isFalse);
     expect(source.toLowerCase().contains('installed'), isFalse);
     expect(source.contains('One-click'), isFalse);
@@ -111,12 +124,23 @@ void main() {
         findsOneWidget);
     expect(
         find.textContaining(
-            'An alternative internet is not live (alt_internet_live is false).'),
+            'An alternative internet is live (alt_internet_live is true).'),
         findsOneWidget);
     expect(
         find.textContaining(
-            'A packet path is not live (packet_path_live is false).'),
+            'A packet path is live (packet_path_live is true).'),
         findsOneWidget);
+    expect(
+        find.textContaining(
+            'The node mesh is live (mesh_node_live is true).'),
+        findsOneWidget);
+    expect(
+        find.textContaining('That membership is not the QNS cite plane.'),
+        findsWidgets);
+    expect(find.textContaining('Cap-7 stays names-only.'), findsOneWidget);
+    expect(find.text(softwaresTabPlacements), findsOneWidget);
+    expect(find.text(snapshotLabel), findsOneWidget);
+    expect(find.textContaining(trackerSnapshotSha), findsOneWidget);
     expect(
         find.textContaining('The public door stays FG-STUB.'), findsOneWidget);
     expect(find.textContaining('Isolation is single-node security-awareness.'),
@@ -133,7 +157,9 @@ void main() {
         findsOneWidget);
     expect(find.textContaining('Boot does not run on the public worker.'),
         findsOneWidget);
-    expect(shownLater(tester).contains('42'), isFalse);
+    expect(shownLater(tester).contains(softwaresTabPlacements), isTrue);
+    expect(shownLater(tester).contains('software_count stays 42'), isFalse);
+    expect(shownLater(tester).contains('software_count stays 33.'), isTrue);
     expect(softwareCount, 33);
     expect(siteState, 'OFF');
 

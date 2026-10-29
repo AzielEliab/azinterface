@@ -11,8 +11,6 @@ LIB = ROOT / "mobile" / "lib"
 _NEGATION = re.compile(r"\b(not|never|without|absent|refused|cannot|can't)\b", re.I)
 _TOPICS = (
     ("public mail send", re.compile(r"public mail send|mail send", re.I), re.compile(r"\b(is live|are live|runs|is running|does run|live)\b", re.I)),
-    ("packet path", re.compile(r"packet path", re.I), re.compile(r"\b(is live|are live|runs|is running|does run|live)\b", re.I)),
-    ("alternative internet", re.compile(r"alternative internet", re.I), re.compile(r"\b(is live|are live|runs|is running|does run|live)\b", re.I)),
     ("kernel", re.compile(r"\bkernel\b", re.I), re.compile(r"\b(is live|are live|runs|is running|does run|live)\b", re.I)),
     ("boot", re.compile(r"\bboot(?:ed|s|ing)?\b", re.I), re.compile(r"\b(is live|are live|runs|is running|does run|has booted|boots|live)\b", re.I)),
     ("second device", re.compile(r"second device|another device", re.I), re.compile(r"\b(is live|are live|runs|is running|wipes?|live)\b", re.I)),
@@ -39,8 +37,6 @@ def _library() -> str:
 def test_live_claim_checker_flags_each_refused_door() -> None:
     samples = {
         "public mail send": "Public mail send is live.",
-        "packet path": "The packet path is live.",
-        "alternative internet": "An alternative internet is live.",
         "kernel": "The kernel is live.",
         "boot": "Boot is live.",
         "second device": "A second device is live.",
@@ -53,10 +49,11 @@ def test_live_claim_checker_flags_each_refused_door() -> None:
     assert "second device" in live_claims("This wipes another device.")
     honest = [
         "Mail send does not run on the public worker.",
-        "The packet path does not run.",
-        "An alternative internet does not run.",
-        "An alternative internet is not live (alt_internet_live is false).",
-        "A packet path is not live (packet_path_live is false).",
+        "An alternative internet is live (alt_internet_live is true).",
+        "A packet path is live (packet_path_live is true).",
+        "The node mesh is live (mesh_node_live is true).",
+        "Softwares membership is on: mesh_node_live, alt_internet_live, and packet_path_live are true.",
+        "That membership is not the QNS cite plane.",
         "Public mail send, the kernel, and boot stay not live.",
         "The public door stays FG-STUB.",
         "A second device stays false while both ends share that id.",
@@ -79,8 +76,19 @@ def test_app_keeps_the_worker_facts_and_refuses_live_claims() -> None:
     for sentence in (
         "The domain count stays 33.",
         "software_count stays 33.",
-        "An alternative internet is not live (alt_internet_live is false).",
-        "A packet path is not live (packet_path_live is false).",
+        "Softwares-tab placements stay 42. That count is the runtime catalog. It is not software_count.",
+        "An alternative internet is live (alt_internet_live is true).",
+        "A packet path is live (packet_path_live is true).",
+        "The node mesh is live (mesh_node_live is true).",
+        "Softwares membership is on: mesh_node_live, alt_internet_live, and packet_path_live are true.",
+        "That membership is not the QNS cite plane.",
+        "QNM membership is on (mesh_node_live, alt_internet_live, and packet_path_live).",
+        "GET /v1/mesh never enables.",
+        "Cap-7 stays names-only.",
+        "auto_update stays off.",
+        "RF stays off.",
+        "Satellite stays off.",
+        "Snapshot label 50ac22bf51fde35d05251038dfefb5b3a4fda329 from tracker GET /v1/health.",
         "This isolate cannot see host hardware (worker_hardware is false).",
         "A second device stays false while both ends share that id.",
         "A same-machine mesh frame does not count.",
@@ -102,9 +110,11 @@ def test_app_keeps_the_worker_facts_and_refuses_live_claims() -> None:
         "The page is OFF.",
     ):
         assert sentence in source
-    assert "42" not in source
-    assert "alt_internet_live is true" not in source
-    assert "packet_path_live is true" not in source
+    assert "software_count stays 42" not in source
+    assert "const int softwareCount = 42" not in source
+    assert "alt_internet_live is true" in source
+    assert "packet_path_live is true" in source
+    assert "mesh_node_live is true" in source
     lowered = source.lower()
     assert "internet is not live." not in lowered
     assert "installed" not in lowered
@@ -126,3 +136,6 @@ def test_phone_and_desktop_projects_exist_without_a_store_listing() -> None:
     assert (mobile / "windows/CMakeLists.txt").is_file()
     assert not (mobile / "fastlane").exists()
     assert not any(path.name.lower() == "store_listing.txt" for path in mobile.rglob("*") if ".dart_tool" not in path.parts and "build" not in path.parts)
+    policy = "Linux desktop opened only; iOS/macOS/Windows unbuilt; no store/installer"
+    assert policy in (mobile / "README.md").read_text(encoding="utf-8")
+    assert policy in (ROOT / "README.md").read_text(encoding="utf-8")

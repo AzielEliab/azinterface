@@ -1,4 +1,7 @@
-// Fails closed when a sentence says a refused door is live.
+// Fails closed when a sentence says mail send, the kernel, boot, or a
+// second device is live. Softwares membership (mesh_node_live,
+// alt_internet_live, packet_path_live) is on. That trio is not one of
+// these doors, and it is not the QNS cite plane.
 
 class LiveTopic {
   const LiveTopic(this.name, this.topic, this.live);
@@ -17,18 +20,6 @@ final List<LiveTopic> liveTopics = [
   LiveTopic(
     'public mail send',
     RegExp(r'public mail send|mail send', caseSensitive: false),
-    RegExp(r'\b(is live|are live|runs|is running|does run|live)\b',
-        caseSensitive: false),
-  ),
-  LiveTopic(
-    'packet path',
-    RegExp(r'packet path', caseSensitive: false),
-    RegExp(r'\b(is live|are live|runs|is running|does run|live)\b',
-        caseSensitive: false),
-  ),
-  LiveTopic(
-    'alternative internet',
-    RegExp(r'alternative internet', caseSensitive: false),
     RegExp(r'\b(is live|are live|runs|is running|does run|live)\b',
         caseSensitive: false),
   ),

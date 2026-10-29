@@ -35,6 +35,16 @@ class HomePage extends StatelessWidget {
                   'The domain count stays $softwareCount.',
                   key: const Key('software-count-sentence'),
                 ),
+                const SizedBox(height: 4),
+                const Text(
+                  softwaresTabPlacements,
+                  key: Key('softwares-tab-placements'),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  snapshotLabel,
+                  key: Key('snapshot-label'),
+                ),
                 const SizedBox(height: 16),
                 for (final control in sentenceControls) ...[
                   MeetHint(
