@@ -256,16 +256,19 @@ node tests/test_worker_honesty.mjs
 azinterface doctor
 ```
 
-## iPhone & Android
+## iPhone, Android, and desktop
 
-Flutter sources: [`mobile/`](mobile/). Application id `com.azieeliab.azinterface`.
-Offline. No analytics. Dark matte / gold.
+Flutter app: [`mobile/`](mobile/). Application id `com.azieeliab.azinterface`.
+Projects: `android/`, `ios/`, `linux/`, `macos/`, and `windows/`.
+The page stays OFF. software_count stays 33. Softwares-tab placements stay 42 and are not software_count. Softwares membership is on (`mesh_node_live`, `alt_internet_live`, and `packet_path_live` are true). That membership is not the QNS cite plane. GET /v1/mesh never enables. Cap-7 stays names-only. The public door stays FG-STUB. Phoenix is a local wait and re-seal. That is not a loopback fence. Public mail send, the kernel, and boot stay not live.
+Snapshot label `50ac22bf51fde35d05251038dfefb5b3a4fda329` from tracker GET /v1/health.
+Linux desktop opened only; iOS/macOS/Windows unbuilt; no store/installer.
 
 ```bash
 cd mobile
-flutter create --org com.azieeliab --project-name azinterface .
 flutter pub get
-flutter run
+flutter test
+flutter run -d linux
 ```
 
 ## Layout
@@ -275,7 +278,7 @@ azinterface/          library (engine, genesis, cycle, pipeline cite, receipts, 
 tests/                pytest + worker smoke
 docs/                 AIH-WP-1.0 notes + QNS-CD-1.0 + SPLIT THE WIRES / COLD-COPY SURVIVAL
 workers/download-tracker/   Cloudflare Worker azinterface-download-tracker
-mobile/               Flutter scaffold
+mobile/               Flutter app for Android, iPhone, and desktop
 SKILL.md              agent skill (also GET /v1/skill)
 ```
 
