@@ -20,6 +20,16 @@ from azinterface import update_verify as V
 UPDATER_SPEC = "AZ-AUTO-UPDATE-1.0"
 GENESIS = "0" * 64
 MESH_CARRIER_ORDER = ("lan", "wifi", "bluetooth", "rf", "photon")
+
+
+class UpdateRefuse(Exception):
+    """A host refusal that must keep its code. It is not a health failure."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
+
+
 C = {
     "off": "UPDATE-OFF",
     "paused": "UPDATE-PAUSED",
@@ -183,6 +193,8 @@ def apply_offer(
         if _paused_now(host):
             state["paused"] = True
             return done(C["paused"], verdict.get("manifest_hash"), _rollback(host, state))
+    except UpdateRefuse as exc:
+        return done(exc.code, verdict.get("manifest_hash"), _rollback(host, state))
     except Exception:
         return done(C["health"], verdict.get("manifest_hash"), _rollback(host, state))
     state["installed_seq"] = manifest["version_seq"]

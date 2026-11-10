@@ -623,7 +623,49 @@ def test_ancestor_verdict_refuses_another_non_root_owner() -> None:
     assert ancestor_verdict(0o40755, 50, 1000) == "unsafe"
     assert ancestor_verdict(0o40755, 0, 1000) == "continue"
     assert ancestor_verdict(0o41777, 0, 1000) == "boundary"
+    assert ancestor_verdict(0o41777, 1000, 1000) == "continue"
     assert ancestor_verdict(0o40700, 1000, 1000) == "continue"
+
+
+def test_self_owned_sticky_does_not_hide_a_world_writable_parent(tmp_path: Path) -> None:
+    private, public = _keys()
+    loose = tmp_path / "loose"
+    loose.mkdir()
+    os.chmod(loose, 0o777)
+    sticky = loose / "sticky"
+    sticky.mkdir()
+    os.chmod(sticky, 0o1777)
+    app = sticky / "app"
+    app.mkdir(mode=0o700)
+    os.chmod(app, 0o700)
+    _trust(app, public)
+    result, _manifest_row = _run(app, private, b"swapped", 1)
+    assert result["code"] == "UPDATE-TRUST-REFUSED"
+    assert result["applied"] is False
+    assert result["activated"] is False
+    assert public not in json.dumps(result)
+    assert _active(app) is None
+
+
+def test_parent_chmod_inside_the_lock_blocks_the_rename(tmp_path: Path) -> None:
+    private, public = _keys()
+    app = tmp_path / "app"
+    app.mkdir()
+    os.chmod(app, 0o755)
+    _trust(app, public)
+    blob = b"late-chmod"
+    manifest = _manifest(blob, seq=1)
+    _drop(app, manifest, _sign(private, manifest), blob)
+
+    def before_ready(_staging: Path) -> None:
+        os.chmod(app, 0o777)
+
+    result = on_app_lifecycle(app, "cli", {"before_ready": before_ready})
+    assert result["code"] == "UPDATE-TRUST-REFUSED"
+    assert result["applied"] is False
+    assert result["activated"] is False
+    assert _active(app) is None
+    assert _floor(app) in (None, 0)
 
 
 def test_trust_anchor_refuses_group_write_symlink_and_other_owner(tmp_path: Path, monkeypatch) -> None:

@@ -68,7 +68,7 @@ TRUST_NEED: tuple[str, ...] = (
     "Create .azinterface/update/trust.json. Never put a private key, seed, or PEM in that file.",
     "The file must be a regular file owned by this user. Group write and world write are refused. A symlink is not followed.",
     "The update directory must not be group-writable, world-writable, or a symlink.",
-    "Ancestors of update/ must not be group-writable or world-writable unless the sticky bit is set, and must not be owned by another non-root user. A sticky directory such as /tmp is a boundary.",
+    "Ancestors of update/ must not be group-writable or world-writable without the sticky bit, and must not be owned by another non-root user. Only a root-owned sticky directory, such as /tmp, stops the walk.",
     "spec must be AZINTERFACE-UPDATE-TRUST-1.0.",
     "product must be azinterface or aziel-runtime.",
     "public_key must be the raw 32-byte Ed25519 release public key for that product, base64url. AZInterface does not generate one and does not ship an azinterface pin.",
@@ -95,6 +95,8 @@ BOUNDARY: tuple[str, ...] = (
     "The published runtime pin vouches for product aziel-runtime only. No AZInterface release key is shipped.",
     "Artifact bytes are authenticated by length and sha256, including a zero-length file, before activation, recovery, or a floor increase.",
     "The trust anchor is refused when it is a symlink, or when the file or update directory is group-writable or world-writable.",
+    "Only a root-owned sticky directory stops the ancestor walk. A sticky directory owned by this user is checked, then the walk continues.",
+    "Ancestors are checked again immediately before the activation rename. That rename is renameat on a directory fd opened with O_DIRECTORY|O_NOFOLLOW after the check. A chmod in the gap between that check and the open can still be missed. After the fd is open, renaming the directory path does not retarget it.",
     "Recovery and apply share one exclusive lock file. The floor is not lowered.",
     "Track 2 LAN sessions are not implemented. mesh:file is a local inbox, not a second device and not a radio.",
     "Paid satellite_relay stays HELD. Carrier hardware on this process is absent. Membership flags are not delivery.",
@@ -208,9 +210,11 @@ def _dir_unsafe(path: Path) -> bool:
 def ancestor_verdict(mode: int, uid: int, euid: int) -> str:
     """``unsafe``, ``boundary``, or ``continue`` for one ancestor directory.
 
-    A sticky world-writable directory is the /tmp boundary and stops the walk.
-    Root (uid 0) may own a directory. Any other owner's directory is refused.
-    Group or world write without the sticky bit is refused.
+    Only a root-owned sticky directory stops the walk. ``/tmp`` is that case.
+    A sticky directory owned by this user, or by anyone else, is checked and
+    the walk continues, so a mode ``0777`` parent above it is still seen.
+    Group or world write without the sticky bit is refused. A non-root owner
+    other than this user is refused.
     """
     if stat.S_ISLNK(mode) or not stat.S_ISDIR(mode):
         return "unsafe"
@@ -220,7 +224,7 @@ def ancestor_verdict(mode: int, uid: int, euid: int) -> str:
     sticky = bool(mode & stat.S_ISVTX)
     if loose and not sticky:
         return "unsafe"
-    if sticky:
+    if sticky and uid == 0:
         return "boundary"
     return "continue"
 
@@ -759,6 +763,29 @@ def _write_atomic(path: Path, data: bytes, mode: int = 0o600) -> None:
         os.close(dirfd)
 
 
+def _dir_entry(fd: int, name: str) -> bool:
+    try:
+        os.stat(name, dir_fd=fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return False
+    return True
+
+
+def _activate_rename(gen: Path) -> None:
+    """Rename staging to current relative to a verified generations directory fd."""
+    flags = os.O_RDONLY | os.O_DIRECTORY | _NOFOLLOW
+    fd = os.open(gen, flags)
+    try:
+        info = os.fstat(fd)
+        if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.geteuid():
+            raise _Unsafe("generation directory")
+        if _dir_entry(fd, "current"):
+            os.rename("current", "previous", src_dir_fd=fd, dst_dir_fd=fd)
+        os.rename("staging", "current", src_dir_fd=fd, dst_dir_fd=fd)
+    finally:
+        os.close(fd)
+
+
 def _clear(path: Path) -> None:
     if _is_symlink(path) or path.is_file():
         path.unlink()
@@ -1086,6 +1113,13 @@ class InterfaceUpdateHost:
             raise
 
     def swap(self) -> None:
+        """Activate staging with renameat on a directory fd.
+
+        Ancestors are read again immediately before that open. The residual
+        window is the gap between that read and the open: a chmod there can
+        still be missed. Once the fd is open, renaming the path does not
+        retarget it.
+        """
         current = self.gen / "current"
         previous = self.gen / "previous"
         staging = self.gen / "staging"
@@ -1099,9 +1133,9 @@ class InterfaceUpdateHost:
         )
         if previous.exists() or _is_symlink(previous):
             _clear(previous)
-        if current.exists() or _is_symlink(current):
-            os.replace(current, previous)
-        os.replace(staging, current)
+        if _ancestors_block(self.home) or _dir_unsafe(self.home):
+            raise U.UpdateRefuse("UPDATE-TRUST-REFUSED")
+        _activate_rename(self.gen)
         self._swapped = True
 
     def health_check(self) -> bool:
