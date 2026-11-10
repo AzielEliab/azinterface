@@ -189,6 +189,7 @@ class Suite:
         self._traj_listen: str | None = None
         self._claimed: set[int] = set()
         self._help_cache: dict[tuple[str, ...], str] = {}
+        self.update_report: dict[str, Any] | None = None
 
     def cards(self) -> list[dict[str, Any]]:
         with self._lock:
@@ -674,7 +675,27 @@ class Suite:
         thread.start()
         return {"ok": True, "running": True}
 
+    def _update_root(self) -> Path:
+        from .update_apply import operator_root
+
+        if self.vendor == default_vendor():
+            return operator_root()
+        return self.vendor.parent
+
     def _start_all(self) -> None:
+        try:
+            from .update_apply import on_app_lifecycle
+
+            self.update_report = on_app_lifecycle(self._update_root(), "suite-start")
+        except Exception:
+            self.update_report = {
+                "ok": False,
+                "code": "UPDATE-STATE",
+                "live": False,
+                "applied": False,
+                "activated": False,
+                "event": "suite-start",
+            }
         try:
             cards = self.cards()
             before: set[int] = set()

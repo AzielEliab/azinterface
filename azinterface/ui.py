@@ -358,10 +358,19 @@ def open_line(host: str, port: int) -> str:
     return f"Open http://{host}:{port}/"
 
 
-def serve(host: str = LOOPBACK, port: int = PORT) -> int:
+def serve(host: str = LOOPBACK, port: int = PORT, *, ready=None) -> int:
+    from .update_apply import on_app_lifecycle, operator_root
+
+    try:
+        report = on_app_lifecycle(operator_root(), "ui-start")
+    except Exception:
+        report = {"ok": False, "code": "UPDATE-STATE", "live": False, "applied": False, "event": "ui-start"}
     httpd = make_server(host, port)
     bound = httpd.server_address
     print(open_line(str(bound[0]), int(bound[1])))
+    print(f"Signed update {report.get('code')}. live is false.")
+    if ready is not None:
+        ready(report, httpd)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Callable
 
@@ -219,6 +220,25 @@ def _check_pipeline() -> Check:
     return _ok("pipeline", "MASTER-33 11/33 on aziel-runtime; FragGate single door")
 
 
+def _check_signed_update() -> Check:
+    from azinterface.update_apply import load_trust
+    from azinterface.update_verify import pin_vouches_for
+
+    missing = load_trust(Path("/tmp/azinterface-signed-update-absent"))
+    if missing.get("configured") or missing.get("public_key"):
+        return _fail("signed update", "missing trust configured a key")
+    if os.environ.get("AUTO_UPDATE") == "on":
+        if missing.get("code") != "UPDATE-NO-KEY":
+            return _fail("signed update", str(missing.get("code")))
+    elif missing.get("code") != "UPDATE-OFF" or missing.get("enabled"):
+        return _fail("signed update", str(missing.get("code")))
+    if pin_vouches_for("azinterface"):
+        return _fail("signed update", "runtime pin vouches for azinterface")
+    if not pin_vouches_for("aziel-runtime"):
+        return _fail("signed update", "runtime pin lost its product")
+    return _ok("signed update", "missing trust is off; the runtime pin is not this product")
+
+
 def _check_ops() -> Check:
     need = {
         "health",
@@ -259,6 +279,7 @@ CHECKS: tuple[Callable[[], Check], ...] = (
     _check_not_hub,
     _check_pipeline,
     _check_ops,
+    _check_signed_update,
 )
 
 
