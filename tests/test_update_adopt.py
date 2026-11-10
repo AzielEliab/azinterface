@@ -28,6 +28,7 @@ from azinterface.update_apply import (
     UpdateLock,
     _NoRedirect,
     _Transport,
+    ancestor_verdict,
     apply_candidate,
     bytes_match,
     on_app_lifecycle,
@@ -572,6 +573,57 @@ def test_store_and_worker_stage_without_activating(tmp_path: Path) -> None:
     assert worker["install_route"] == "unsupported"
     assert worker["activated"] is False
     assert worker["verified"] is True
+
+
+def test_mode_0777_ancestor_does_not_activate(tmp_path: Path) -> None:
+    private, public = _keys()
+    _trust(tmp_path, public)
+    os.chmod(tmp_path, 0o777)
+    result, _manifest_row = _run(tmp_path, private, b"ancestor", 1)
+    assert result["code"] == "UPDATE-TRUST-REFUSED"
+    assert result["configured"] is False
+    assert result["applied"] is False
+    assert result["activated"] is False
+    assert public not in json.dumps(result)
+    assert _active(tmp_path) is None
+    os.chmod(tmp_path, 0o775)
+    grouped = on_app_lifecycle(tmp_path, "cli")
+    assert grouped["code"] == "UPDATE-TRUST-REFUSED"
+    assert grouped["activated"] is False
+
+
+def test_sticky_ancestor_is_a_boundary_and_a_symlink_ancestor_is_refused(tmp_path: Path) -> None:
+    private, public = _keys()
+    sticky = tmp_path / "sticky"
+    sticky.mkdir()
+    os.chmod(sticky, 0o1777)
+    app = sticky / "app"
+    app.mkdir(mode=0o700)
+    os.chmod(app, 0o700)
+    _trust(app, public)
+    adopted, _manifest_row = _run(app, private, b"inside-sticky", 1)
+    assert adopted["code"] == "UPDATE-OK"
+    assert adopted["activated"] is True
+    assert _active(app) == b"inside-sticky"
+    real = tmp_path / "real"
+    real.mkdir(mode=0o700)
+    os.chmod(real, 0o700)
+    _trust(real, public)
+    link = tmp_path / "link"
+    link.symlink_to(real, target_is_directory=True)
+    refused, _manifest_row = _run(link, private, b"via-link", 1)
+    assert refused["code"] == "UPDATE-TRUST-REFUSED"
+    assert refused["activated"] is False
+    assert _active(real) is None
+
+
+def test_ancestor_verdict_refuses_another_non_root_owner() -> None:
+    assert ancestor_verdict(0o40777, 1000, 1000) == "unsafe"
+    assert ancestor_verdict(0o40775, 1000, 1000) == "unsafe"
+    assert ancestor_verdict(0o40755, 50, 1000) == "unsafe"
+    assert ancestor_verdict(0o40755, 0, 1000) == "continue"
+    assert ancestor_verdict(0o41777, 0, 1000) == "boundary"
+    assert ancestor_verdict(0o40700, 1000, 1000) == "continue"
 
 
 def test_trust_anchor_refuses_group_write_symlink_and_other_owner(tmp_path: Path, monkeypatch) -> None:

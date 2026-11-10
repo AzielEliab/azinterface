@@ -68,6 +68,7 @@ TRUST_NEED: tuple[str, ...] = (
     "Create .azinterface/update/trust.json. Never put a private key, seed, or PEM in that file.",
     "The file must be a regular file owned by this user. Group write and world write are refused. A symlink is not followed.",
     "The update directory must not be group-writable, world-writable, or a symlink.",
+    "Ancestors of update/ must not be group-writable or world-writable unless the sticky bit is set, and must not be owned by another non-root user. A sticky directory such as /tmp is a boundary.",
     "spec must be AZINTERFACE-UPDATE-TRUST-1.0.",
     "product must be azinterface or aziel-runtime.",
     "public_key must be the raw 32-byte Ed25519 release public key for that product, base64url. AZInterface does not generate one and does not ship an azinterface pin.",
@@ -204,9 +205,58 @@ def _dir_unsafe(path: Path) -> bool:
     return False
 
 
+def ancestor_verdict(mode: int, uid: int, euid: int) -> str:
+    """``unsafe``, ``boundary``, or ``continue`` for one ancestor directory.
+
+    A sticky world-writable directory is the /tmp boundary and stops the walk.
+    Root (uid 0) may own a directory. Any other owner's directory is refused.
+    Group or world write without the sticky bit is refused.
+    """
+    if stat.S_ISLNK(mode) or not stat.S_ISDIR(mode):
+        return "unsafe"
+    if uid != euid and uid != 0:
+        return "unsafe"
+    loose = bool(mode & _LOOSE)
+    sticky = bool(mode & stat.S_ISVTX)
+    if loose and not sticky:
+        return "unsafe"
+    if sticky:
+        return "boundary"
+    return "continue"
+
+
+def _ancestors_block(update_home: Path) -> bool:
+    """True when an ancestor of ``update/`` can be replaced by someone else."""
+    current = Path(os.path.abspath(update_home)).parent
+    euid = os.geteuid()
+    seen: set[Path] = set()
+    while current not in seen:
+        seen.add(current)
+        try:
+            info = current.lstat()
+        except FileNotFoundError:
+            parent = current.parent
+            if parent == current:
+                return False
+            current = parent
+            continue
+        except OSError:
+            return True
+        verdict = ancestor_verdict(info.st_mode, info.st_uid, euid)
+        if verdict == "unsafe":
+            return True
+        if verdict == "boundary":
+            return False
+        parent = current.parent
+        if parent == current:
+            return False
+        current = parent
+    return False
+
+
 def _ensure_home(root: Path) -> Path:
     home = Path(root) / "update"
-    if _dir_unsafe(home):
+    if _ancestors_block(home) or _dir_unsafe(home):
         raise _Anchor("UPDATE-TRUST-REFUSED")
     if home.exists():
         return home
@@ -264,7 +314,7 @@ def _exclusive(root: Path) -> Iterator[Path]:
     if not lock.acquire(LOCK_WAIT):
         raise _Anchor("UPDATE-LOCK")
     try:
-        if _dir_unsafe(home):
+        if _ancestors_block(home) or _dir_unsafe(home):
             raise _Anchor("UPDATE-TRUST-REFUSED")
         yield home
     finally:
@@ -318,7 +368,7 @@ def load_trust(root: Path | str) -> dict[str, Any]:
     """Read operator trust. Does not create directories and does not invent a key."""
     home = Path(root) / "update"
     switched = _auto_on(False)
-    if _dir_unsafe(home):
+    if _ancestors_block(home) or _dir_unsafe(home):
         base = _blank_trust("UPDATE-TRUST-REFUSED", refused=True)
         base["enabled"] = False
         return base
