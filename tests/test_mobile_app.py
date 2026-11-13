@@ -110,6 +110,11 @@ def test_app_keeps_the_worker_facts_and_refuses_live_claims() -> None:
         "The page is OFF.",
     ):
         assert sentence in source
+    assert "onAppLifecycle('start')" in source
+    assert "onConnectivity('start')" in source
+    assert "didChangeAppLifecycleState" in source
+    assert "selfPatch: false" in source
+    assert "UPDATE-NOT-READY" in source
     assert "software_count stays 42" not in source
     assert "const int softwareCount = 42" not in source
     assert "alt_internet_live is true" in source

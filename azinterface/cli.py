@@ -48,6 +48,8 @@ Advanced:
   azinterface pipeline
   azinterface ops
   azinterface scorch-local
+  azinterface update          Signed update check. Off until operator trust is configured
+  azinterface node update     The same check from the side-net
   azinterface pair-offer [--via local]
   azinterface pair-accept
   azinterface pair-seal
@@ -278,6 +280,10 @@ def _parser() -> HumanParser:
     withdraw = sub.add_parser("withdraw", help="Withdraw a hold when the page is ON")
     withdraw.add_argument("--hold-id", default="")
     sub.add_parser("scorch-local", help="Local Scorched Earth advisory")
+    sub.add_parser("update", help="Signed update check. Off until operator trust is configured")
+    node = sub.add_parser("node", help="Side-net")
+    node_sub = node.add_subparsers(dest="node_cmd")
+    node_sub.add_parser("update", help="Signed update check from the side-net")
     offer = sub.add_parser("pair-offer", help="Record a pair offer cite")
     offer.add_argument("--via", default="local")
     offer.add_argument("--pair-id", default="")
@@ -360,6 +366,18 @@ def main(argv: list[str] | None = None) -> int:
         return emit(eng.hold({"label": args.label}), as_json)
     if args.cmd == "withdraw":
         return emit(eng.withdraw({"hold_id": args.hold_id}), as_json)
+    if args.cmd == "update":
+        from .update_apply import on_app_lifecycle, operator_root
+
+        return emit(on_app_lifecycle(operator_root(), "cli"), as_json)
+    if args.cmd == "node":
+        if getattr(args, "node_cmd", None) != "update":
+            print("Try: azinterface node update")
+            return 2
+        from .sidenet import signed_update
+        from .update_apply import operator_root
+
+        return emit(signed_update(operator_root()), as_json)
     if args.cmd == "scorch-local":
         return emit(eng.scorch_local({}), as_json)
     if args.cmd == "pair-offer":

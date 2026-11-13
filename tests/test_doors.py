@@ -151,14 +151,50 @@ def test_internet_door_returns_the_body_the_server_sent(tmp_path: Path) -> None:
 
 
 def test_internet_door_fetches_a_public_page() -> None:
+    """The desk fetch runs against a local fixture. The public host is opt-in."""
     from azinterface.net_fetch import fetch_url
 
-    fetched = fetch_url({"url": "https://example.com/"})
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # noqa: N802
+            body = b"<html><h1>Example Domain</h1></html>"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, fmt: str, *args) -> None:
+            return
+
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    port = int(httpd.server_address[1])
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        fetched = fetch_url({"url": f"http://127.0.0.1:{port}/"})
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
     assert fetched["fetched"] is True
     assert fetched["packet_path"] is True
     assert fetched["alt_internet"] is True
     assert fetched["packet_path_live"] is True
     assert fetched["qns_cite_plane"] is False
+    assert fetched["http_status"] == 200
+    assert "Example Domain" in fetched["body"]
+
+
+def test_internet_door_public_page_is_opt_in() -> None:
+    import os
+
+    import pytest
+
+    from azinterface.net_fetch import fetch_url
+
+    if os.environ.get("AZINTERFACE_LIVE_NETWORK") != "1":
+        pytest.skip("AZINTERFACE_LIVE_NETWORK=1 fetches a public page")
+    fetched = fetch_url({"url": "https://example.com/"})
+    assert fetched["fetched"] is True
     assert fetched["http_status"] == 200
     assert "Example Domain" in fetched["body"]
 
