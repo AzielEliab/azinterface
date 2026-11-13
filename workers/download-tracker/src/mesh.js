@@ -12,6 +12,7 @@
  */
 
 import { qnmCarrierProbe } from "./alt-internet-fact.js";
+import { bandRow, classifyCarrier, rfBandCite } from "./rf-bands.js";
 
 export const QNS_CD = "QNS-CD-1.0";
 export const QNM_BUILD = "QNM-BUILD-1.0";
@@ -397,6 +398,16 @@ function qnmFlags() {
   return { mesh_node_live: true, alt_internet_live: true, packet_path_live: true };
 }
 
+function hostSeen() {
+  try {
+    if (typeof process === "undefined" || typeof process.getBuiltinModule !== "function") return false;
+    const fs = process.getBuiltinModule("node:fs");
+    return Boolean(fs && fs.existsSync("/sys/class/net"));
+  } catch {
+    return false;
+  }
+}
+
 /** Softwares mesh_radios tile. Status OK by default. confirm keeps MESH_RADIOS=on. */
 export function meshRadios(payload, env) {
   const src = payload && typeof payload === "object" && !Array.isArray(payload) ? payload : {};
@@ -434,6 +445,7 @@ export function meshRadios(payload, env) {
     env_radios: envRadios,
     locks: { softwares: 42, mcp_tools: 36 },
     note: MESH_RADIOS_NOTE,
+    qnm_rf: rfBandCite(),
   };
   const stayed = meshStayOffHit(src);
   if (stayed) {
@@ -448,6 +460,67 @@ export function meshRadios(payload, env) {
       cap7_registrar_live: false,
       message: "Cap-7 and .aziel stay names. They are not ICANN and not a public registrar. Mesh radios do not arm Cap-7 egress, a public registrar, or a loopback fence.",
     };
+  }
+  const subject = classifyCarrier(String(src.carrier || ""));
+  if (subject) {
+    const kind = subject[0];
+    const ident = subject[1];
+    const row = bandRow(tile.qnm_rf, ident);
+    if (kind === "held") {
+      return {
+        ...tile,
+        ok: false,
+        status: "REFUSED",
+        action: "status",
+        carrier: ident,
+        held: true,
+        carrier_enabled: false,
+        live: false,
+        hardware_live: false,
+        packet_live: false,
+        transmit: false,
+        spend: false,
+        checkout: false,
+        skus: false,
+        plans: false,
+        purchased: false,
+        paid_ok: false,
+        paid_terminal: false,
+        mutated: false,
+        mock: false,
+        code: row.hardware ? row.code : (row.code || "QNM-RADIO-ABSENT"),
+        public_icann: false,
+        cap7_is_icann: false,
+        cap7_registrar_live: false,
+        message: row.note || "That path stays HELD. No spend. live, hardware_live, and packet_live stay false.",
+      };
+    }
+    if (!row || row.state !== "HW-PRESENT") {
+      return {
+        ...tile,
+        ok: false,
+        status: "REFUSED",
+        code: (row && row.code) || "QNM-RADIO-ABSENT",
+        carrier: ident,
+        mock: false,
+        live: false,
+        hardware_live: false,
+        packet_live: false,
+        carrier_live: false,
+        worker_hardware: hostSeen(),
+        public_icann: false,
+        cap7_is_icann: false,
+        message: "That carrier is refused. QNM says the hardware is absent. This does not invent a live radio.",
+      };
+    }
+    tile.worker_hardware = true;
+    tile.carrier = ident;
+    tile.carrier_state = "HW-PRESENT";
+    tile.live = false;
+    tile.hardware_live = false;
+    tile.packet_live = false;
+    tile.carrier_live = false;
+    tile.note = tile.note + " The named carrier is present on this machine and is not a second device.";
   }
   const carrier = namedCarrier(src);
   if (carrier) {

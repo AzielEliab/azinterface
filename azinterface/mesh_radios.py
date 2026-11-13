@@ -13,7 +13,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from .packet_path import RADIO_ABSENT, path_report
+from .packet_path import RADIO_ABSENT, host_hardware_visible, path_report
+from .rf_bands import band_row, classify_carrier, rf_band_cite
 
 MESH_DEFAULT = "on"
 MESH_DEFAULT_ENABLED = True
@@ -136,6 +137,7 @@ def mesh_radios_tile(payload: dict[str, Any] | None = None, env: Any | None = No
         "env_radios": env_radios,
         "locks": {"softwares": 42, "mcp_tools": 36},
         "note": NOTE,
+        "qnm_rf": rf_band_cite(),
     }
     stayed = _stay_off(src)
     if stayed:
@@ -153,6 +155,64 @@ def mesh_radios_tile(payload: dict[str, Any] | None = None, env: Any | None = No
             ),
         })
         return tile
+    subject = classify_carrier(str(src.get("carrier") or ""))
+    if subject:
+        kind, ident = subject
+        row = band_row(tile["qnm_rf"], ident)
+        if kind == "held":
+            tile.update({
+                "ok": False,
+                "status": "REFUSED",
+                "action": "status",
+                "carrier": ident,
+                "held": True,
+                "carrier_enabled": False,
+                "live": False,
+                "hardware_live": False,
+                "packet_live": False,
+                "transmit": False,
+                "spend": False,
+                "checkout": False,
+                "skus": False,
+                "plans": False,
+                "purchased": False,
+                "paid_ok": False,
+                "paid_terminal": False,
+                "mutated": False,
+                "mock": False,
+                "code": row.get("code") if row.get("hardware") else (row.get("code") or RADIO_ABSENT),
+                "public_icann": False,
+                "cap7_is_icann": False,
+                "cap7_registrar_live": False,
+                "message": row.get("note") or "That path stays HELD. No spend. live, hardware_live, and packet_live stay false.",
+            })
+            return tile
+        absent = row.get("state") != "HW-PRESENT"
+        if absent:
+            tile.update({
+                "ok": False,
+                "status": "REFUSED",
+                "code": row.get("code") or RADIO_ABSENT,
+                "carrier": ident,
+                "mock": False,
+                "live": False,
+                "hardware_live": False,
+                "packet_live": False,
+                "carrier_live": False,
+                "worker_hardware": host_hardware_visible(),
+                "public_icann": False,
+                "cap7_is_icann": False,
+                "message": "That carrier is refused. QNM says the hardware is absent. This does not invent a live radio.",
+            })
+            return tile
+        tile["worker_hardware"] = True
+        tile["carrier"] = ident
+        tile["carrier_state"] = "HW-PRESENT"
+        tile["live"] = False
+        tile["hardware_live"] = False
+        tile["packet_live"] = False
+        tile["carrier_live"] = False
+        tile["note"] = tile["note"] + " The named carrier is present on this machine and is not a second device."
     carrier = _named_carrier(src)
     if carrier:
         report = path_report({"carrier": carrier})

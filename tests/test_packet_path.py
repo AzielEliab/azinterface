@@ -52,6 +52,44 @@ def test_same_machine_frame_is_not_a_live_public_path() -> None:
     report = path_report(refresh=True)
     assert report["status"] == not_live_sentence()
     assert report["carrier_order"] == ["lan", "wifi", "bluetooth", "rf", "photon"]
+    qnm = report["qnm_rf"]
+    assert qnm["spec"] == "QNM-RF-BANDS-1.0"
+    assert qnm["cap7_is_icann"] is False
+    assert qnm["public_icann"] is False
+    assert qnm["cap7_public_icann"] is False
+    assert qnm["traffic_paths_live"] is False
+    assert qnm["paid_satellite_spend"] is False
+    assert qnm["traffic_paths_open"] == ["lan", "wifi", "bluetooth", "rf", "photon", "am", "fm", "sat_rx"]
+    assert qnm["traffic_paths_held"] == ["xm_sdars", "satellite_relay"]
+    for ident in ("am", "fm", "sat_rx"):
+        row = qnm["rf_bands"][ident]
+        assert row["enabled"] is True
+        assert row["live"] is False
+        assert row["hardware_live"] is False
+        assert row["packet_live"] is False
+        assert row["spend"] is False
+        if row["hardware"] is False:
+            assert row["state"] == "REFUSE"
+            assert row["code"] == RADIO_ABSENT
+        else:
+            assert row["state"] == "HW-PRESENT"
+            assert row["code"] is None
+            assert row["live"] is False
+    held_xm = qnm["rf_bands"]["xm_sdars"]
+    assert held_xm["held"] is True
+    assert held_xm["enabled"] is False
+    assert held_xm["live"] is False
+    assert held_xm["hardware_live"] is False
+    assert held_xm["packet_live"] is False
+    assert held_xm["spend"] is False
+    relay = qnm["satellite_relay"]
+    assert relay["held"] is True
+    assert relay["enabled"] is False
+    assert relay["transmit"] is False
+    assert relay["live"] is False
+    assert relay["hardware_live"] is False
+    assert relay["packet_live"] is False
+    assert relay["spend"] is False
     assert report["cap7_name_only"] is True
     assert report["dot_aziel_name_only"] is True
     assert report["public_icann"] is False

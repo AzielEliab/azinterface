@@ -66,6 +66,17 @@ def test_mesh_radios_status_is_on_and_names_stay_names() -> None:
     assert tile["qns_is_membership"] is False
     assert tile["hardware_live"] is False
     assert tile["public_icann"] is False
+    assert tile["cap7_is_icann"] is False
+    assert tile["qnm_rf"]["cap7_is_icann"] is False
+    assert tile["qnm_rf"]["rf_bands"]["am"]["enabled"] is True
+    assert tile["qnm_rf"]["rf_bands"]["am"]["live"] is False
+    assert tile["qnm_rf"]["rf_bands"]["am"]["hardware_live"] is False
+    assert tile["qnm_rf"]["rf_bands"]["am"]["packet_live"] is False
+    assert tile["qnm_rf"]["rf_bands"]["xm_sdars"]["held"] is True
+    assert tile["qnm_rf"]["rf_bands"]["xm_sdars"]["spend"] is False
+    assert tile["qnm_rf"]["satellite_relay"]["held"] is True
+    assert tile["qnm_rf"]["satellite_relay"]["spend"] is False
+    assert tile["qnm_rf"]["paid_satellite_spend"] is False
     assert tile["cap7_name_only"] is True
     assert tile["cap7_registrar_live"] is False
     assert tile["locks"] == {"softwares": 42, "mcp_tools": 36}
@@ -101,6 +112,17 @@ def test_mesh_radios_status_is_on_and_names_stay_names() -> None:
     assert op["mesh_node_live"] is True
     assert op["qns"]["qns_cite_plane"] is True
     assert op["qns"]["qns_is_membership"] is False
+    assert op["qnm_rf"]["cap7_is_icann"] is False
+    assert op["qnm_rf"]["public_icann"] is False
+    assert op["qnm_rf"]["rf_bands"]["am"]["enabled"] is True
+    assert op["qnm_rf"]["rf_bands"]["am"]["live"] is False
+    assert op["qnm_rf"]["rf_bands"]["am"]["hardware_live"] is False
+    assert op["qnm_rf"]["rf_bands"]["am"]["packet_live"] is False
+    assert op["qnm_rf"]["rf_bands"]["xm_sdars"]["held"] is True
+    assert op["qnm_rf"]["rf_bands"]["xm_sdars"]["spend"] is False
+    assert op["qnm_rf"]["satellite_relay"]["held"] is True
+    assert op["qnm_rf"]["satellite_relay"]["enabled"] is False
+    assert op["qnm_rf"]["paid_satellite_spend"] is False
 
 
 def test_every_software_tile_defaults_mesh_on() -> None:
