@@ -5,7 +5,9 @@ then Wi-Fi, then Bluetooth, then RF, then photon. mesh_node_live,
 alt_internet_live, and packet_path_live are on. That membership is not the
 QNS cite plane. A named carrier refuses only when QNM says the hardware is
 absent. A same-machine frame is not a second device. Cap-7 and .aziel stay
-names, not a public registrar and not ICANN.
+names, not a public registrar and not ICANN. AM, FM, and sat_rx are an
+enabled cite under qnm_rf, gated by the same absent-hardware rule, and
+they are not failover hops. XM SDARS and satellite_relay stay HELD.
 """
 
 from __future__ import annotations
@@ -18,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from .honesty import seal_standing
+from .rf_bands import band_row, classify_carrier, rf_band_cite
 
 ORDER = ("lan", "wifi", "bluetooth", "rf", "photon")
 NAMES = {"lan": "LAN", "wifi": "Wi-Fi", "bluetooth": "Bluetooth", "rf": "RF", "photon": "Photon"}
@@ -75,10 +78,41 @@ def path_sentence(refresh: bool = False) -> str:
     return not_live_sentence()
 
 
+def _stamp_band(report: dict[str, Any], kind: str, ident: str) -> dict[str, Any]:
+    row = band_row(report.get("qnm_rf") or {}, ident)
+    stamped = dict(report)
+    stamped["asked_carrier"] = ident
+    stamped["live"] = False
+    stamped["hardware_live"] = False
+    stamped["packet_live"] = False
+    stamped["mock"] = False
+    stamped["spend"] = False
+    stamped["public_icann"] = False
+    stamped["cap7_is_icann"] = False
+    if kind == "held":
+        stamped["ok"] = False
+        stamped["held"] = True
+        stamped["carrier_enabled"] = False
+        stamped["checkout"] = False
+        stamped["transmit"] = False
+        stamped["code"] = row.get("code") if row.get("hardware") else (row.get("code") or RADIO_ABSENT)
+        return stamped
+    if row.get("state") != "HW-PRESENT":
+        stamped["code"] = row.get("code") or RADIO_ABSENT
+        return stamped
+    stamped["code"] = "PACKET-NOT-CARRIED"
+    stamped["carrier_state"] = "HW-PRESENT"
+    return stamped
+
+
 def path_report(payload: dict[str, Any] | None = None, *, refresh: bool = False) -> dict[str, Any]:
     asked = _asked_bearer(payload)
     if asked:
         return _assemble(_probe_carriers(), None, name_only_refuse=asked)
+    subject = classify_carrier(_carrier_text(payload))
+    if subject:
+        kind, ident = subject
+        return _stamp_band(_assemble(_probe_carriers(), None, name_only_refuse=None), kind, ident)
     explicit = _explicit_carrier(payload)
     global _CACHE
     with _LOCK:
@@ -181,6 +215,7 @@ def _assemble(carriers: list[dict[str, Any]], carry: dict[str, Any] | None, *, n
         "alt_line": "An alternative internet is live (alt_internet_live is true).",
         "mesh_line": "The node mesh is live (mesh_node_live is true).",
         "status": status,
+        "qnm_rf": rf_band_cite(),
     }
     return seal_standing(report, None)
 
