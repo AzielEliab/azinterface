@@ -48,6 +48,7 @@ Advanced:
   azinterface pipeline
   azinterface ops
   azinterface scorch-local
+  azinterface boot-measure    Hash installed files against a signed release manifest
   azinterface update          Signed update check. Off until operator trust is configured
   azinterface node update     The same check from the side-net
   azinterface pair-offer [--via local]
@@ -280,6 +281,7 @@ def _parser() -> HumanParser:
     withdraw = sub.add_parser("withdraw", help="Withdraw a hold when the page is ON")
     withdraw.add_argument("--hold-id", default="")
     sub.add_parser("scorch-local", help="Local Scorched Earth advisory")
+    sub.add_parser("boot-measure", help="Hash installed files against a signed release manifest")
     sub.add_parser("update", help="Signed update check. Off until operator trust is configured")
     node = sub.add_parser("node", help="Side-net")
     node_sub = node.add_subparsers(dest="node_cmd")
@@ -366,6 +368,10 @@ def main(argv: list[str] | None = None) -> int:
         return emit(eng.hold({"label": args.label}), as_json)
     if args.cmd == "withdraw":
         return emit(eng.withdraw({"hold_id": args.hold_id}), as_json)
+    if args.cmd == "boot-measure":
+        from .boot_measure import startup_measure
+
+        return emit(startup_measure(), as_json)
     if args.cmd == "update":
         from .update_apply import on_app_lifecycle, operator_root
 
