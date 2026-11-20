@@ -465,8 +465,37 @@ const READ_OPS = new Set(["health", "skill", "genesis_status", "site_state_get",
 
 export async function handleRuntimeApi(request, url, env) {
   const path = url.pathname.replace(/\/+$/, "") || "/";
-  if (path === "/v1/boot_measure" && (request.method === "GET" || request.method === "HEAD" || request.method === "POST")) {
-    return json(BOOT_MEASURE, 200);
+  if (path === "/v1/boot_measure") {
+    if (request.method === "GET" || request.method === "HEAD") return json(BOOT_MEASURE, 200);
+    return new Response(JSON.stringify({
+      ok: false,
+      spec: "AZINTERFACE-BOOT-MEASURE-1.0",
+      product: "azinterface",
+      surface: "worker",
+      status: "unknown",
+      verified: false,
+      code: "BOOT-MEASURE-METHOD",
+      hashed: false,
+      hash_dropped: true,
+      signature_ok: false,
+      read_only: true,
+      writes: false,
+      live: false,
+      booted: false,
+      installed: false,
+      mesh_node_live: true,
+      alt_internet_live: true,
+      packet_path_live: true,
+      cap7_registrar_live: false,
+      public_icann: false,
+      satellite_relay: "HELD",
+      paid_satellite: "HELD",
+      remain_off: true,
+      sentence: "Boot measure: unknown. The file hash was not completed. This measure is not verified.",
+    }, null, 2), {
+      status: 405,
+      headers: { "Content-Type": "application/json; charset=utf-8", Allow: "GET, HEAD", ...corsHeaders() },
+    });
   }
   if (path === "/mcp" && request.method === "GET") return json(mcpDocs(originOf(request)));
   if (path === "/mcp" && request.method === "POST") return json(mcpDocs(originOf(request)));

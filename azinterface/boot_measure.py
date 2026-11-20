@@ -22,14 +22,13 @@ SPEC = "AZINTERFACE-BOOT-MEASURE-1.0"
 PRODUCT = "azinterface"
 MANIFEST_NAME = "boot-manifest.json"
 SIG_NAME = "boot-manifest.sig"
-PUB_NAME = "boot-measure.pub"
 MANIFEST_CAP = 1024 * 1024
 SIG_CAP = 512
-PUB_CAP = 128
 MAX_FILE = 8 * 1024 * 1024
 MAX_FILES = 4000
-_SKIP_DIRS = frozenset({"__pycache__", ".git"})
-_SKIP_NAMES = frozenset({MANIFEST_NAME, SIG_NAME, PUB_NAME})
+# Excluded only when they sit directly in the install root. A nested copy is measured.
+_TOP_SKIP_DIRS = frozenset({".git"})
+_TOP_SKIP_FILES = frozenset({MANIFEST_NAME, SIG_NAME})
 _STATUSES = frozenset({"verified", "mismatch", "unknown"})
 
 
@@ -56,8 +55,6 @@ def _shape_code(manifest: object) -> str | None:
         if not isinstance(row, dict) or sorted(row) != ["path", "sha256", "size"]:
             return "BOOT-MEASURE-SHAPE"
         if not path_ok(row.get("path")) or row["path"] in seen:
-            return "BOOT-MEASURE-SHAPE"
-        if row["path"].split("/")[-1] in _SKIP_NAMES:
             return "BOOT-MEASURE-SHAPE"
         seen.add(row["path"])
         if not isinstance(row.get("sha256"), str) or V.HEX64.fullmatch(row["sha256"]) is None:
@@ -338,16 +335,22 @@ def _read_bytes(path: Path, cap: int) -> bytes | None | str:
 
 
 def hash_tree(root: Path) -> tuple[list[dict[str, Any]] | None, str | None]:
-    """Hash every regular file. Any unreadable or linked entry drops the whole set."""
+    """Hash every regular file, including bytecode. Any unreadable or linked entry drops the whole set.
+
+    ``.git``, ``boot-manifest.json``, and ``boot-manifest.sig`` are skipped only when they
+    sit directly in the install root. ``__pycache__`` and ``.pyc`` are never skipped.
+    """
     try:
         info = root.lstat()
     except OSError:
         return None, "BOOT-MEASURE-UNREADABLE"
     if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
         return None, "BOOT-MEASURE-UNREADABLE"
+    root_key = os.path.normpath(root)
     records: list[dict[str, Any]] = []
     for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
         current = Path(dirpath)
+        at_root = os.path.normpath(dirpath) == root_key
         try:
             if stat.S_ISLNK(current.lstat().st_mode):
                 return None, "BOOT-MEASURE-UNSAFE"
@@ -362,12 +365,12 @@ def hash_tree(root: Path) -> tuple[list[dict[str, Any]] | None, str | None]:
                 return None, "BOOT-MEASURE-UNREADABLE"
             if stat.S_ISLNK(child_info.st_mode):
                 return None, "BOOT-MEASURE-UNSAFE"
-            if name in _SKIP_DIRS:
+            if at_root and name in _TOP_SKIP_DIRS:
                 continue
             kept.append(name)
         dirnames[:] = kept
         for name in filenames:
-            if name in _SKIP_NAMES or name.endswith(".pyc"):
+            if at_root and name in _TOP_SKIP_FILES:
                 continue
             path = current / name
             rel = path.relative_to(root).as_posix()
@@ -387,19 +390,42 @@ def hash_tree(root: Path) -> tuple[list[dict[str, Any]] | None, str | None]:
     return records, None
 
 
-def _load_key(root: Path, public_key: str | None) -> str | None:
-    if isinstance(public_key, str) and public_key.strip():
-        return public_key.strip()
-    data = _read_bytes(root / PUB_NAME, PUB_CAP)
-    if not isinstance(data, (bytes, bytearray)):
+def _path_inside(parent: Path, child: Path) -> bool:
+    """True when ``child`` is ``parent`` or lives under it. Unresolvable paths fail closed."""
+    try:
+        parent_r = parent.resolve()
+        child_r = child.resolve()
+    except OSError:
+        return True
+    if child_r == parent_r:
+        return True
+    try:
+        child_r.relative_to(parent_r)
+    except ValueError:
+        return False
+    return True
+
+
+def _trust_key(measured: Path, trust_root: Path | None) -> str | None:
+    """Public key from an operator trust root that is not inside the measured install.
+
+    ``boot-measure.pub`` beside the app files is never read. No external key means no key.
+    """
+    from azinterface.update_apply import load_trust, operator_root
+
+    home = trust_root if trust_root is not None else operator_root()
+    if _path_inside(measured, home):
         return None
     try:
-        text = bytes(data).decode("utf-8").strip()
-    except UnicodeError:
+        trust = load_trust(home)
+    except Exception:
         return None
-    if not text or any(char.isspace() for char in text):
+    if not isinstance(trust, dict) or trust.get("configured") is not True:
         return None
-    return text
+    key = trust.get("public_key")
+    if not isinstance(key, str) or _key_class(key) != "usable":
+        return None
+    return key.strip()
 
 
 def _load_manifest(root: Path) -> tuple[dict[str, Any] | None, str | None, bool, str | None]:
@@ -437,8 +463,18 @@ def _load_manifest(root: Path) -> tuple[dict[str, Any] | None, str | None, bool,
     return parsed, signature or None, True, None
 
 
-def measure_root(root: Path | str, public_key: str | None = None, *, surface: str = "desk") -> dict[str, Any]:
-    """Hash one install tree. A failed hash is unknown and is not compared."""
+def measure_root(
+    root: Path | str,
+    public_key: str | None = None,
+    *,
+    surface: str = "desk",
+    trust_root: Path | str | None = None,
+) -> dict[str, Any]:
+    """Hash one install tree. A failed hash is unknown and is not compared.
+
+    The verifying key is the caller argument, or the operator trust root when that
+    root is outside this install. A key file inside the install is not a trust anchor.
+    """
     root_path = Path(root)
     files, read_code = hash_tree(root_path)
     if read_code or files is None:
@@ -453,7 +489,10 @@ def measure_root(root: Path | str, public_key: str | None = None, *, surface: st
             manifest_present=False,
         )
     manifest, signature, present, load_code = _load_manifest(root_path)
-    key = _load_key(root_path, public_key)
+    if isinstance(public_key, str) and public_key.strip():
+        key: str | None = public_key.strip()
+    else:
+        key = _trust_key(root_path, Path(trust_root) if trust_root is not None else None)
     if load_code and manifest is None:
         code = "BOOT-MEASURE-NO-MANIFEST" if load_code == "BOOT-MEASURE-NO-MANIFEST" or not present else load_code
         report = compare_release(

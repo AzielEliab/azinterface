@@ -88,10 +88,12 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args: Any) -> None:
         return
 
-    def _json(self, body: dict[str, Any], status: int = 200) -> None:
+    def _json(self, body: dict[str, Any], status: int = 200, *, allow: str | None = None) -> None:
         raw = json.dumps(body, indent=2).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        if allow:
+            self.send_header("Allow", allow)
         self.send_header("Cache-Control", "private, no-store")
         self.send_header("Content-Length", str(len(raw)))
         self.end_headers()
@@ -322,7 +324,15 @@ class Handler(BaseHTTPRequestHandler):
             self._forensic_post(path, payload if isinstance(payload, dict) else {})
             return
         if path == "/v1/boot_measure":
-            self._json(startup_measure())
+            refused = dict(startup_measure())
+            refused["ok"] = False
+            refused["status"] = "unknown"
+            refused["verified"] = False
+            refused["signature_ok"] = False
+            refused["code"] = "BOOT-MEASURE-METHOD"
+            refused["sentence"] = "Boot measure: unknown. The file hash was not completed. This measure is not verified."
+            refused["display"] = {"title": "Boot measure", "summary": refused["sentence"], "fields": [{"label": "status", "value": "unknown"}]}
+            self._json(refused, 405, allow="GET, HEAD")
             return
         if not path.startswith("/v1/"):
             self._json({"error": "not found"}, 404)

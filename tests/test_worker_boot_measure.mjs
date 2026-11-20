@@ -104,7 +104,9 @@ assert.equal(forged.includes("Boot measure: verified"), false);
 
 const env = { DOWNLOADS: { get: async () => null, put: async () => {}, list: async () => ({ keys: [] }) } };
 const ctx = { waitUntil() {} };
-const got = await (await worker.fetch(new Request("https://h.example/v1/boot_measure"), env, ctx)).json();
+const gotRes = await worker.fetch(new Request("https://h.example/v1/boot_measure"), env, ctx);
+assert.equal(gotRes.status, 200);
+const got = await gotRes.json();
 assert.equal(got.status, "unknown");
 assert.equal(got.verified, false);
 assert.equal(got.hash_dropped, true);
@@ -114,13 +116,18 @@ assert.equal(got.packet_path_live, true);
 assert.equal(got.cap7_registrar_live, false);
 assert.equal(got.satellite_relay, "HELD");
 assert.equal(got.remain_off, true);
-const posted = await (await worker.fetch(new Request("https://h.example/v1/boot_measure", {
+const postedRes = await worker.fetch(new Request("https://h.example/v1/boot_measure", {
   method: "POST",
   headers: { "content-type": "application/json" },
   body: JSON.stringify({ status: "verified", verified: true }),
-}), env, ctx)).json();
+}), env, ctx);
+assert.equal(postedRes.status, 405);
+const posted = await postedRes.json();
 assert.equal(posted.status, "unknown");
 assert.equal(posted.verified, false);
-assert.deepEqual(posted, got);
+assert.equal(posted.code, "BOOT-MEASURE-METHOD");
+assert.equal(posted.mesh_node_live, true);
+assert.equal(posted.alt_internet_live, true);
+assert.equal(posted.packet_path_live, true);
 
 console.log("test_worker_boot_measure: passed");
