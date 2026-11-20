@@ -175,6 +175,7 @@ footer p { margin: 0.2rem 0; }
   <main>
     <h1>Custody on this computer</h1>
     <p class="lede">Hold, withdraw, and witness follow one sealed page step at a time.</p>
+    __BOOT_MEASURE__
     <section class="card" aria-labelledby="now-title">
       <h2 id="now-title">Status</h2>
       <p class="status" id="status" aria-live="polite">Reading the page record…</p>
@@ -443,6 +444,7 @@ ___HUMAN_LINES___
 
 
 def operator_html(*, port: int = PORT) -> str:
+    from .boot_measure import markup, startup_measure
     from .plain import HUMAN_JS
 
     return (
@@ -452,4 +454,5 @@ def operator_html(*, port: int = PORT) -> str:
         .replace("__LOOPBACK__", LOOPBACK)
         .replace("__PORT__", str(port))
         .replace("___HUMAN_LINES___", HUMAN_JS)
+        .replace("__BOOT_MEASURE__", markup(startup_measure()))
     )

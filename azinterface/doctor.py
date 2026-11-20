@@ -239,6 +239,34 @@ def _check_signed_update() -> Check:
     return _ok("signed update", "missing trust is off; the runtime pin is not this product")
 
 
+def _check_boot_measure() -> Check:
+    from azinterface.boot_measure import startup_measure
+    from azinterface.honesty import standing_facts
+
+    report = startup_measure()
+    facts = standing_facts()
+    for key in ("mesh_node_live", "alt_internet_live", "packet_path_live"):
+        if facts[key] is not True or report[key] is not True:
+            return _fail("boot measure", key)
+    if report["status"] not in {"verified", "mismatch", "unknown"}:
+        return _fail("boot measure", str(report["status"]))
+    if report["verified"] is not (report["status"] == "verified" and report["signature_ok"] is True and report["hashed"] is True):
+        return _fail("boot measure", "verified flag drifted")
+    if report["hash_dropped"] and report["verified"]:
+        return _fail("boot measure", "dropped hash was verified")
+    if report["cap7_registrar_live"] or report["public_icann"] or report["satellite_relay"] != "HELD":
+        return _fail("boot measure", "cap-7 or satellite moved")
+    if report["installed"] or report["booted"] or report["live"] or report["writes"]:
+        return _fail("boot measure", "a standing flag was raised")
+    if (Path(__file__).resolve().parent / "boot-manifest.json").exists():
+        return _fail("boot measure", "this tree has a manifest the doctor did not sign")
+    if report["status"] != "unknown" or report["verified"] or report["hashed"] is not True or report["hash_dropped"] or report["file_count"] < 1:
+        return _fail("boot measure", report["code"])
+    if report["sentence"].startswith("Boot measure: verified"):
+        return _fail("boot measure", "unknown install used the verified sentence")
+    return _ok("boot measure", "hashed; no signed manifest; unknown")
+
+
 def _check_ops() -> Check:
     need = {
         "health",
@@ -280,6 +308,7 @@ CHECKS: tuple[Callable[[], Check], ...] = (
     _check_pipeline,
     _check_ops,
     _check_signed_update,
+    _check_boot_measure,
 )
 
 

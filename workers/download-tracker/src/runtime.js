@@ -32,6 +32,7 @@ import {
 import { classifyV1Path, doorTargetUrl, runtimeArchUrl, RUNTIME_ARCH_PATH } from "./door.js";
 import { corsHeaders, htmlHeaders } from "./headers.js";
 import { pipelineArch } from "./pipeline.js";
+import { STARTUP as BOOT_MEASURE } from "./boot-measure.js";
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body, null, 2), {
@@ -102,6 +103,7 @@ function opSummary(op) {
 function openapiSpec(origin) {
   const paths = {
     "/v1/health": { get: { operationId: "azinterface_health", summary: "Liveness. Does not increment downloads.", responses: { "200": { description: "ok" } } } },
+    "/v1/boot_measure": { get: { operationId: "azinterface_boot_measure", summary: "Boot self-measure. verified only when a complete file hash matches a signed release manifest. A missing manifest or a dropped hash is unknown.", responses: { "200": { description: "verified, mismatch, or unknown" } } } },
     "/v1/skill": { get: { operationId: "azinterface_skill", summary: "Skill markdown.", responses: { "200": { description: "markdown" } } } },
     "/openapi.json": { get: { operationId: "azinterface_openapi", summary: "OpenAPI 3.1 — first-class backend.", responses: { "200": { description: "spec" } } } },
     "/mcp": {
@@ -463,6 +465,9 @@ const READ_OPS = new Set(["health", "skill", "genesis_status", "site_state_get",
 
 export async function handleRuntimeApi(request, url, env) {
   const path = url.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/v1/boot_measure" && (request.method === "GET" || request.method === "HEAD" || request.method === "POST")) {
+    return json(BOOT_MEASURE, 200);
+  }
   if (path === "/mcp" && request.method === "GET") return json(mcpDocs(originOf(request)));
   if (path === "/mcp" && request.method === "POST") return json(mcpDocs(originOf(request)));
 

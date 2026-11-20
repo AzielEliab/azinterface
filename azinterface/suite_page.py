@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from html import escape
 
+from .boot_measure import markup, startup_measure
 from .meta import IDENTITY, LOOPBACK, SPEC, VERSION
 from .honesty import standing_text
 from .packet_path import path_sentence
@@ -89,6 +90,7 @@ footer { margin-top: 1.25rem; color: var(--muted); font-size: 0.9rem; }
   <main>
     <h1>Softwares</h1>
     <p class="lede">AZInterface is the suite on this computer. Start suite opens every Software that can run here. AZVPN starts with the suite. AZCoherence stays in the background. TrajectoryLock opens a review of satellite imagery for an event place and time. ShadowLock links any Software. 4DMap shows those links.</p>
+    __BOOT_MEASURE__
     <p id="stand">This page stands on its own. It can call aziel-runtime through the existing FragGate door. Softwares 42 is the runtime catalog. The domain count stays 33. __PATH_SENTENCE__ Mail send does not run on the public worker. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. The host operating system did not boot. This desk places a card on the clock and reads that card back. This desk can hand a message to an SMTP host named on the mail page. That handoff is not public mail send. Public mail send is not live. This desk can fetch one http or https URL. That fetch is a desk read. QNM packet_path_live is on. It is not the QNS cite plane. This desk opens an overlay session and runs a command inside it. That session is not a kernel. AZNews can stand alone. 4DMap can stand alone. A story is a pin only after that story is read back. A catalog listing is not a join. __STANDING__</p>
     <div class="actions">
       <button class="primary" id="start-suite" type="button">Start suite</button>
@@ -303,4 +305,5 @@ def suite_html(*, port: int, vendor: str) -> str:
         .replace("__VENDOR__", escape(vendor))
         .replace("__PATH_SENTENCE__", escape(path_sentence()))
         .replace("__STANDING__", escape(standing_text()))
+        .replace("__BOOT_MEASURE__", markup(startup_measure()))
     )
