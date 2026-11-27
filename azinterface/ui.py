@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from .boot_measure import startup_measure
 from .cite import cite_document
 from .engine import Engine
 from .forensic_session import ForensicDesk
@@ -53,6 +54,22 @@ def home_document(engine: Engine, host: str, port: int) -> dict[str, Any]:
         "next": view.get("next"),
         "loopback": host,
         "port": port,
+        "boot_measure": _boot_public(),
+    }
+
+
+def _boot_public() -> dict[str, Any]:
+    measure = startup_measure()
+    return {
+        "status": measure["status"],
+        "verified": measure["verified"] is True,
+        "code": measure["code"],
+        "sentence": measure["sentence"],
+        "hashed": measure["hashed"] is True,
+        "hash_dropped": measure["hash_dropped"] is True,
+        "mesh_node_live": True,
+        "alt_internet_live": True,
+        "packet_path_live": True,
     }
 
 
@@ -71,10 +88,12 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args: Any) -> None:
         return
 
-    def _json(self, body: dict[str, Any], status: int = 200) -> None:
+    def _json(self, body: dict[str, Any], status: int = 200, *, allow: str | None = None) -> None:
         raw = json.dumps(body, indent=2).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        if allow:
+            self.send_header("Allow", allow)
         self.send_header("Cache-Control", "private, no-store")
         self.send_header("Content-Length", str(len(raw)))
         self.end_headers()
@@ -191,6 +210,9 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/cite.json":
             self._json(cite_document())
             return
+        if path == "/v1/boot_measure":
+            self._json(startup_measure())
+            return
         if path == "/v1/health":
             self._json(_ENGINE.health({}))
             return
@@ -301,6 +323,17 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._forensic_post(path, payload if isinstance(payload, dict) else {})
             return
+        if path == "/v1/boot_measure":
+            refused = dict(startup_measure())
+            refused["ok"] = False
+            refused["status"] = "unknown"
+            refused["verified"] = False
+            refused["signature_ok"] = False
+            refused["code"] = "BOOT-MEASURE-METHOD"
+            refused["sentence"] = "Boot measure: unknown. The file hash was not completed. This measure is not verified."
+            refused["display"] = {"title": "Boot measure", "summary": refused["sentence"], "fields": [{"label": "status", "value": "unknown"}]}
+            self._json(refused, 405, allow="GET, HEAD")
+            return
         if not path.startswith("/v1/"):
             self._json({"error": "not found"}, 404)
             return
@@ -365,9 +398,11 @@ def serve(host: str = LOOPBACK, port: int = PORT, *, ready=None) -> int:
         report = on_app_lifecycle(operator_root(), "ui-start")
     except Exception:
         report = {"ok": False, "code": "UPDATE-STATE", "live": False, "applied": False, "event": "ui-start"}
+    measure = startup_measure()
     httpd = make_server(host, port)
     bound = httpd.server_address
     print(open_line(str(bound[0]), int(bound[1])))
+    print(measure["sentence"])
     print(f"Signed update {report.get('code')}. live is false.")
     if ready is not None:
         ready(report, httpd)

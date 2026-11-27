@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .boot_measure import isolate_report, markup
 from .meta import HOST, LIMITATION, SIGIL
 from .honesty import COUNTED_TARBALL_SHA256, standing_text
 from .packet_path import not_live_sentence
@@ -131,6 +132,7 @@ footer a {{ color:var(--gold); }}
 {domain_map_html()}
 <p class="banner">{LIMITATION}</p>
 <p class="banner">This page stands on its own. Calls to aziel-runtime still use the existing FragGate door. Softwares 42 is the runtime catalog. The domain count stays 33. {not_live_sentence()} Mail send does not run on the public worker. The public worker does not run a kernel. Boot does not run on the public worker. The host operating system stays the host operating system. AZNews can stand alone. 4DMap can stand alone. A story is a pin only after that story is read back. {standing_text()}</p>
+{markup(isolate_report(), banner=True)}
 <div class="nums">
   <div class="count">{v}<span>Views</span></div>
   <div class="count">{n}<span>Downloads</span></div>
